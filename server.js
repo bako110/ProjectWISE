@@ -10,6 +10,7 @@ import collectorRoutes from './routes/collectors/collectorRoutes.js';
 import profileRoutes from './routes/profile.js';
 import zoneRoutes from './routes/agency/zoneRoutes.js';  
 import planningRoutes from './routes/agency/planningRoutes.js';
+import clientRoutes from './routes/agency/clientRoutes.js' 
 
 // Configurations et connexion à la base
 dotenv.config();
@@ -29,7 +30,7 @@ app.use('/api/collectors', collectorRoutes);
 app.use('/api/zones', zoneRoutes);   // <-- route Zones
 app.use('/api', profileRoutes);
 app.use('/api/plannings', planningRoutes);
-
+app.use('/api/getionclient', clientRoutes)
 
 // Middleware 404 pour routes non trouvées
 app.use((req, res) => {

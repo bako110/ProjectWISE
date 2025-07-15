@@ -7,7 +7,7 @@ const options = {
     info: {
       title: 'API WasteWise',
       version: '1.0.0',
-      description: 'Documentation de toutes les routes de votre backend',
+      description: 'Documentation de toutes les routes du backend',
     },
     servers: [
       {
