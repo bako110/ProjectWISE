@@ -206,11 +206,11 @@ const router = express.Router();
  *         description: Zone non trouvée
  */
 
-router.post('/', auth, authorizeRoles('admin-agency'), createZone);
-router.get('/agency/:agencyId', auth, authorizeRoles('admin-agency'), getZonesByAgency);
-router.get('/:id', auth, authorizeRoles('admin-agency'), getZoneById);
-router.put('/:id', auth, authorizeRoles('admin-agency'), updateZone);
-router.delete('/:id', auth, authorizeRoles('admin-agency'), deleteZone);
-router.put('/:id/assign-collectors', auth, authorizeRoles('admin-agency'), assignCollectorsToZone);
+router.post('/', auth, authorizeRoles('agence'), createZone);
+router.get('/agency/:agencyId', auth, authorizeRoles('agence'), getZonesByAgency);
+router.get('/:id', auth, authorizeRoles('agence'), getZoneById);
+router.put('/:id', auth, authorizeRoles('agence'), updateZone);
+router.delete('/:id', auth, authorizeRoles('agence'), deleteZone);
+router.put('/:id/assign-collectors', auth, authorizeRoles('agence'), assignCollectorsToZone);
 
 export default router;
