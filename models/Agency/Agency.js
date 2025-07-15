@@ -5,7 +5,7 @@ const agencySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true
+    unique: true,
   },
 
   name: { type: String, required: true },
@@ -13,46 +13,41 @@ const agencySchema = new mongoose.Schema({
   phone: String,
 
   location: {
-    region: { type: String},
-    province: { type: String },
-    commune: { type: String },
-    arrondissement: { type: String },
-    secteur: { type: String },
-    quartier: { type: String },
-    rue: { type: String }
+    region: String,
+    province: String,
+    commune: String,
+    arrondissement: String,
+    secteur: String,
+    quartier: String,
+    rue: String,
   },
 
   licenseNumber: { type: String, unique: true },
   description: String,
 
-  coveredAreas: [
+  collectors: [
     {
-      region: String,
-      province: String,
-      commune: String,
-      arrondissement: String,
-      secteur: String,
-      quartier: String,
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Collector',
+    },
   ],
 
-  // 🔗 Lien vers les collecteurs associés à cette agence
-  // ...
-    collectors: [{
+  clients: [
+    {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Collector'
-    }],
+      ref: 'Client',
+    },
+  ],
 
-    clients: [{
+  zones: [
+    {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Client'
-    }],
+      ref: 'Zone',
+    },
+  ],
 
-
-  isVerified: { type: Boolean, default: false }
-
+  isVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Agency = mongoose.model('Agency', agencySchema);
-
 export default Agency;

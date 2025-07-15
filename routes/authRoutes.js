@@ -61,8 +61,8 @@ const router = express.Router();
  *                 description: Nom de l'agence (si rôle agence)
  *                 example: Agence Propre
  *               licenseNumber:
- *                  type: String
- *                  unique: true 
+ *                 type: string
+ *                 example: AG-2024-001
  *     responses:
  *       201:
  *         description: Utilisateur créé avec succès
@@ -191,8 +191,12 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - newPassword
+ *               - confirmNewPassword
  *             properties:
  *               newPassword:
+ *                 type: string
+ *                 example: newStrongPassword123
+ *               confirmNewPassword:
  *                 type: string
  *                 example: newStrongPassword123
  *     responses:
