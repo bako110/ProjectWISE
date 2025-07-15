@@ -19,9 +19,9 @@ const municipalManagerSchema = new mongoose.Schema({
 
   // Commune/Département principal géré
   commune: {
-    region: { type: String, required: true },
-    province: { type: String, required: true },
-    name: { type: String, required: true } // Ex: "Ouagadougou"
+    region: { type: String},
+    province: { type: String },
+    name: { type: String } // Ex: "Ouagadougou"
   },
 
   // Zones sous sa juridiction

@@ -60,6 +60,9 @@ const router = express.Router();
  *                 type: string
  *                 description: Nom de l'agence (si rôle agence)
  *                 example: Agence Propre
+ *               licenseNumber:
+ *                  type: String
+ *                  unique: true 
  *     responses:
  *       201:
  *         description: Utilisateur créé avec succès
