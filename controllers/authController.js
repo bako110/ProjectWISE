@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-import User from '../models/user.js';
+import User from '../models/User.js';
 import Client from '../models/Client.js';
 import Agency from '../models/Agency.js';
 import MunicipalManager from '../models/MunicipalManager.js';
