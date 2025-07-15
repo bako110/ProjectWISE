@@ -30,7 +30,7 @@ app.use('/api/collectors', collectorRoutes);
 app.use('/api/zones', zoneRoutes);   // <-- route Zones
 app.use('/api', profileRoutes);
 app.use('/api/plannings', planningRoutes);
-app.use('/api/getionclient', clientRoutes)
+app.use('/api', clientRoutes)
 
 // Middleware 404 pour routes non trouvées
 app.use((req, res) => {

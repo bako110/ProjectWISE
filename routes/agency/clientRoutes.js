@@ -105,8 +105,8 @@ const router = express.Router();
  *         description: Client non trouvé
  */
 
-router.get('/agency/:agencyId', auth, authorizeRoles('agence'), getClientsByAgency);
-router.patch('/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
-router.post('/:id/signalement', auth, authorizeRoles('client'), reportNonPassage);
+router.get('/clients/agency/:agencyId', auth, authorizeRoles('agence'), getClientsByAgency);
+router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
+router.post('/clients/:id/signalement', auth, authorizeRoles('client'), reportNonPassage);
 
 export default router;
