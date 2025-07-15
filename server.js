@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import collectorRoutes from './routes/collectors/collectorRoutes.js';
 import profileRoutes from './routes/profile.js';
 import zoneRoutes from './routes/agency/zoneRoutes.js';  
+import planningRoutes from './routes/agency/planningRoutes.js';
 
 // Configurations et connexion à la base
 dotenv.config();
@@ -27,7 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/collectors', collectorRoutes);
 app.use('/api/zones', zoneRoutes);   // <-- route Zones
 app.use('/api', profileRoutes);
-
+app.use('/api/plannings', planningRoutes);
 
 
 // Middleware 404 pour routes non trouvées
