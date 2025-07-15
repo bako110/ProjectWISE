@@ -1,7 +1,7 @@
 // controllers/collectorController.js
 import mongoose from 'mongoose';
-import Agency from '../models/Agency.js';
-import Collector from '../models/Collector.js';
+import Agency from '../../models/Agency/Agency.js';
+import Collector from '../../models/Collectors/Collector.js';
 
 export const createCollector = async (req, res) => {
   try {

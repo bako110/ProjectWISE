@@ -15,7 +15,7 @@ swaggerDocs(app);
 
 // Import des routes
 import authRoutes from './routes/authRoutes.js';
-import collectorRoutes from './routes/collectorRoutes.js'; 
+import collectorRoutes from './routes/collectors/collectorRoutes.js'; 
 
 // Middleware routes
 app.use('/api/auth', authRoutes);

@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 import User from '../models/User.js';
-import Client from '../models/Client.js';
-import Agency from '../models/Agency.js';
-import MunicipalManager from '../models/MunicipalManager.js';
+import Client from '../models/clients/Client.js';
+import Agency from '../models/Agency/Agency.js';
+import MunicipalManager from '../models/Mairies/MunicipalManager.js';
 
 import { sendResetCodeEmail } from '../utils/resetcodemail.js';
 import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';

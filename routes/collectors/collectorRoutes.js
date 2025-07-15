@@ -1,6 +1,6 @@
 import express from 'express';
-import authMiddleware from '../middlewares/authMiddleware.js';
-import { createCollector } from '../controllers/collectorController.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
+import { createCollector } from '../../controllers/collectors/collectorController.js';
 
 const router = express.Router();
 

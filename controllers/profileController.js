@@ -1,8 +1,8 @@
 import User from '../models/User.js';
-import Agency from '../models/Agency.js';
-import Client from '../models/Client.js';
-import Collector from '../models/Collector.js';
-import MunicipalManager from '../models/MunicipalManager.js';
+import Agency from '../models/Agency/Agency.js';
+import Client from '../models/clients/Client.js';
+import Collector from '../models/Collectors/Collector.js';
+import MunicipalManager from '../models/Mairies/MunicipalManager.js';
 
 export const updateProfile = async (req, res) => {
   try {
