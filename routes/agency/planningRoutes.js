@@ -169,9 +169,9 @@ const router = express.Router();
  *         description: Liste des tournées historiques
  */
 
-router.post('/', auth, authorizeRoles('admin-agency'), creerPlanning);
-router.get('/', auth, authorizeRoles('admin-agency', 'collector'), listerPlannings);
-router.patch('/:id', auth, authorizeRoles('collector', 'admin-agency'), mettreAJourPlanning);
-router.get('/historique/:collecteurId', auth, authorizeRoles('collector', 'admin-agency'), historiqueParCollecteur);
+router.post('/', auth, authorizeRoles('agence'), creerPlanning);
+router.get('/', auth, authorizeRoles('agence', 'collector'), listerPlannings);
+router.patch('/:id', auth, authorizeRoles('collector', 'agence'), mettreAJourPlanning);
+router.get('/historique/:collecteurId', auth, authorizeRoles('collector', 'agence'), historiqueParCollecteur);
 
 export default router;
