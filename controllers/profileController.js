@@ -1,4 +1,4 @@
-import User from '../models/User.js';
+import User from '../models/user.js';
 import Agency from '../models/Agency.js';
 import Client from '../models/Client.js';
 import Collector from '../models/Collector.js';
