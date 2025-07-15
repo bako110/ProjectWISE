@@ -1,16 +1,40 @@
 import mongoose from 'mongoose';
 
 const collectorSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-  agencyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency', required: true },
-  firstName: String,
-  lastName: String,
-  phone: String,
-  assignedSectors: [String],
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    required: true
+  },
+
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  phone: { type: String, required: true },
+
+  // Affectations géographiques du collecteur
+  assignedAreas: [
+    {
+      region: { type: String, required: true },
+      province: { type: String, required: true },
+      commune: { type: String, required: true },
+      arrondissement: { type: String },
+      secteur: { type: String },
+      quartier: { type: String }
+    }
+  ],
+
   vehicleInfo: {
-    type: String,
-    plateNumber: String,
+    type: { type: String },          // Exemple: "Moto", "Tricycle", "Camion"
+    plateNumber: { type: String }
   }
+
 }, { timestamps: true });
 
 const Collector = mongoose.model('Collector', collectorSchema);

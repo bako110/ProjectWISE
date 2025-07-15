@@ -3,8 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 import User from '../models/user.js';
-import Client from '../models/client.js';
-import Collector from '../models/Collector.js';
+import Client from '../models/Client.js';
 import Agency from '../models/Agency.js';
 import MunicipalManager from '../models/MunicipalManager.js';
 
@@ -17,59 +16,118 @@ const verificationCodes = new Map();
 /* --------------------------- ENREGISTREMENT --------------------------- */
 export const register = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    // Extraction des champs possibles
+    const {
+      email,
+      password,
+      role,
+      firstName,
+      lastName,
+      phone,
+      name     // pour l’agence
+    } = req.body;
+
+    /*─────────── VALIDATIONS GÉNÉRALES ───────────*/
+
     if (!email || !password || !role) {
       return res.status(400).json({ message: 'Veuillez remplir tous les champs requis' });
     }
 
-    // Validation de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: 'Format d\'email invalide' });
     }
 
-    // Validation du mot de passe
     if (password.length < 8) {
       return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
     }
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
+    const exists = await User.findOne({ email });
+    if (exists) {
       return res.status(400).json({ message: 'Email déjà utilisé' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, password: hashedPassword, role, isActive: true });
-
-    // Création du profil associé selon le rôle
-    switch (role) {
-      case 'client':
-        await Client.create({ userId: user._id });
-        break;
-      case 'collecteur':
-        await Collector.create({ userId: user._id });
-        break;
-      case 'agence':
-        await Agency.create({ userId: user._id });
-        break;
-      case 'mairie':
-        await MunicipalManager.create({ userId: user._id });
-        break;
-      default:
-        await User.findByIdAndDelete(user._id);
-        return res.status(400).json({ message: 'Rôle invalide' });
+    const allowedRoles = ['client', 'agence', 'mairie'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({ message: 'Inscription interdite pour ce rôle' });
     }
 
-    res.status(201).json({ 
-      message: 'Utilisateur créé avec succès', 
+    /*─────────── VALIDATIONS SPÉCIFIQUES AU RÔLE ───────────*/
+
+    if (role === 'client') {
+      if (!firstName || !lastName || !phone) {
+        return res.status(400).json({ message: 'Prénom, nom et téléphone sont obligatoires pour un client.' });
+      }
+    }
+
+    if (role === 'agence') {
+      if (!name) {
+        return res.status(400).json({ message: 'Le nom de l’agence est obligatoire.' });
+      }
+    }
+
+    if (role === 'mairie') {
+      if (!firstName || !lastName) {
+        return res.status(400).json({ message: 'Prénom et nom sont obligatoires pour une mairie.' });
+      }
+    }
+
+    /*─────────── CRÉATION DE L'UTILISATEUR ───────────*/
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      role,
+      isActive: true
+    });
+
+    /*─────────── PROFIL SPÉCIFIQUE ───────────*/
+
+    switch (role) {
+      case 'client':
+        await Client.create({
+          userId: user._id,
+          firstName,
+          lastName,
+          phone,
+          subscribedAgencyId: null,   // à lier plus tard
+        });
+        break;
+
+      case 'agence':
+        await Agency.create({
+          userId: user._id,
+          name,
+          collectors: [],
+          clients: []
+        });
+        break;
+
+      case 'mairie':
+        await MunicipalManager.create({
+          userId: user._id,
+          firstName,
+          lastName,
+          phone: phone || '',
+          agencyId: []    // agences rattachées ajoutées plus tard
+        });
+        break;
+    }
+
+    /*─────────── RÉPONSE ───────────*/
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès',
       userId: user._id,
       role: user.role
     });
+
   } catch (error) {
     console.error('Erreur lors de l\'inscription :', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
+
 
 /* ------------------------------- LOGIN -------------------------------- */
 export const login = async (req, res) => {
