@@ -22,7 +22,7 @@ const agencySchema = new mongoose.Schema({
     rue: String,
   },
 
-  licenseNumber: { type: String, unique: true },
+  licenseNumber: { type: String, unique: true , sparse: true,},
   description: String,
 
   collectors: [

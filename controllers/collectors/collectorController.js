@@ -1,39 +1,44 @@
-// controllers/collectorController.js
 import mongoose from 'mongoose';
 import Agency from '../../models/Agency/Agency.js';
 import Collector from '../../models/Collectors/Collector.js';
 
 export const createCollector = async (req, res) => {
   try {
-    // 1) Vérifier que le demandeur est bien une agence
+    // ✅ 1) Vérifier que le demandeur est bien une agence
     if (req.user.role !== 'agence') {
-      return res.status(403).json({ message: 'Accès réservé aux agences' });
+      return res.status(403).json({ message: 'Accès réservé aux agences uniquement' });
     }
 
-    // 2) Récupérer l’agence du demandeur
+    // ✅ 2) Vérifier que l'ID utilisateur est présent
+    if (!req.user.id) {
+      return res.status(401).json({ message: 'Utilisateur non authentifié correctement' });
+    }
+
+    console.log("🔍 ID utilisateur (req.user.id) :", req.user.id);
+
+    // ✅ 3) Récupérer l’agence du demandeur
     const agency = await Agency.findOne({ userId: req.user.id });
+
     if (!agency) {
-      return res.status(404).json({ message: 'Agence introuvable' });
+      return res.status(404).json({ message: 'Agence introuvable pour cet utilisateur' });
     }
 
-    // 3) Extraire & valider les champs du collecteur
+    // ✅ 4) Extraire & valider les champs du collecteur
     const {
       firstName,
       lastName,
       phone,
-      assignedSectors = [],  // corrigé : "assignedSectors" au lieu de "assignedAreas"
+      assignedSectors = [],
       vehicleInfo = {}
     } = req.body;
 
     if (!firstName || !lastName || !phone) {
-      return res.status(400).json({ message: 'Champs obligatoires manquants' });
+      return res.status(400).json({ message: 'Prénom, nom et téléphone sont requis' });
     }
 
-    // 4) Créer le collecteur lié à l’agence
+    // ✅ 5) Créer le collecteur lié à l’agence
     const collector = await Collector.create({
-      // Si tu veux lier à un compte utilisateur, crée le User avant et mets son _id ici.
-      // Ici on met null ou pas de userId pour l'instant.
-      userId: null,
+      userId: null, // À lier plus tard si besoin
       agencyId: agency._id,
       firstName,
       lastName,
@@ -42,18 +47,19 @@ export const createCollector = async (req, res) => {
       vehicleInfo
     });
 
-    // 5) Ajouter son ID dans la liste des collecteurs de l’agence
+    // ✅ 6) Ajouter son ID dans la liste des collecteurs de l’agence
     agency.collectors.push(collector._id);
     await agency.save();
 
-    // 6) Répondre
+    // ✅ 7) Réponse
     res.status(201).json({
       message: 'Collecteur créé avec succès',
-      collectorId: collector._id
+      collectorId: collector._id,
+      agencyId: agency._id
     });
 
   } catch (error) {
-    console.error('Création collecteur :', error);
+    console.error('❌ Erreur lors de la création du collecteur :', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
