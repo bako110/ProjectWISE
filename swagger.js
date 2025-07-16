@@ -25,12 +25,18 @@ const options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  // Inclure tous les fichiers .js dans routes et sous-dossiers
-  apis: ['./routes/**/*.js'],
+  apis: ['./routes/**/*.js'], // <-- Cible tous les fichiers .js dans routes et sous-dossiers
 };
 
 const swaggerSpec = swaggerJSDoc(options);
 
 export default (app) => {
+  // UI Swagger
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+  // Endpoint JSON brut
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
 };
