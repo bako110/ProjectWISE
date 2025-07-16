@@ -9,11 +9,10 @@ const options = {
       version: '1.0.0',
       description: 'Documentation de toutes les routes du backend',
     },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-      },
-    ],
+  servers: [
+  { url: 'http://localhost:3000' },
+  { url: 'https://projectwise.onrender.com/' }
+],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -38,5 +37,5 @@ export default (app) => {
   app.get('/api-docs.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
-  });
+  }); 
 };
