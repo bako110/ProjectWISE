@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto, { randomUUID } from 'crypto';
 
 import User from '../models/User.js';
 import Client from '../models/clients/Client.js';
@@ -19,7 +19,6 @@ export const register = async (req, res) => {
     const {
       email,
       password,
-      confirmPassword,
       role,
       firstName,
       lastName,
@@ -36,11 +35,12 @@ export const register = async (req, res) => {
       numero,
       couleurPorte,
       ville,
+      licenceNumber,
       codePostal
     } = req.body;
 
     // 🔒 Vérif champs essentiels
-    if (!email || !password || !confirmPassword || !role || !firstName || !lastName || !phone || termsAccepted !== true) {
+    if (!email || !password || !role || !firstName || !lastName || !phone || termsAccepted !== true) {
       return res.status(400).json({ message: 'Champs obligatoires manquants ou conditions non acceptées.' });
     }
 
@@ -109,6 +109,7 @@ export const register = async (req, res) => {
           phone,
           description,
           termsAccepted,
+          licenseNumber: licenceNumber || randomUUID(),
           receiveOffers,
           collectors: [],
           clients: []
