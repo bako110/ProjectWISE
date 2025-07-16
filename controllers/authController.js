@@ -16,64 +16,58 @@ const verificationCodes = new Map();
 /* --------------------------- ENREGISTREMENT --------------------------- */
 export const register = async (req, res) => {
   try {
-    // Extraction des champs possibles
     const {
       email,
       password,
+      confirmPassword,
       role,
       firstName,
       lastName,
       phone,
-      name     // pour l’agence
+      name,              // Nom de l'agence
+      description,       // Pour agence
+      termsAccepted,
+      receiveOffers = false,
+
+      // Adresse pour client
+      arrondissement,
+      rue,
+      quartier,
+      numero,
+      couleurPorte,
+      ville,
+      codePostal
     } = req.body;
 
-    /*─────────── VALIDATIONS GÉNÉRALES ───────────*/
+    // 🔒 Vérif champs essentiels
+    if (!email || !password || !confirmPassword || !role || !firstName || !lastName || !phone || termsAccepted !== true) {
+      return res.status(400).json({ message: 'Champs obligatoires manquants ou conditions non acceptées.' });
+    }
 
-    if (!email || !password || !role) {
-      return res.status(400).json({ message: 'Veuillez remplir tous les champs requis' });
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Mot de passe trop court (min 8 caractères).' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Les mots de passe ne correspondent pas.' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Format d\'email invalide' });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
+      return res.status(400).json({ message: 'Format d\'email invalide.' });
     }
 
     const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: 'Email déjà utilisé' });
+      return res.status(400).json({ message: 'Email déjà utilisé.' });
     }
 
     const allowedRoles = ['client', 'agence', 'mairie'];
     if (!allowedRoles.includes(role)) {
-      return res.status(403).json({ message: 'Inscription interdite pour ce rôle' });
+      return res.status(403).json({ message: 'Rôle non autorisé.' });
     }
 
-    /*─────────── VALIDATIONS SPÉCIFIQUES AU RÔLE ───────────*/
-
-    if (role === 'client') {
-      if (!firstName || !lastName || !phone) {
-        return res.status(400).json({ message: 'Prénom, nom et téléphone sont obligatoires pour un client.' });
-      }
-    }
-
-    if (role === 'agence') {
-      if (!name) {
-        return res.status(400).json({ message: 'Le nom de l’agence est obligatoire.' });
-      }
-    }
-
-    if (role === 'mairie') {
-      if (!firstName || !lastName) {
-        return res.status(400).json({ message: 'Prénom et nom sont obligatoires pour une mairie.' });
-      }
-    }
-
-    /*─────────── CRÉATION DE L'UTILISATEUR ───────────*/
-
+    // 🔐 Créer l’utilisateur
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({
       email,
@@ -82,8 +76,7 @@ export const register = async (req, res) => {
       isActive: true
     });
 
-    /*─────────── PROFIL SPÉCIFIQUE ───────────*/
-
+    // 👤 Création du profil selon rôle
     switch (role) {
       case 'client':
         await Client.create({
@@ -91,14 +84,32 @@ export const register = async (req, res) => {
           firstName,
           lastName,
           phone,
-          subscribedAgencyId: null,   // à lier plus tard
+          subscribedAgencyId: null,
+          termsAccepted,
+          receiveOffers,
+          serviceAddress: {
+            arrondissement,
+            rue,
+            quartier,
+            numero,
+            couleurPorte,
+            ville,
+            codePostal
+          }
         });
         break;
 
       case 'agence':
+        if (!name) {
+          return res.status(400).json({ message: 'Nom de l’agence requis.' });
+        }
         await Agency.create({
           userId: user._id,
           name,
+          phone,
+          description,
+          termsAccepted,
+          receiveOffers,
           collectors: [],
           clients: []
         });
@@ -109,13 +120,13 @@ export const register = async (req, res) => {
           userId: user._id,
           firstName,
           lastName,
-          phone: phone || '',
-          agencyId: []    // agences rattachées ajoutées plus tard
+          phone,
+          agencyId: []
         });
         break;
     }
 
-    /*─────────── RÉPONSE ───────────*/
+    // ✅ Succès
     res.status(201).json({
       message: 'Utilisateur créé avec succès',
       userId: user._id,
@@ -123,7 +134,7 @@ export const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur lors de l\'inscription :', error);
+    console.error('❌ Erreur inscription :', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };

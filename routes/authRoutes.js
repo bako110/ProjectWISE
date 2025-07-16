@@ -22,52 +22,203 @@ const router = express.Router();
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Inscription d'un nouvel utilisateur
+ *     summary: Inscription d'un nouvel utilisateur (client, agence ou mairie)
  *     tags: [Authentification]
  *     requestBody:
- *       description: Données pour créer un utilisateur
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *               - role
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: user@example.com
- *               password:
- *                 type: string
- *                 example: strongPassword123
- *               role:
- *                 type: string
- *                 enum: [client, agence, mairie]
- *                 example: client
- *               firstName:
- *                 type: string
- *                 example: Jean
- *               lastName:
- *                 type: string
- *                 example: Dupont
- *               phone:
- *                 type: string
- *                 example: "+22670123456"
- *               name:
- *                 type: string
- *                 description: Nom de l'agence (si rôle agence)
- *                 example: Agence Propre
- *               licenseNumber:
- *                 type: string
- *                 example: AG-2024-001
+ *             oneOf:
+ *               - $ref: '#/components/schemas/ClientRegister'
+ *               - $ref: '#/components/schemas/AgenceRegister'
+ *               - $ref: '#/components/schemas/MairieRegister'
+ *           examples:
+ *             client:
+ *               summary: Inscription client
+ *               value:
+ *                 role: client
+ *                 firstName: Awa
+ *                 lastName: Ouédraogo
+ *                 email: awa.client@gmail.com
+ *                 phone: "+22670123456"
+ *                 password: motDePasseFort123
+ *                 confirmPassword: motDePasseFort123
+ *                 termsAccepted: true
+ *                 receiveOffers: false
+ *                 arrondissement: Arrondissement 3
+ *                 rue: Rue 14.19
+ *                 quartier: Tampouy
+ *                 numero: "12"
+ *                 couleurPorte: Bleu
+ *                 ville: Ouagadougou
+ *                 codePostal: "22600"
+ *             agence:
+ *               summary: Inscription agence
+ *               value:
+ *                 role: agence
+ *                 firstName: Jean
+ *                 lastName: Dupont
+ *                 email: agence@example.com
+ *                 phone: "+22670123456"
+ *                 password: motDePasseFort123
+ *                 confirmPassword: motDePasseFort123
+ *                 termsAccepted: true
+ *                 receiveOffers: true
+ *                 agencyName: Agence Propre
+ *                 description: Collecte des déchets ménagers à Ouagadougou.
+ *             mairie:
+ *               summary: Inscription mairie
+ *               value:
+ *                 role: mairie
+ *                 firstName: Marie
+ *                 lastName: Curie
+ *                 email: mairie@example.com
+ *                 phone: "+22670123456"
+ *                 password: motDePasseFort123
+ *                 confirmPassword: motDePasseFort123
+ *                 termsAccepted: true
+ *                 receiveOffers: false
  *     responses:
  *       201:
- *         description: Utilisateur créé avec succès
+ *         description: Utilisateur inscrit avec succès
  *       400:
- *         description: Données invalides
+ *         description: Données invalides ou consentement manquant
+ */
+
+/**
+ * @swagger
+ * /api/auth/register/client:
+ *   post:
+ *     summary: Inscription d’un client
+ *     tags: [Authentification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ClientRegister'
+ *     responses:
+ *       201:
+ *         description: Client inscrit avec succès
+ *       400:
+ *         description: Erreur de validation
+ */
+
+/**
+ * @swagger
+ * /api/auth/register/agence:
+ *   post:
+ *     summary: Inscription d’une agence
+ *     tags: [Authentification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AgenceRegister'
+ *     responses:
+ *       201:
+ *         description: Agence inscrite avec succès
+ *       400:
+ *         description: Erreur de validation
+ */
+
+/**
+ * @swagger
+ * /api/auth/register/mairie:
+ *   post:
+ *     summary: Inscription d’une mairie
+ *     tags: [Authentification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MairieRegister'
+ *     responses:
+ *       201:
+ *         description: Mairie inscrite avec succès
+ *       400:
+ *         description: Erreur de validation
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     BaseUser:
+ *       type: object
+ *       required:
+ *         - role
+ *         - email
+ *         - password
+ *         - confirmPassword
+ *         - termsAccepted
+ *       properties:
+ *         role:
+ *           type: string
+ *           enum: [client, agence, mairie]
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         phone:
+ *           type: string
+ *         password:
+ *           type: string
+ *         confirmPassword:
+ *           type: string
+ *         termsAccepted:
+ *           type: boolean
+ *         receiveOffers:
+ *           type: boolean
+ *     ClientRegister:
+ *       allOf:
+ *         - $ref: '#/components/schemas/BaseUser'
+ *         - type: object
+ *           required:
+ *             - arrondissement
+ *             - rue
+ *             - quartier
+ *             - numero
+ *             - couleurPorte
+ *             - ville
+ *             - codePostal
+ *           properties:
+ *             arrondissement:
+ *               type: string
+ *             rue:
+ *               type: string
+ *             quartier:
+ *               type: string
+ *             numero:
+ *               type: string
+ *             couleurPorte:
+ *               type: string
+ *             ville:
+ *               type: string
+ *             codePostal:
+ *               type: string
+ *     AgenceRegister:
+ *       allOf:
+ *         - $ref: '#/components/schemas/BaseUser'
+ *         - type: object
+ *           required:
+ *             - agencyName
+ *             - description
+ *           properties:
+ *             agencyName:
+ *               type: string
+ *             description:
+ *               type: string
+ *     MairieRegister:
+ *       allOf:
+ *         - $ref: '#/components/schemas/BaseUser'
+ *         - type: object
  */
 
 /**
@@ -205,6 +356,12 @@ const router = express.Router();
  *       400:
  *         description: Token invalide ou expiré
  */
+
+
+// Alias pour Swagger UI
+['client', 'agence', 'mairie'].forEach(role => {
+  router.post(`/register/${role}`, (req, res) => register(req, res));
+});
 
 router.post('/register', register);
 router.post('/login', login);

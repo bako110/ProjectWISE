@@ -8,22 +8,43 @@ const agencySchema = new mongoose.Schema({
     unique: true,
   },
 
-  name: { type: String, required: true },
-  contactPerson: String,
-  phone: String,
-
-  location: {
-    region: String,
-    province: String,
-    commune: String,
-    arrondissement: String,
-    secteur: String,
-    quartier: String,
-    rue: String,
+  name: { 
+    type: String, 
+    required: true,
+    trim: true
   },
 
-  licenseNumber: { type: String, unique: true , sparse: true,},
-  description: String,
+  contactPerson: { 
+    type: String,
+    trim: true
+  },
+
+  phone: {
+    type: String,
+    trim: true
+  },
+
+  location: {
+    ville: { type: String, trim: true },        // <-- ajouté ici
+    arrondissement: { type: String, trim: true },
+    secteur: { type: String, trim: true },
+    quartier: { type: String, trim: true },
+    rue: { type: String, trim: true },
+  },
+
+  licenseNumber: { 
+    type: String, 
+    unique: true,
+    sparse: true,
+    trim: true,
+    default: null
+  },
+
+  description: { 
+    type: String, 
+    trim: true,
+    default: ''
+  },
 
   collectors: [
     {
@@ -46,8 +67,23 @@ const agencySchema = new mongoose.Schema({
     },
   ],
 
-  isVerified: { type: Boolean, default: false },
+  // Consentements obligatoires et optionnels
+  termsAccepted: { 
+    type: Boolean, 
+    required: true 
+  },
+
+  receiveOffers: { 
+    type: Boolean, 
+    default: false 
+  },
+
+  isVerified: { 
+    type: Boolean, 
+    default: false 
+  },
 }, { timestamps: true });
 
 const Agency = mongoose.model('Agency', agencySchema);
+
 export default Agency;

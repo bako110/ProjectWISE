@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
 
 const clientSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true, 
+    unique: true 
+  },
 
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  phone: { type: String, required: true },
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, required: true, trim: true },
+  phone: { type: String, required: true, trim: true },
 
   agencyId: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -13,22 +18,23 @@ const clientSchema = new mongoose.Schema({
   }],
 
   serviceAddress: {
-    region: { type: String },
-    province: { type: String },
-    commune: { type: String },
-    arrondissement: { type: String },
-    secteur: { type: String },
-    quartier: { type: String },
-    rue: { type: String },
-    porte: { type: String },
-    couleurPorte: { type: String },
+    ville: { type: String, trim: true },  // ← Ajout
+    arrondissement: { type: String, trim: true },
+    secteur: { type: String, trim: true },
+    quartier: { type: String, trim: true },
+    rue: { type: String, trim: true },
+    porte: { type: String, trim: true },
+    couleurPorte: { type: String, trim: true },
     coordinates: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
     }
   },
 
-  subscribedAgencyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agency' },
+  subscribedAgencyId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Agency' 
+  },
 
   subscriptionStatus: {
     type: String,
@@ -36,32 +42,47 @@ const clientSchema = new mongoose.Schema({
     default: 'pending'
   },
 
-  // Historique des abonnements (dates, status, offres)
   subscriptionHistory: [{
     date: { type: Date, default: Date.now },
-    status: { type: String, enum: ['active', 'pending', 'cancelled'], required: true },
-    offer: { type: String }
+    status: { 
+      type: String, 
+      enum: ['active', 'pending', 'cancelled'], 
+      required: true 
+    },
+    offer: { type: String, trim: true }
   }],
 
-  // Historique des paiements
   paymentHistory: [{
     amount: { type: Number, required: true },
     date: { type: Date, default: Date.now },
-    method: { type: String }, // ex: 'Stripe', 'PayPal', 'Cash'
-    status: { type: String, enum: ['success', 'pending', 'failed'], required: true }
+    method: { type: String, trim: true },
+    status: { 
+      type: String, 
+      enum: ['success', 'pending', 'failed'], 
+      required: true 
+    }
   }],
 
-  // Signalements de non-passage
   nonPassageReports: [{
     date: { type: Date, default: Date.now },
-    comment: { type: String }
-  }]
+    comment: { type: String, trim: true }
+  }],
+
+  // Consentements
+  termsAccepted: { 
+    type: Boolean, 
+    required: true 
+  },
+
+  receiveOffers: { 
+    type: Boolean, 
+    default: false 
+  }
 
 }, { timestamps: true });
 
-// Index géospatial pour les recherches par position
+// Index géospatial pour la géolocalisation
 clientSchema.index({ 'serviceAddress.coordinates': '2dsphere' });
 
 const Client = mongoose.model('Client', clientSchema);
-
 export default Client;
