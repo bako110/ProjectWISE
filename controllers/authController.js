@@ -48,9 +48,6 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Mot de passe trop court (min 8 caractères).' });
     }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: 'Les mots de passe ne correspondent pas.' });
-    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
