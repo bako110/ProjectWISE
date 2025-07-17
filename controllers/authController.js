@@ -1,3 +1,19 @@
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto, { randomUUID } from 'crypto';
+
+import User from '../models/User.js';
+import Client from '../models/clients/Client.js';
+import Agency from '../models/Agency/Agency.js';
+import MunicipalManager from '../models/Mairies/MunicipalManager.js';
+
+import { sendResetCodeEmail } from '../utils/resetcodemail.js';
+import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
+
+// Cache in-memory pour stocker temporairement les codes de vérification (email → { code, expiresAt })
+const verificationCodes = new Map();
+
+/* --------------------------- ENREGISTREMENT --------------------------- */
 export const register = async (req, res) => {
   let createdUser = null;
   let createdProfile = null;
@@ -260,6 +276,7 @@ export const register = async (req, res) => {
     });
   }
 };
+
 
 
 /* ------------------------------- LOGIN -------------------------------- */
