@@ -10,7 +10,8 @@ import collectorRoutes from './routes/collectors/collectorRoutes.js';
 import profileRoutes from './routes/profile.js';
 import zoneRoutes from './routes/agency/zoneRoutes.js';  
 import planningRoutes from './routes/agency/planningRoutes.js';
-import clientRoutes from './routes/agency/clientRoutes.js' 
+import agencyClientRoutes from './routes/agency/clientRoutes.js' ;
+import clientRoutes from './routes/clients/clientRoutes.js'
 import agenceSearchRoutes from './routes/clients/agencySearchRoutes.js'
 
 // Configurations et connexion à la base
@@ -31,9 +32,9 @@ app.use('/api/collectors', collectorRoutes);
 app.use('/api/zones', zoneRoutes);   // <-- route Zones
 app.use('/api', profileRoutes);
 app.use('/api/plannings', planningRoutes);
-app.use('/api', clientRoutes)
 app.use('/api/agences', agenceSearchRoutes);
-
+app.use('/api', agencyClientRoutes);
+app.use('./api/clients', clientRoutes);
 
 
 // Middleware 404 pour routes non trouvées

@@ -28,7 +28,7 @@ export const updateProfile = async (req, res) => {
         );
         break;
 
-      case 'agency':
+      case 'agence':
         updated = await Agency.findOneAndUpdate(
           { userId },
           { $set: filterAgencyFields(updates) },
@@ -36,7 +36,7 @@ export const updateProfile = async (req, res) => {
         );
         break;
 
-      case 'collector':
+      case 'collecteur':
         updated = await Collector.findOneAndUpdate(
           { userId },
           { $set: filterCollectorFields(updates) },

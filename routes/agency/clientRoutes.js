@@ -4,8 +4,8 @@ import auth from '../../middlewares/authMiddleware.js';
 import { authorizeRoles } from '../../middlewares/agency/roleMiddleware.js';
 import {
   getClientsByAgency,
-  updateClientProfile,
   reportNonPassage,
+  validateClientSubscription
 } from '../../controllers/agency/clientController.js';
 
 const router = express.Router();
@@ -106,7 +106,8 @@ const router = express.Router();
  */
 
 router.get('/clients/agency/:agencyId', auth, authorizeRoles('agence'), getClientsByAgency);
-router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
+// router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
 router.post('/clients/:id/signalement', auth, authorizeRoles('client'), reportNonPassage);
+router.put('/clients/:clientId/validate', auth, authorizeRoles('agence'), validateClientSubscription);
 
 export default router;
