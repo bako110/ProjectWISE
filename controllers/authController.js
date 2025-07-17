@@ -1,20 +1,7 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto, { randomUUID } from 'crypto';
-
-import User from '../models/User.js';
-import Client from '../models/clients/Client.js';
-import Agency from '../models/Agency/Agency.js';
-import MunicipalManager from '../models/Mairies/MunicipalManager.js';
-
-import { sendResetCodeEmail } from '../utils/resetcodemail.js';
-import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
-
-// Cache in-memory pour stocker temporairement les codes de vérification (email → { code, expiresAt })
-const verificationCodes = new Map();
-
-/* --------------------------- ENREGISTREMENT --------------------------- */
 export const register = async (req, res) => {
+  let createdUser = null;
+  let createdProfile = null;
+
   try {
     const {
       email,
@@ -23,12 +10,10 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       phone,
-      name,              // Nom de l'agence
-      description,       // Pour agence
+      name,
+      description,
       termsAccepted,
       receiveOffers = false,
-
-      // Adresse pour client
       arrondissement,
       rue,
       quartier,
@@ -39,101 +24,240 @@ export const register = async (req, res) => {
       codePostal
     } = req.body;
 
-    // 🔒 Vérif champs essentiels
     if (!email || !password || !role || !firstName || !lastName || !phone || termsAccepted !== true) {
-      return res.status(400).json({ message: 'Champs obligatoires manquants ou conditions non acceptées.' });
+      return res.status(400).json({
+        message: 'Champs obligatoires manquants ou conditions non acceptées.',
+        error: 'MISSING_REQUIRED_FIELDS'
+      });
     }
 
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Mot de passe trop court (min 8 caractères).' });
+      return res.status(400).json({
+        message: 'Mot de passe trop court (min 8 caractères).',
+        error: 'PASSWORD_TOO_SHORT'
+      });
     }
-
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Format d\'email invalide.' });
+      return res.status(400).json({
+        message: 'Format d\'email invalide.',
+        error: 'INVALID_EMAIL_FORMAT'
+      });
     }
 
     const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: 'Email déjà utilisé.' });
+      return res.status(400).json({
+        message: 'Email déjà utilisé.',
+        error: 'EMAIL_ALREADY_EXISTS'
+      });
     }
 
     const allowedRoles = ['client', 'agence', 'mairie'];
     if (!allowedRoles.includes(role)) {
-      return res.status(403).json({ message: 'Rôle non autorisé.' });
+      return res.status(403).json({
+        message: 'Rôle non autorisé.',
+        error: 'INVALID_ROLE'
+      });
     }
 
-    // 🔐 Créer l’utilisateur
+    if (role === 'agence' && !name) {
+      return res.status(400).json({
+        message: 'Nom de l\'agence requis pour le rôle agence.',
+        error: 'AGENCY_NAME_REQUIRED'
+      });
+    }
+
+    if (role === 'client') {
+      if (!arrondissement || !rue || !quartier || !ville) {
+        return res.status(400).json({
+          message: 'Adresse complète requise pour le client (arrondissement, rue, quartier, ville).',
+          error: 'CLIENT_ADDRESS_INCOMPLETE'
+        });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-      role,
-      isActive: true
-    });
+    let profileData = {};
 
-    // 👤 Création du profil selon rôle
-    switch (role) {
-      case 'client':
-        await Client.create({
-          userId: user._id,
-          firstName,
-          lastName,
-          phone,
-          subscribedAgencyId: null,
-          termsAccepted,
-          receiveOffers,
-          serviceAddress: {
-            arrondissement,
-            rue,
-            quartier,
-            numero,
-            couleurPorte,
-            ville,
-            codePostal
-          }
-        });
-        break;
+    try {
+      switch (role) {
+        case 'client':
+          profileData = {
+            firstName,
+            lastName,
+            phone,
+            subscribedAgencyId: null,
+            termsAccepted,
+            receiveOffers,
+            serviceAddress: {
+              arrondissement,
+              rue,
+              quartier,
+              numero: numero || '',
+              couleurPorte: couleurPorte || '',
+              ville,
+              codePostal: codePostal || ''
+            }
+          };
+          break;
 
-      case 'agence':
-        if (!name) {
-          return res.status(400).json({ message: 'Nom de l’agence requis.' });
-        }
-        await Agency.create({
-          userId: user._id,
-          name,
-          phone,
-          description,
-          termsAccepted,
-          licenseNumber: licenceNumber || randomUUID(),
-          receiveOffers,
-          collectors: [],
-          clients: []
-        });
-        break;
+        case 'agence':
+          profileData = {
+            name,
+            phone,
+            description: description || '',
+            termsAccepted,
+            licenseNumber: licenceNumber || randomUUID(),
+            receiveOffers,
+            collectors: [],
+            clients: []
+          };
+          break;
 
-      case 'mairie':
-        await MunicipalManager.create({
-          userId: user._id,
-          firstName,
-          lastName,
-          phone,
-          agencyId: []
-        });
-        break;
+        case 'mairie':
+          profileData = {
+            firstName,
+            lastName,
+            phone,
+            agencyId: []
+          };
+          break;
+
+        default:
+          throw new Error(`Rôle non supporté: ${role}`);
+      }
+    } catch (profilePrepError) {
+      console.error(`Erreur préparation profil ${role}:`, profilePrepError);
+      return res.status(500).json({
+        message: `Erreur lors de la préparation des données pour le rôle ${role}`,
+        error: 'PROFILE_DATA_PREPARATION_FAILED',
+        details: profilePrepError.message
+      });
     }
 
-    // ✅ Succès
+    try {
+      createdUser = await User.create({
+        email,
+        password: hashedPassword,
+        role,
+        isActive: true
+      });
+
+      console.log(`Utilisateur créé avec succès: ${createdUser._id}`);
+    } catch (userError) {
+      console.error('Erreur création utilisateur:', userError);
+      return res.status(500).json({
+        message: 'Erreur lors de la création de l\'utilisateur',
+        error: 'USER_CREATION_FAILED',
+        details: userError.message
+      });
+    }
+
+    try {
+      profileData.userId = createdUser._id;
+
+      switch (role) {
+        case 'client':
+          createdProfile = await Client.create(profileData);
+          break;
+
+        case 'agence':
+          createdProfile = await Agency.create(profileData);
+          break;
+
+        case 'mairie':
+          createdProfile = await MunicipalManager.create(profileData);
+          break;
+      }
+
+      if (!createdProfile) {
+        throw new Error(`Échec de la création du profil ${role}`);
+      }
+
+      console.log(`Profil ${role} créé: ${createdProfile._id}`);
+
+    } catch (profileError) {
+      console.error(`Erreur création profil ${role}:`, profileError);
+
+      if (createdUser) {
+        try {
+          await User.findByIdAndDelete(createdUser._id);
+          console.log(`Utilisateur supprimé lors du cleanup: ${createdUser._id}`);
+        } catch (cleanupError) {
+          console.error('Erreur lors du cleanup utilisateur:', cleanupError);
+        }
+      }
+
+      return res.status(500).json({
+        message: `Erreur lors de la création du profil ${role}. Aucun compte n'a été créé.`,
+        error: 'PROFILE_CREATION_FAILED',
+        details: profileError.message
+      });
+    }
+
+    if (!createdUser || !createdProfile) {
+      console.error('Vérification finale échouée');
+
+      if (createdUser) {
+        try {
+          await User.findByIdAndDelete(createdUser._id);
+        } catch (cleanupError) {
+          console.error('Erreur cleanup utilisateur:', cleanupError);
+        }
+      }
+
+      if (createdProfile) {
+        try {
+          const ProfileModel = role === 'client' ? Client : role === 'agence' ? Agency : MunicipalManager;
+          await ProfileModel.findByIdAndDelete(createdProfile._id);
+        } catch (cleanupError) {
+          console.error('Erreur cleanup profil:', cleanupError);
+        }
+      }
+
+      return res.status(500).json({
+        message: 'Erreur système lors de la création du compte',
+        error: 'SYSTEM_ERROR'
+      });
+    }
+
     res.status(201).json({
       message: 'Utilisateur créé avec succès',
-      userId: user._id,
-      role: user.role
+      userId: createdUser._id,
+      profileId: createdProfile._id,
+      role: createdUser.role,
+      success: true
     });
 
   } catch (error) {
-    console.error('❌ Erreur inscription :', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    console.error('Erreur globale inscription:', error);
+
+    if (createdUser) {
+      try {
+        await User.findByIdAndDelete(createdUser._id);
+        console.log(`Cleanup final utilisateur: ${createdUser._id}`);
+      } catch (cleanupError) {
+        console.error('Erreur cleanup final utilisateur:', cleanupError);
+      }
+    }
+
+    if (createdProfile) {
+      try {
+        const ProfileModel = req.body.role === 'client' ? Client : req.body.role === 'agence' ? Agency : MunicipalManager;
+        await ProfileModel.findByIdAndDelete(createdProfile._id);
+        console.log(`Cleanup final profil: ${createdProfile._id}`);
+      } catch (cleanupError) {
+        console.error('Erreur cleanup final profil:', cleanupError);
+      }
+    }
+
+    res.status(500).json({
+      message: 'Erreur serveur lors de l\'inscription',
+      error: 'SERVER_ERROR',
+      details: error.message
+    });
   }
 };
 
