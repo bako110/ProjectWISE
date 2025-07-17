@@ -65,7 +65,7 @@ const router = express.Router();
  *                 confirmPassword: motDePasseFort123
  *                 termsAccepted: true
  *                 receiveOffers: true
- *                 agencyName: Agence Propre
+ *                 name: Agence Propre
  *                 description: Collecte des déchets ménagers à Ouagadougou.
  *             mairie:
  *               summary: Inscription mairie
