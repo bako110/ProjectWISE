@@ -5,12 +5,18 @@ import Agency from '../../models/Agency/Agency.js';
 export const getClientsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
+    console.log("Recherche clients pour l'agence :", agencyId);
+
     const clients = await Client.find({ subscribedAgencyId: agencyId });
+    console.log(`Nombre de clients trouvés : ${clients.length}`);
+
     res.json(clients);
   } catch (error) {
+    console.error("Erreur getClientsByAgency :", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Modifier profil client (adresse, abonnement)
 // export const updateClientProfile = async (req, res) => {
