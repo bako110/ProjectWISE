@@ -34,7 +34,7 @@ app.use('/api', profileRoutes);
 app.use('/api/plannings', planningRoutes);
 app.use('/api/agences', agenceSearchRoutes);
 app.use('/api', agencyClientRoutes);
-app.use('./api/clients', clientRoutes);
+app.use('/api/clients', clientRoutes);
 
 
 // Middleware 404 pour routes non trouvées
