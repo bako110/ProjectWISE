@@ -208,10 +208,10 @@ const router = express.Router();
  *         - $ref: '#/components/schemas/BaseUser'
  *         - type: object
  *           required:
- *             - agencyName
+ *             - name
  *             - description
  *           properties:
- *             agencyName:
+ *             name:
  *               type: string
  *             description:
  *               type: string
