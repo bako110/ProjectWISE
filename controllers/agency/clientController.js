@@ -1,6 +1,6 @@
 // controllers/agency/clientController.js
 import Client from '../../models/clients/Client.js';
-
+import Agency from '../../models/Agency/Agency.js';
 // Liste des clients abonnés à une agence
 export const getClientsByAgency = async (req, res) => {
   try {
@@ -47,22 +47,53 @@ export const reportNonPassage = async (req, res) => {
 
 
 export const validateClientSubscription = async (req, res) => {
+  console.log("✅ [validateClientSubscription] - Début");
+
   try {
     const { clientId } = req.params;
-    const agencyId = req.user.agencyId; // supposé que l’agence est connectée
+    const userId = req.user.id; // ID utilisateur connecté (l’agence)
+
+    // Trouver l'agence associée à l'utilisateur connecté
+    const agency = await Agency.findOne({ userId });
+    if (!agency) {
+      console.log("❌ Agence non trouvée pour cet utilisateur");
+      return res.status(404).json({ message: 'Agence non trouvée pour cet utilisateur' });
+    }
+    const agencyId = agency._id.toString();
+
+    console.log("🔎 clientId:", clientId);
+    console.log("🏢 agencyId (de l'agence connectée):", agencyId);
 
     const client = await Client.findById(clientId);
-    if (!client) return res.status(404).json({ message: 'Client non trouvé' });
+    if (!client) {
+      console.log("❌ Client non trouvé");
+      return res.status(404).json({ message: 'Client non trouvé' });
+    }
 
     if (client.subscribedAgencyId?.toString() !== agencyId) {
+      console.log("⛔ Client lié à une autre agence");
       return res.status(403).json({ message: 'Ce client n’est pas lié à votre agence' });
     }
 
-    client.subscriptionStatus = 'validated';
+    client.subscriptionStatus = 'active';
     await client.save();
 
-    res.status(200).json({ message: 'Abonnement validé avec succès' });
+    console.log("✅ Abonnement validé pour le client:", client._id);
+    return res.status(200).json({
+      message: 'Abonnement validé avec succès',
+      client: {
+        id: client._id,
+        firstName: client.firstName,
+        lastName: client.lastName,
+        subscriptionStatus: client.subscriptionStatus
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la validation', error });
+    console.error("💥 Erreur serveur:", error.message);
+    return res.status(500).json({
+      message: 'Erreur lors de la validation',
+      error: error.message
+    });
   }
 };

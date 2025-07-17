@@ -108,6 +108,6 @@ const router = express.Router();
 router.get('/clients/agency/:agencyId', auth, authorizeRoles('agence'), getClientsByAgency);
 // router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
 router.post('/clients/:id/signalement', auth, authorizeRoles('client'), reportNonPassage);
-router.put('/clients/:clientId/validate', auth, authorizeRoles('agence'), validateClientSubscription);
+router.put('/clients/:clientId/validate', auth('agence'), validateClientSubscription);
 
 export default router;
