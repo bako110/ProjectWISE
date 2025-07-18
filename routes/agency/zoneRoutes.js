@@ -232,7 +232,7 @@ const router = express.Router();
  *         description: Zone non trouvée
  */
 
-router.post('/register', auth, authMiddleware('agency'), createZone);
+router.post('/register',authMiddleware('agency'), createZone);
 router.get('/agency/:agencyId', authMiddleware('agency'), getZonesByAgency);
 router.get('/:id', authMiddleware('agency'), getZoneById);
 router.put('/:id', authMiddleware('agency'), updateZone);
