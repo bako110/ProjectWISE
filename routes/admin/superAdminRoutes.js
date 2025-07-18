@@ -41,7 +41,7 @@ const router = express.Router();
  *                 example: motdepasse123
  *               superAdminKey:
  *                 type: string
- *                 example: ma_clef_secrete_superadmin
+ *                 example: ma_clef_super_secret_1234
  *     responses:
  *       201:
  *         description: Super admin créé avec succès
