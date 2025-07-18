@@ -1,11 +1,13 @@
 import express from 'express';
-import { registerSuperAdmin } from '../../controllers/admin/adminControllers.js';
+import { registerSuperAdmin} from '../../controllers/admin/adminControllers.js';
+import { toggleAgencyStatus } from '../../controllers/admin/Agencystatus.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/admin/register-super-admin:
+ * /api/auth/register-super-admin:
  *   post:
  *     summary: Création d'un super administrateur
  *     tags:
@@ -68,5 +70,37 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.post('/register-super-admin', registerSuperAdmin);
+
+
+/**
+ * @swagger
+ * /api/auth/agences/{userId}/status:
+ *   patch:
+ *     summary: Activer ou désactiver une agence
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: L'ID de l'utilisateur agence à modifier
+ *     responses:
+ *       200:
+ *         description: Statut mis à jour
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Statut de l'agence mis à jour avec succès."
+ *               isActive: false
+ *       404:
+ *         description: Agence ou utilisateur introuvable
+ *       500:
+ *         description: Erreur serveur
+ */
+router.patch('/agences/:userId/status', authMiddleware('super_admin'), toggleAgencyStatus);
 
 export default router;

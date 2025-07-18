@@ -181,8 +181,9 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({ message: 'Votre compte est désactivé' });
+    // Vérifie uniquement si l'agence est active
+    if (user.role === 'agency' && !user.isActive) {
+      return res.status(403).json({ message: 'Votre compte agence n’a pas encore été activé' });
     }
 
     const token = jwt.sign(
