@@ -1,6 +1,7 @@
 import express from 'express';
 import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
+import { getAllAgencies } from '../../controllers/authController.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
  *     tags:
  *       - Employés
  *     security:
- *       - bearerAuth: []   # Assure-toi d'avoir défini ce securityScheme dans ta config Swagger
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -71,5 +72,45 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.post('/employees', authMiddleware('agency'), createEmployee);
+
+/**
+ * @swagger
+ * /api/agences/recuperation:
+ *   get:
+ *     summary: Récupérer la liste de toutes les agences
+ *     tags:
+ *       - Agences
+ *     responses:
+ *       200:
+ *         description: Liste des agences récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 agences:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: 60c72b2f5f1b2c001c8d4e0b
+ *                       nom:
+ *                         type: string
+ *                         example: Agence Yennega
+ *                       email:
+ *                         type: string
+ *                         example: contact@yennega.com
+ *                       telephone:
+ *                         type: string
+ *                         example: "+22670707070"
+ *       500:
+ *         description: Erreur lors de la récupération des agences
+ */
+router.get('/recuperation', getAllAgencies);
 
 export default router;

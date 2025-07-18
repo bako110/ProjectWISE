@@ -285,7 +285,7 @@ const router = express.Router();
 
 
 // Alias pour Swagger UI
-['client', 'agence', 'mairie'].forEach(role => {
+['client', 'agency'].forEach(role => {
   router.post(`/register/${role}`, (req, res) => register(req, res));
 });
 

@@ -383,3 +383,24 @@ export const logout = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
+
+
+
+export const getAllAgencies = async (req, res) => {
+  try {
+    const agencies = await Agency.find().lean();
+
+    return res.status(200).json({
+      success: true,
+      count: agencies.length,
+      data: agencies
+    });
+  } catch (error) {
+    console.error('Erreur récupération agences:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération des agences',
+      details: error.message
+    });
+  }
+};
