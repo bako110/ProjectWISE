@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /municipality:
+ * api/auth/municipality:
  *   post:
  *     summary: Enregistrer une nouvelle mairie
  *     tags: [Mairies]
