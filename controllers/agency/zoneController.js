@@ -14,13 +14,13 @@ export const createZone = async (req, res) => {
       assignedCollectors = []
     } = req.body;
 
-    // Vérifier que l'agence existe
+    // 🔍 Vérification de l'existence de l'agence
     const agency = await Agency.findById(agencyId);
     if (!agency) {
       return res.status(404).json({ error: 'Agence non trouvée' });
     }
 
-    // Créer la zone
+    // 🏗️ Création de la zone
     const zone = await ServiceZone.create({
       agencyId,
       name,
@@ -32,15 +32,23 @@ export const createZone = async (req, res) => {
       isActive: true,
     });
 
-    // Ajouter la zone à l'agence
+    // ✅ Ajout sécurisé de la zone à l'agence
+    if (!agency.zones) {
+      agency.zones = [];
+    }
     agency.zones.push(zone._id);
     await agency.save();
 
-    res.status(201).json(zone);
+    res.status(201).json({
+      message: 'Zone créée avec succès',
+      zone,
+    });
   } catch (error) {
+    console.error('Erreur création zone :', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Récupérer toutes les zones d'une agence
 export const getZonesByAgency = async (req, res) => {
