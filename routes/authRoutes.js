@@ -862,7 +862,7 @@ const router = express.Router();
 // Routes d'authentification
 router.post('/register', register);
 router.post('/login', login);
-router.post('/logout', authMiddleware, logout);
+router.post('/logout', authMiddleware(), logout);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode', verifyCode);
 router.post('/resetPassword', authMiddleware, resetPassword);
