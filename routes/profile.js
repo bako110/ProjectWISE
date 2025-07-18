@@ -223,6 +223,6 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 
-router.put('/profile/:userId', authMiddleware, updateProfile);
+router.put('/profile/:userId', authMiddleware(), updateProfile);
 
 export default router;
