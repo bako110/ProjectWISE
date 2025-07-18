@@ -1,4 +1,4 @@
-import Zone from '../../models/Agency/zones.js';
+import ServiceZone from '../../models/Agency/ServiceZone.js';
 import Agency from '../../models/Agency/Agency.js';
 
 // Créer une nouvelle zone et l'associer à une agence
@@ -7,8 +7,10 @@ export const createZone = async (req, res) => {
     const {
       agencyId,
       name,
-      location,
-      polygonGeoJson,
+      description,
+      boundaries = [],
+      neighborhoods = [],
+      cities = [],
       assignedCollectors = []
     } = req.body;
 
@@ -19,12 +21,15 @@ export const createZone = async (req, res) => {
     }
 
     // Créer la zone
-    const zone = await Zone.create({
-      agency: agencyId,
+    const zone = await ServiceZone.create({
+      agencyId,
       name,
-      location,
-      polygonGeoJson,
+      description,
+      boundaries,
+      neighborhoods,
+      cities,
       assignedCollectors,
+      isActive: true,
     });
 
     // Ajouter la zone à l'agence
@@ -41,7 +46,8 @@ export const createZone = async (req, res) => {
 export const getZonesByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
-    const zones = await Zone.find({ agency: agencyId }).populate('assignedCollectors', 'name phone');
+    const zones = await ServiceZone.find({ agencyId })
+      .populate('assignedCollectors', 'firstName lastName email phone role');
     res.json(zones);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -51,7 +57,8 @@ export const getZonesByAgency = async (req, res) => {
 // Récupérer une zone par son ID
 export const getZoneById = async (req, res) => {
   try {
-    const zone = await Zone.findById(req.params.id).populate('assignedCollectors', 'name phone');
+    const zone = await ServiceZone.findById(req.params.id)
+      .populate('assignedCollectors', 'firstName lastName email phone role');
     if (!zone) return res.status(404).json({ error: 'Zone non trouvée' });
     res.json(zone);
   } catch (error) {
@@ -65,7 +72,7 @@ export const updateZone = async (req, res) => {
     const zoneId = req.params.id;
     const updateData = req.body;
 
-    const zone = await Zone.findByIdAndUpdate(zoneId, updateData, { new: true });
+    const zone = await ServiceZone.findByIdAndUpdate(zoneId, updateData, { new: true });
     if (!zone) return res.status(404).json({ error: 'Zone non trouvée' });
 
     res.json(zone);
@@ -80,11 +87,11 @@ export const deleteZone = async (req, res) => {
     const zoneId = req.params.id;
 
     // Supprimer la zone
-    const zone = await Zone.findByIdAndDelete(zoneId);
+    const zone = await ServiceZone.findByIdAndDelete(zoneId);
     if (!zone) return res.status(404).json({ error: 'Zone non trouvée' });
 
     // Supprimer la référence dans l'agence
-    await Agency.findByIdAndUpdate(zone.agency, { $pull: { zones: zoneId } });
+    await Agency.findByIdAndUpdate(zone.agencyId, { $pull: { zones: zoneId } });
 
     res.json({ message: 'Zone supprimée avec succès' });
   } catch (error) {
@@ -98,11 +105,11 @@ export const assignCollectorsToZone = async (req, res) => {
     const zoneId = req.params.id;
     const { assignedCollectors } = req.body; // tableau d'IDs collecteurs
 
-    const zone = await Zone.findByIdAndUpdate(
+    const zone = await ServiceZone.findByIdAndUpdate(
       zoneId,
       { assignedCollectors },
       { new: true }
-    ).populate('assignedCollectors', 'name phone');
+    ).populate('assignedCollectors', 'firstName lastName email phone role');
 
     if (!zone) return res.status(404).json({ error: 'Zone non trouvée' });
 

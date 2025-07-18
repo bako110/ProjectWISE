@@ -8,7 +8,9 @@ import swaggerDocs from './swagger.js';
 import authRoutes from './routes/authRoutes.js';
 import agencyRoutes from './routes/agency/agencyRoutes.js';
 import superAdminRoutes from './routes/admin/superAdminRoutes.js';
-import municipalityRoutes from './routes/mairies/municipalityRoutes.js'
+import municipalityRoutes from './routes/mairies/municipalityRoutes.js';
+import zoneRoutes from './routes/agency/zoneRoutes.js';
+import profileRoutes from './routes/profile.js'
 
 dotenv.config();
 connectDB();
@@ -30,8 +32,8 @@ app.use('/api/agences', agencyRoutes);
 app.use('/api/auth', superAdminRoutes);
 app.use('/api/auth', municipalityRoutes);  // <-- Nouvelle route municipalité
 
-// app.use('/api/zones', zoneRoutes);
-// app.use('/api', profileRoutes);
+app.use('/api/zones', zoneRoutes);
+app.use('/api', profileRoutes);
 // app.use('/api/plannings', planningRoutes);
 // app.use('/api/agences', agenceSearchRoutes);
 // app.use('/api', agencyClientRoutes);

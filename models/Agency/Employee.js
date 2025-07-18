@@ -7,6 +7,12 @@ const employeeSchema = new mongoose.Schema({
     required: true
   },
 
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    required: true
+  },
+
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
 

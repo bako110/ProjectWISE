@@ -10,6 +10,7 @@ import {
 
 import auth from '../../middlewares/authMiddleware.js';
 import { authorizeRoles } from '../../middlewares/agency/roleMiddleware.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -22,9 +23,9 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/zones:
+ * /api/zones/register:
  *   post:
- *     summary: Créer une nouvelle zone
+ *     summary: Créer une nouvelle zone (agencyId est pris depuis le token)
  *     tags: [Zones]
  *     security:
  *       - bearerAuth: []
@@ -35,32 +36,36 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - agencyId
  *               - name
- *               - location
- *               - polygonGeoJson
+ *               - boundaries
  *             properties:
- *               agencyId:
- *                 type: string
- *                 example: "64fa7cf..."
  *               name:
  *                 type: string
  *                 example: "Secteur 10 Tampouy"
- *               location:
- *                 type: object
- *                 properties:
- *                   region: { type: string, example: "Centre" }
- *                   province: { type: string, example: "Kadiogo" }
- *                   commune: { type: string, example: "Ouagadougou" }
- *                   arrondissement: { type: string, example: "Baskuy" }
- *                   secteur: { type: string, example: "Secteur 10" }
- *                   quartier: { type: string, example: "Tampouy" }
- *               polygonGeoJson:
- *                 type: object
- *                 example: {
- *                   "type": "Polygon",
- *                   "coordinates": [[[1.5, 2.1], [1.6, 2.2], [1.7, 2.1], [1.5, 2.1]]]
- *                 }
+ *               description:
+ *                 type: string
+ *                 example: "Zone de collecte principale"
+ *               boundaries:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                       example: 12.345678
+ *                     longitude:
+ *                       type: number
+ *                       example: -1.234567
+ *               neighborhoods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Tampouy", "Koulouba"]
+ *               cities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Ouagadougou"]
  *               assignedCollectors:
  *                 type: array
  *                 items:
@@ -71,6 +76,8 @@ const router = express.Router();
  *         description: Zone créée avec succès
  *       404:
  *         description: Agence non trouvée
+ *       500:
+ *         description: Erreur serveur
  */
 
 /**
@@ -139,10 +146,29 @@ const router = express.Router();
  *             properties:
  *               name:
  *                 type: string
- *               location:
- *                 type: object
- *               polygonGeoJson:
- *                 type: object
+ *               description:
+ *                 type: string
+ *               boundaries:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                     longitude:
+ *                       type: number
+ *               neighborhoods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               cities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               assignedCollectors:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Zone mise à jour
@@ -206,11 +232,11 @@ const router = express.Router();
  *         description: Zone non trouvée
  */
 
-router.post('/', auth, authorizeRoles('agence'), createZone);
-router.get('/agency/:agencyId', auth, authorizeRoles('agence'), getZonesByAgency);
-router.get('/:id', auth, authorizeRoles('agence'), getZoneById);
-router.put('/:id', auth, authorizeRoles('agence'), updateZone);
-router.delete('/:id', auth, authorizeRoles('agence'), deleteZone);
-router.put('/:id/assign-collectors', auth, authorizeRoles('agence'), assignCollectorsToZone);
+router.post('/register', auth, authMiddleware('agency'), createZone);
+router.get('/agency/:agencyId', authMiddleware('agency'), getZonesByAgency);
+router.get('/:id', authMiddleware('agency'), getZoneById);
+router.put('/:id', authMiddleware('agency'), updateZone);
+router.delete('/:id', authMiddleware('agency'), deleteZone);
+router.put('/:id/assign-collectors', authMiddleware('agency'), assignCollectorsToZone);
 
 export default router;

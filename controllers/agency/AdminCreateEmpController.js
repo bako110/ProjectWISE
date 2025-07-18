@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import User from '../../models/User.js';
 import Employee from '../../models/Agency/Employee.js';
-import crypto from 'crypto'; // pour générer le mot de passe
+import ServiceZone from '../../models/Agency/ServiceZone.js';
+import crypto from 'crypto';
 
 export const createEmployee = async (req, res) => {
   try {
@@ -15,7 +16,7 @@ export const createEmployee = async (req, res) => {
       avatar
     } = req.body;
 
-    const agencyId = req.user.id;
+    const agencyId = req.user.id; // Vérifie bien que req.user est l'agence connectée
 
     if (!['manager', 'collector'].includes(role)) {
       return res.status(400).json({ message: 'Rôle invalide. Doit être manager ou collector.' });
@@ -30,11 +31,19 @@ export const createEmployee = async (req, res) => {
       return res.status(400).json({ message: 'Email déjà utilisé.' });
     }
 
-    // 🔐 Génération d'un mot de passe aléatoire
-    const generatedPassword = crypto.randomBytes(6).toString('hex'); // 12 caractères
+    // ✅ Vérifier que les zones appartiennent bien à l'agence
+    if (zones.length > 0) {
+      const foundZones = await ServiceZone.find({ _id: { $in: zones }, agencyId });
+      if (foundZones.length !== zones.length) {
+        return res.status(403).json({ message: 'Une ou plusieurs zones ne vous appartiennent pas.' });
+      }
+    }
+
+    // 🔐 Génération mot de passe
+    const generatedPassword = crypto.randomBytes(6).toString('hex');
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
-    // 👤 Création de l'utilisateur
+    // 👤 Création utilisateur
     const newUser = await User.create({
       nom: lastName,
       prenom: firstName,
@@ -45,7 +54,7 @@ export const createEmployee = async (req, res) => {
       isActive: true
     });
 
-    // 👥 Création de l'employé
+    // 👥 Création employé lié à l’agence
     const newEmployee = await Employee.create({
       userId: newUser._id,
       firstName,
@@ -55,21 +64,21 @@ export const createEmployee = async (req, res) => {
       role,
       zones,
       avatar,
+      agencyId,
       isActive: true,
       hiredAt: new Date()
     });
 
-    // ✅ Réponse avec mot de passe généré
     return res.status(201).json({
       message: `${role} créé avec succès.`,
       employeeId: newEmployee._id,
       userId: newUser._id,
       email: newUser.email,
-      generatedPassword // ← à afficher ou à envoyer par email si besoin
+      generatedPassword
     });
 
   } catch (error) {
     console.error('Erreur création employee:', error);
-    return res.status(500).json({ message: 'Erreur serveur lors de la création.', error: error.message });
+    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
   }
 };

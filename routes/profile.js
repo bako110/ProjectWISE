@@ -42,9 +42,7 @@ const router = express.Router();
  *         serviceAddress:
  *           type: object
  *           properties:
- *             region: { type: string }
- *             province: { type: string }
- *             commune: { type: string }
+ *             ville: { type: string }
  *             arrondissement: { type: string }
  *             secteur: { type: string }
  *             quartier: { type: string }
@@ -61,65 +59,83 @@ const router = express.Router();
  *                   type: array
  *                   items:
  *                     type: number
+ *         termsAccepted:
+ *           type: boolean
+ *         receiveOffers:
+ *           type: boolean
  *     AgencyUpdate:
  *       type: object
  *       properties:
  *         name: { type: string }
- *         contactPerson: { type: string }
- *         phone: { type: string }
- *         licenseNumber: { type: string }
  *         description: { type: string }
- *         location:
+ *         phone: { type: string }
+ *         email: { type: string }
+ *         logo: { type: string }
+ *         address:
  *           type: object
  *           properties:
- *             region: { type: string }
- *             province: { type: string }
- *             commune: { type: string }
- *             arrondissement: { type: string }
- *             secteur: { type: string }
- *             quartier: { type: string }
- *             rue: { type: string }
- *         coveredAreas:
+ *             street: { type: string }
+ *             doorNumber: { type: string }
+ *             doorColor: { type: string }
+ *             neighborhood: { type: string }
+ *             city: { type: string }
+ *             postalCode: { type: string }
+ *             latitude: { type: number }
+ *             longitude: { type: number }
+ *         serviceZones:
  *           type: array
  *           items:
- *             type: object
- *             properties:
- *               region: { type: string }
- *               province: { type: string }
- *               commune: { type: string }
- *               arrondissement: { type: string }
- *               secteur: { type: string }
- *               quartier: { type: string }
- *         isVerified: { type: boolean }
- *     CollectorUpdate:
+ *             type: string
+ *         services:
+ *           type: array
+ *           items:
+ *             type: string
+ *         employees:
+ *           type: array
+ *           items:
+ *             type: string
+ *         schedule:
+ *           type: array
+ *           items:
+ *             type: string
+ *         rating:
+ *           type: number
+ *         totalClients:
+ *           type: number
+ *         termsAccepted:
+ *           type: boolean
+ *         receiveOffers:
+ *           type: boolean
+ *         isActive:
+ *           type: boolean
+ *     EmployeeUpdate:
  *       type: object
  *       properties:
  *         firstName: { type: string }
  *         lastName: { type: string }
+ *         email: { type: string }
  *         phone: { type: string }
  *         agencyId: { type: string }
- *         assignedAreas:
+ *         role:
+ *           type: string
+ *           enum: [manager, collector]
+ *         zones:
  *           type: array
  *           items:
- *             type: object
- *             properties:
- *               region: { type: string }
- *               province: { type: string }
- *               commune: { type: string }
- *               arrondissement: { type: string }
- *               secteur: { type: string }
- *               quartier: { type: string }
- *         vehicleInfo:
- *           type: object
- *           properties:
- *             type: { type: string }
- *             plateNumber: { type: string }
- *         isManager: { type: boolean }
+ *             type: string
+ *         isActive:
+ *           type: boolean
+ *         hiredAt:
+ *           type: string
+ *           format: date-time
+ *         avatar:
+ *           type: string
  *     MunicipalManagerUpdate:
  *       type: object
  *       properties:
  *         firstName: { type: string }
  *         lastName: { type: string }
+ *         name: { type: string }
  *         phone: { type: string }
  *         agencyId:
  *           type: array
@@ -143,10 +159,26 @@ const router = express.Router();
  *         position:
  *           type: string
  *           example: Maire
+ *     AdminUpdate:
+ *       type: object
+ *       properties:
+ *         firstname: { type: string }
+ *         lastname: { type: string }
+ *         phone: { type: string }
+ *         isActive:
+ *           type: boolean
+ *     SuperAdminUpdate:
+ *       type: object
+ *       description: Mise à jour directe sur User (ex: email, password, isActive)
+ *       properties:
+ *         email: { type: string }
+ *         password: { type: string }
+ *         isActive:
+ *           type: boolean
  *
  * /api/profile/{userId}:
  *   put:
- *     summary: Met à jour le profil d’un utilisateur
+ *     summary: Met à jour le profil d’un utilisateur selon son rôle
  *     tags: [Profil]
  *     security:
  *       - bearerAuth: []
@@ -165,8 +197,10 @@ const router = express.Router();
  *             oneOf:
  *               - $ref: '#/components/schemas/ClientUpdate'
  *               - $ref: '#/components/schemas/AgencyUpdate'
- *               - $ref: '#/components/schemas/CollectorUpdate'
+ *               - $ref: '#/components/schemas/EmployeeUpdate'
  *               - $ref: '#/components/schemas/MunicipalManagerUpdate'
+ *               - $ref: '#/components/schemas/AdminUpdate'
+ *               - $ref: '#/components/schemas/SuperAdminUpdate'
  *     responses:
  *       200:
  *         description: Profil mis à jour avec succès

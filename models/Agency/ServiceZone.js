@@ -16,6 +16,18 @@ const serviceZoneSchema = new mongoose.Schema({
   cities: [{ type: String }],
 
   isActive: { type: Boolean, default: true },
+
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    required: true
+  },
+
+  assignedCollectors: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee',   // référence au modèle Employee
+  }],
+
 }, { timestamps: true });
 
 const ServiceZone = mongoose.model('ServiceZone', serviceZoneSchema);
