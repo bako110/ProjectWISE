@@ -1,4 +1,4 @@
-import Planning from '../../models/Agency/Planning.js';
+import Planning from '../../models/Agency/WasteService.js';
 
 // Créer un planning
 export const creerPlanning = async (req, res) => {

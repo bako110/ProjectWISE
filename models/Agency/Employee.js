@@ -1,0 +1,36 @@
+import mongoose from 'mongoose';
+
+const employeeSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+
+  email: { type: String },
+  phone: { type: String },
+
+  role: {
+    type: String,
+    enum: ['manager', 'collector'],
+    required: true
+  },
+
+  zones: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ServiceZone',
+  }],
+
+  isActive: { type: Boolean, default: true },
+
+  hiredAt: { type: Date, default: Date.now },
+
+  avatar: { type: String },
+
+}, { timestamps: true });
+
+const Employee = mongoose.model('Employee', employeeSchema);
+export default Employee;

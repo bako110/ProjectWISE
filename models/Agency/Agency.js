@@ -8,80 +8,58 @@ const agencySchema = new mongoose.Schema({
     unique: true,
   },
 
-  name: { 
-    type: String, 
-    required: true,
-    trim: true
+  name: { type: String, required: true, trim: true },
+
+  description: { type: String, default: '', trim: true },
+
+  phone: { type: String, required: true, trim: true },
+
+  email: { type: String, trim: true },
+
+  logo: { type: String }, 
+
+  address: {
+    street: String,
+    doorNumber: String,
+    doorColor: String,
+    neighborhood: String,
+    city: String,
+    postalCode: String,
+    latitude: Number,
+    longitude: Number,
   },
 
-  contactPerson: { 
-    type: String,
-    trim: true
-  },
+  serviceZones: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ServiceZone',
+  }],
 
-  phone: {
-    type: String,
-    trim: true
-  },
+  services: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'WasteService',
+  }],
 
-  location: {
-    ville: { type: String, trim: true },        // <-- ajouté ici
-    arrondissement: { type: String, trim: true },
-    secteur: { type: String, trim: true },
-    quartier: { type: String, trim: true },
-    rue: { type: String, trim: true },
-  },
+  employees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee',
+  }],
 
-  licenseNumber: { 
-    type: String, 
-    trim: true,
-    default: null
-  },
+  schedule: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CollectionSchedule',
+  }],
 
-  description: { 
-    type: String, 
-    trim: true,
-    default: ''
-  },
+  rating: { type: Number, default: 0 },
 
-  collectors: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Collector',
-    },
-  ],
+  totalClients: { type: Number, default: 0 },
 
-  clients: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Client',
-    },
-  ],
+  termsAccepted: { type: Boolean, required: true },
 
-  zones: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Zone',
-    },
-  ],
+  receiveOffers: { type: Boolean, default: false },
 
-  // Consentements obligatoires et optionnels
-  termsAccepted: { 
-    type: Boolean, 
-    required: true 
-  },
+  isActive: { type: Boolean, default: false },
 
-  receiveOffers: { 
-    type: Boolean, 
-    default: false 
-  },
-
-  isVerified: { 
-    type: Boolean, 
-    default: false 
-  },
 }, { timestamps: true });
 
 const Agency = mongoose.model('Agency', agencySchema);
-
 export default Agency;

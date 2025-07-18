@@ -4,16 +4,19 @@ import crypto, { randomUUID } from 'crypto';
 
 import User from '../models/User.js';
 import Client from '../models/clients/Client.js';
+import employees from '../models/Agency/Employee.js';
 import Agency from '../models/Agency/Agency.js';
 import MunicipalManager from '../models/Mairies/MunicipalManager.js';
+import Admin from '../models/admin/admin.js';
 
 import { sendResetCodeEmail } from '../utils/resetcodemail.js';
 import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
 
-// Cache in-memory pour stocker temporairement les codes de vérification (email → { code, expiresAt })
+// Cache in-memory pour codes vérification email
 const verificationCodes = new Map();
 
 /* --------------------------- ENREGISTREMENT --------------------------- */
+
 export const register = async (req, res) => {
   let createdUser = null;
   let createdProfile = null;
@@ -26,21 +29,22 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       phone,
-      name,
-      description,
-      termsAccepted,
-      receiveOffers = false,
-      arrondissement,
-      rue,
-      quartier,
-      numero,
-      couleurPorte,
-      ville,
-      licenceNumber,
-      codePostal
+      agencyName,
+      agencyDescription,
+      address = {},
+      acceptTerms,
+      acceptNewsletter = false
     } = req.body;
 
-    if (!email || !password || !role || !firstName || !lastName || !phone || termsAccepted !== true) {
+    const allowedRoles = ['client', 'agency'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({
+        message: 'Rôle non autorisé pour cette route.',
+        error: 'INVALID_ROLE_FOR_ROUTE'
+      });
+    }
+
+    if (!email || !password || !role || !firstName || !lastName || !phone || acceptTerms !== true) {
       return res.status(400).json({
         message: 'Champs obligatoires manquants ou conditions non acceptées.',
         error: 'MISSING_REQUIRED_FIELDS'
@@ -57,7 +61,7 @@ export const register = async (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
-        message: 'Format d\'email invalide.',
+        message: "Format d'email invalide.",
         error: 'INVALID_EMAIL_FORMAT'
       });
     }
@@ -70,176 +74,68 @@ export const register = async (req, res) => {
       });
     }
 
-    const allowedRoles = ['client', 'agence', 'mairie'];
-    if (!allowedRoles.includes(role)) {
-      return res.status(403).json({
-        message: 'Rôle non autorisé.',
-        error: 'INVALID_ROLE'
-      });
-    }
-
-    if (role === 'agence' && !name) {
+    if (role === 'agency' && !agencyName) {
       return res.status(400).json({
-        message: 'Nom de l\'agence requis pour le rôle agence.',
+        message: "Nom de l'agence requis pour le rôle agency.",
         error: 'AGENCY_NAME_REQUIRED'
       });
     }
 
     if (role === 'client') {
-      if (!arrondissement || !rue || !quartier || !ville) {
+      if (!address.street || !address.doorNumber || !address.neighborhood || !address.city) {
         return res.status(400).json({
-          message: 'Adresse complète requise pour le client (arrondissement, rue, quartier, ville).',
+          message: "Adresse complète requise pour le client (rue, numéro, quartier, ville).",
           error: 'CLIENT_ADDRESS_INCOMPLETE'
         });
       }
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+
+    createdUser = await User.create({
+      email,
+      password: hashedPassword,
+      role,
+      isActive: true
+    });
+
     let profileData = {};
 
-    try {
-      switch (role) {
-        case 'client':
-          profileData = {
-            firstName,
-            lastName,
-            phone,
-            subscribedAgencyId: null,
-            termsAccepted,
-            receiveOffers,
-            serviceAddress: {
-              arrondissement,
-              rue,
-              quartier,
-              numero: numero || '',
-              couleurPorte: couleurPorte || '',
-              ville,
-              codePostal: codePostal || ''
-            }
-          };
-          break;
+    if (role === 'client') {
+      profileData = {
+        firstName,
+        lastName,
+        phone,
+        termsAccepted: acceptTerms,
+        receiveOffers: acceptNewsletter,
+        serviceAddress: {
+          rue: address.street,
+          numero: address.doorNumber,
+          couleurPorte: address.doorColor || '',
+          quartier: address.neighborhood,
+          ville: address.city,
+          codePostal: address.postalCode || ''
+        },
+        userId: createdUser._id
+      };
+      createdProfile = await Client.create(profileData);
 
-        case 'agence':
-          profileData = {
-            name,
-            phone,
-            description: description || '',
-            termsAccepted,
-            licenseNumber: licenceNumber || randomUUID(),
-            receiveOffers,
-            collectors: [],
-            clients: []
-          };
-          break;
-
-        case 'mairie':
-          profileData = {
-            firstName,
-            lastName,
-            phone,
-            agencyId: []
-          };
-          break;
-
-        default:
-          throw new Error(`Rôle non supporté: ${role}`);
-      }
-    } catch (profilePrepError) {
-      console.error(`Erreur préparation profil ${role}:`, profilePrepError);
-      return res.status(500).json({
-        message: `Erreur lors de la préparation des données pour le rôle ${role}`,
-        error: 'PROFILE_DATA_PREPARATION_FAILED',
-        details: profilePrepError.message
-      });
+    } else if (role === 'agency') {
+      profileData = {
+        name: agencyName,
+        phone,
+        description: agencyDescription || '',
+        termsAccepted: acceptTerms,
+        licenseNumber: randomUUID(),
+        receiveOffers: acceptNewsletter,
+        collectors: [],
+        clients: [],
+        userId: createdUser._id
+      };
+      createdProfile = await Agency.create(profileData);
     }
 
-    try {
-      createdUser = await User.create({
-        email,
-        password: hashedPassword,
-        role,
-        isActive: true
-      });
-
-      console.log(`Utilisateur créé avec succès: ${createdUser._id}`);
-    } catch (userError) {
-      console.error('Erreur création utilisateur:', userError);
-      return res.status(500).json({
-        message: 'Erreur lors de la création de l\'utilisateur',
-        error: 'USER_CREATION_FAILED',
-        details: userError.message
-      });
-    }
-
-    try {
-      profileData.userId = createdUser._id;
-
-      switch (role) {
-        case 'client':
-          createdProfile = await Client.create(profileData);
-          break;
-
-        case 'agence':
-          createdProfile = await Agency.create(profileData);
-          break;
-
-        case 'mairie':
-          createdProfile = await MunicipalManager.create(profileData);
-          break;
-      }
-
-      if (!createdProfile) {
-        throw new Error(`Échec de la création du profil ${role}`);
-      }
-
-      console.log(`Profil ${role} créé: ${createdProfile._id}`);
-
-    } catch (profileError) {
-      console.error(`Erreur création profil ${role}:`, profileError);
-
-      if (createdUser) {
-        try {
-          await User.findByIdAndDelete(createdUser._id);
-          console.log(`Utilisateur supprimé lors du cleanup: ${createdUser._id}`);
-        } catch (cleanupError) {
-          console.error('Erreur lors du cleanup utilisateur:', cleanupError);
-        }
-      }
-
-      return res.status(500).json({
-        message: `Erreur lors de la création du profil ${role}. Aucun compte n'a été créé.`,
-        error: 'PROFILE_CREATION_FAILED',
-        details: profileError.message
-      });
-    }
-
-    if (!createdUser || !createdProfile) {
-      console.error('Vérification finale échouée');
-
-      if (createdUser) {
-        try {
-          await User.findByIdAndDelete(createdUser._id);
-        } catch (cleanupError) {
-          console.error('Erreur cleanup utilisateur:', cleanupError);
-        }
-      }
-
-      if (createdProfile) {
-        try {
-          const ProfileModel = role === 'client' ? Client : role === 'agence' ? Agency : MunicipalManager;
-          await ProfileModel.findByIdAndDelete(createdProfile._id);
-        } catch (cleanupError) {
-          console.error('Erreur cleanup profil:', cleanupError);
-        }
-      }
-
-      return res.status(500).json({
-        message: 'Erreur système lors de la création du compte',
-        error: 'SYSTEM_ERROR'
-      });
-    }
-
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Utilisateur créé avec succès',
       userId: createdUser._id,
       profileId: createdProfile._id,
@@ -250,27 +146,14 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error('Erreur globale inscription:', error);
 
-    if (createdUser) {
-      try {
-        await User.findByIdAndDelete(createdUser._id);
-        console.log(`Cleanup final utilisateur: ${createdUser._id}`);
-      } catch (cleanupError) {
-        console.error('Erreur cleanup final utilisateur:', cleanupError);
-      }
-    }
-
+    if (createdUser) await User.findByIdAndDelete(createdUser._id);
     if (createdProfile) {
-      try {
-        const ProfileModel = req.body.role === 'client' ? Client : req.body.role === 'agence' ? Agency : MunicipalManager;
-        await ProfileModel.findByIdAndDelete(createdProfile._id);
-        console.log(`Cleanup final profil: ${createdProfile._id}`);
-      } catch (cleanupError) {
-        console.error('Erreur cleanup final profil:', cleanupError);
-      }
+      const ProfileModel = role === 'client' ? Client : Agency;
+      await ProfileModel.findByIdAndDelete(createdProfile._id);
     }
 
-    res.status(500).json({
-      message: 'Erreur serveur lors de l\'inscription',
+    return res.status(500).json({
+      message: "Erreur serveur lors de l'inscription",
       error: 'SERVER_ERROR',
       details: error.message
     });
@@ -278,8 +161,8 @@ export const register = async (req, res) => {
 };
 
 
-
 /* ------------------------------- LOGIN -------------------------------- */
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -303,32 +186,60 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { 
-        _id: user._id, 
-        role: user.role, 
-        email: user.email 
-      },
+      { _id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    if (isBlacklisted(token)) {
-      return res.status(403).json({ message: 'Session invalide, veuillez vous reconnecter.' });
+    let profileData = {};
+
+    switch (user.role) {
+      case 'client':
+        profileData = await Client.findOne({ userId: user._id }).lean();
+        break;
+
+      case 'manager':
+      case 'collector':
+        profileData = await employees.findOne({ userId: user._id }).lean();
+        break;
+
+      case 'agency':
+        profileData = await Agency.findOne({ userId: user._id }).lean();
+        break;
+
+      case 'municipality':
+        profileData = await MunicipalManager.findOne({ userId: user._id }).lean();
+        break;
+
+      case 'super_admin':
+        profileData = await Admin.findOne({ userId: user._id }).lean();
+        break;
+
+      default:
+        return res.status(400).json({ message: 'Rôle utilisateur non reconnu' });
     }
 
-    res.json({ 
-      token, 
-      role: user.role, 
-      userId: user._id, 
+    if (!profileData) {
+      return res.status(404).json({ message: `Profil ${user.role} introuvable.` });
+    }
+
+    res.json({
+      token,
       expiresIn: 86400,
-      email: user.email
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        ...profileData
+      }
     });
+
   } catch (error) {
     console.error('Erreur lors de la connexion :', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
-
 /* ---------------------- MOT DE PASSE OUBLIÉ --------------------------- */
 
 /* forgotPassword */

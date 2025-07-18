@@ -5,23 +5,28 @@ const municipalManagerSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true
+    unique: true,
   },
-  
-  agencyId: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Agency'
-}],
 
+  agencyId: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+  }],
+
+  // Nom complet du responsable mairie
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+
+  // Nom officiel de la mairie (ex: "Mairie de Ouagadougou")
+  name: { type: String, required: true },
+
   phone: { type: String },
 
   // Commune/Département principal géré
   commune: {
-    region: { type: String},
+    region: { type: String },
     province: { type: String },
-    name: { type: String } // Ex: "Ouagadougou"
+    name: { type: String }, // ex: "Ouagadougou"
   },
 
   // Zones sous sa juridiction
@@ -30,11 +35,9 @@ const municipalManagerSchema = new mongoose.Schema({
       arrondissement: { type: String },
       secteur: { type: String },
       quartier: { type: String },
-      village: { type: String }
+      village: { type: String },
     }
   ],
-
-  // Liste des agences rattachées à cette mairie
 
   position: { type: String, default: 'Maire' },
 

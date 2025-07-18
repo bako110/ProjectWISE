@@ -1,18 +1,15 @@
 import express from 'express';
-import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
-import authMiddleware from '../../middlewares/authMiddleware.js';
+import { registerSuperAdmin } from '../../controllers/admin/adminControllers.js';
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/agences/employees:
+ * /api/admin/register-super-admin:
  *   post:
- *     summary: Création d'un employé (collector ou manager) par une agence
+ *     summary: Création d'un super administrateur
  *     tags:
- *       - Employés
- *     security:
- *       - bearerAuth: []   # Assure-toi d'avoir défini ce securityScheme dans ta config Swagger
+ *       - Admin
  *     requestBody:
  *       required: true
  *       content:
@@ -24,31 +21,28 @@ const router = express.Router();
  *               - lastname
  *               - email
  *               - password
- *               - role
+ *               - superAdminKey
  *             properties:
  *               firstname:
  *                 type: string
- *                 example: Marie
+ *                 example: Jean
  *               lastname:
  *                 type: string
- *                 example: Curie
+ *                 example: Dupont
  *               email:
  *                 type: string
  *                 format: email
- *                 example: marie.curie@example.com
+ *                 example: jean.dupont@example.com
  *               password:
  *                 type: string
  *                 format: password
  *                 example: motdepasse123
- *               role:
+ *               superAdminKey:
  *                 type: string
- *                 enum:
- *                   - manager
- *                   - collector
- *                 example: collector
+ *                 example: ma_clef_secrete_superadmin
  *     responses:
  *       201:
- *         description: Employé créé avec succès
+ *         description: Super admin créé avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -56,20 +50,23 @@ const router = express.Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Employé créé avec succès
- *                 employeeId:
+ *                   example: Super admin créé avec succès
+ *                 userId:
  *                   type: string
  *                   example: 60c72b2f5f1b2c001c8d4e0b
+ *                 role:
+ *                   type: string
+ *                   example: super_admin
  *                 success:
  *                   type: boolean
  *                   example: true
  *       400:
- *         description: Données invalides ou champs manquants
- *       401:
- *         description: Non autorisé (token manquant ou rôle incorrect)
+ *         description: Erreur de validation des champs
+ *       403:
+ *         description: Clé secrète super admin invalide
  *       500:
  *         description: Erreur serveur
  */
-router.post('/employees', authMiddleware('agency'), createEmployee);
+router.post('/register-super-admin', registerSuperAdmin);
 
 export default router;

@@ -18,7 +18,7 @@ const clientSchema = new mongoose.Schema({
   }],
 
   serviceAddress: {
-    ville: { type: String, trim: true },  // ← Ajout
+    ville: { type: String, trim: true },
     arrondissement: { type: String, trim: true },
     secteur: { type: String, trim: true },
     quartier: { type: String, trim: true },
@@ -26,8 +26,15 @@ const clientSchema = new mongoose.Schema({
     porte: { type: String, trim: true },
     couleurPorte: { type: String, trim: true },
     coordinates: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
+      type: {
+        type: String, 
+        enum: ['Point'], 
+        default: 'Point'
+      },
+      coordinates: { 
+        type: [Number], // [longitude, latitude]
+        default: [0, 0] 
+      }
     }
   },
 

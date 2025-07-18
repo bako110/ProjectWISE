@@ -17,12 +17,11 @@ const router = express.Router();
  *   name: Authentification
  *   description: Gestion des utilisateurs (inscription, connexion, réinitialisation)
  */
-
 /**
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Inscription d'un nouvel utilisateur (client, agence ou mairie)
+ *     summary: Inscription d'un nouvel utilisateur (client ou agence)
  *     tags: [Authentification]
  *     requestBody:
  *       required: true
@@ -32,10 +31,9 @@ const router = express.Router();
  *             oneOf:
  *               - $ref: '#/components/schemas/ClientRegister'
  *               - $ref: '#/components/schemas/AgenceRegister'
- *               - $ref: '#/components/schemas/MairieRegister'
  *           examples:
  *             client:
- *               summary: Inscription client
+ *               summary: Exemple client
  *               value:
  *                 role: client
  *                 firstName: Awa
@@ -54,7 +52,7 @@ const router = express.Router();
  *                 ville: Ouagadougou
  *                 codePostal: "22600"
  *             agence:
- *               summary: Inscription agence
+ *               summary: Exemple agence
  *               value:
  *                 role: agence
  *                 firstName: Jean
@@ -67,80 +65,11 @@ const router = express.Router();
  *                 receiveOffers: true
  *                 name: Agence Propre
  *                 description: Collecte des déchets ménagers à Ouagadougou.
- *             mairie:
- *               summary: Inscription mairie
- *               value:
- *                 role: mairie
- *                 firstName: Marie
- *                 lastName: Curie
- *                 email: mairie@example.com
- *                 phone: "+22670123456"
- *                 password: motDePasseFort123
- *                 confirmPassword: motDePasseFort123
- *                 termsAccepted: true
- *                 receiveOffers: false
  *     responses:
  *       201:
  *         description: Utilisateur inscrit avec succès
  *       400:
  *         description: Données invalides ou consentement manquant
- */
-
-/**
- * @swagger
- * /api/auth/register/client:
- *   post:
- *     summary: Inscription d’un client
- *     tags: [Authentification]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ClientRegister'
- *     responses:
- *       201:
- *         description: Client inscrit avec succès
- *       400:
- *         description: Erreur de validation
- */
-
-/**
- * @swagger
- * /api/auth/register/agence:
- *   post:
- *     summary: Inscription d’une agence
- *     tags: [Authentification]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/AgenceRegister'
- *     responses:
- *       201:
- *         description: Agence inscrite avec succès
- *       400:
- *         description: Erreur de validation
- */
-
-/**
- * @swagger
- * /api/auth/register/mairie:
- *   post:
- *     summary: Inscription d’une mairie
- *     tags: [Authentification]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/MairieRegister'
- *     responses:
- *       201:
- *         description: Mairie inscrite avec succès
- *       400:
- *         description: Erreur de validation
  */
 
 /**
@@ -151,6 +80,8 @@ const router = express.Router();
  *       type: object
  *       required:
  *         - role
+ *         - firstName
+ *         - lastName
  *         - email
  *         - password
  *         - confirmPassword
@@ -158,7 +89,7 @@ const router = express.Router();
  *       properties:
  *         role:
  *           type: string
- *           enum: [client, agence, mairie]
+ *           enum: [client, agence]
  *         firstName:
  *           type: string
  *         lastName:
@@ -215,12 +146,7 @@ const router = express.Router();
  *               type: string
  *             description:
  *               type: string
- *     MairieRegister:
- *       allOf:
- *         - $ref: '#/components/schemas/BaseUser'
- *         - type: object
  */
-
 /**
  * @swagger
  * /api/auth/login:

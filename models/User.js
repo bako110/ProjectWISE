@@ -15,7 +15,14 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['client', 'collecteur', 'agence', 'mairie'],
+      enum: [
+        'client',          // Utilisateur particulier ou entreprise
+        'collector',       // Agent de collecte
+        'agency',
+        'manager',          // Agence de collecte
+        'municipality',    // Municipalité (mairie)
+        'super_admin'      // Super administrateur global
+      ],
       required: [true, 'Le rôle est requis'],
     },
     isActive: {
