@@ -366,41 +366,55 @@ const router = express.Router();
  *               discriminator:
  *                 propertyName: role
  *             examples:
- *               client:
- *                 summary: Inscription client
- *                 description: Exemple d'inscription pour un client particulier
- *                 value:
- *                   role: "client"
- *                   firstName: "Awa"
- *                   lastName: "Ouédraogo"
- *                   email: "awa.client@gmail.com"
- *                   phone: "+22670123456"
- *                   password: "motDePasseFort123"
- *                   confirmPassword: "motDePasseFort123"
- *                   termsAccepted: true
- *                   receiveOffers: false
- *                   arrondissement: "Arrondissement 3"
- *                   rue: "Rue 14.19"
- *                   quartier: "Tampouy"
- *                   numero: "12"
- *                   couleurPorte: "Bleu"
- *                   ville: "Ouagadougou"
- *                   codePostal: "22600"
- *               agence:
- *                 summary: Inscription agence
- *                 description: Exemple d'inscription pour une agence de collecte
- *                 value:
- *                   role: "agence"
- *                   firstName: "Jean"
- *                   lastName: "Dupont"
- *                   email: "agence@example.com"
- *                   phone: "+22670123456"
- *                   password: "motDePasseFort123"
- *                   confirmPassword: "motDePasseFort123"
- *                   termsAccepted: true
- *                   receiveOffers: true
- *                   name: "Agence Propre"
- *                   description: "Collecte des déchets ménagers à Ouagadougou."
+*               client:
+*                 summary: Inscription client
+*                 description: Exemple d'inscription pour un client particulier
+*                 value:
+*                   role: "client"
+*                   firstName: "Awa"
+*                   lastName: "Ouédraogo"
+*                   email: "awa.client@gmail.com"
+*                   phone: "+22670123456"
+*                   password: "motDePasseFort123"
+*                   confirmPassword: "motDePasseFort123"
+*                   termsAccepted: true
+*                   receiveOffers: false
+*                   address:
+*                     street: "Rue 14.19"
+*                     doorNumber: "12"
+*                     doorColor: "Bleu"
+*                     sector: "Secteur 30"
+*                     neighborhood: "Tampouy"
+*                     city: "Ouagadougou"
+*                     postalCode: "22600"
+*                     arrondissement: "Arrondissement 3"
+*                     latitude: 12.3624
+*                     longitude: -1.5336
+
+*               agence:
+*                 summary: Inscription agence
+*                 description: Exemple d'inscription pour une agence de collecte
+*                 value:
+*                   role: "agence"
+*                   firstName: "Jean"
+*                   lastName: "Dupont"
+*                   email: "agence@example.com"
+*                   phone: "+22670123456"
+*                   password: "motDePasseFort123"
+*                   termsAccepted: true
+*                   receiveOffers: true
+*                   agencyName: "Agence Propreté Faso"
+*                   agencyDescription: "Entreprise spécialisée dans la collecte des déchets."
+*                   address:
+*                     street: "Rue 18.34"
+*                     sector: "Secteur 30"
+*                     neighborhood: "Karpala"
+*                     arrondissement: "Arrondissement 12"
+*                     city: "Ouagadougou"
+*                     postalCode: "22600"
+*                     latitude: 12.3624
+*                     longitude: -1.5336
+
  *       responses:
  *         '201':
  *           description: Inscription réussie
