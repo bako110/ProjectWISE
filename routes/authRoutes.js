@@ -376,7 +376,6 @@ const router = express.Router();
 *                   email: "awa.client@gmail.com"
 *                   phone: "+22670123456"
 *                   password: "motDePasseFort123"
-*                   confirmPassword: "motDePasseFort123"
 *                   termsAccepted: true
 *                   receiveOffers: false
 *                   address:
