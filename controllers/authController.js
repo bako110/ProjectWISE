@@ -117,8 +117,6 @@ export const register = async (req, res) => {
           neighborhood: address.neighborhood,
           city: address.city,
           postalCode: address.postalCode || '',
-          latitude: address.latitude || null,
-          longitude: address.longitude || null,
           arrondissement: address.arrondissement || ''  // arrondissement déplacé ici dans address
         },
         acceptTerms,
