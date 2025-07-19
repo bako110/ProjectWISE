@@ -404,3 +404,33 @@ export const getAllAgencies = async (req, res) => {
     });
   }
 };
+
+
+// Récupérer une agence par son ID
+export const getAgencyById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const agency = await Agency.findById(id).lean();
+
+    if (!agency) {
+      return res.status(404).json({
+        success: false,
+        message: 'Agence non trouvée'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: agency
+    });
+  } catch (error) {
+    console.error('Erreur récupération agence par ID:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération de l’agence',
+      details: error.message
+    });
+  }
+};
+

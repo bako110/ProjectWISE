@@ -1,7 +1,10 @@
 import express from 'express';
 import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
-import { getAllAgencies } from '../../controllers/authController.js';
+import {
+  getAllAgencies,
+  getAgencyById
+} from '../../controllers/authController.js';
 
 const router = express.Router();
 
@@ -112,5 +115,52 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *         description: Erreur lors de la récupération des agences
  */
 router.get('/recuperation', getAllAgencies);
+
+/**
+ * @swagger
+ * /api/agences/recuperation/{id}:
+ *   get:
+ *     summary: Récupérer une agence par son ID
+ *     tags:
+ *       - Agences
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID unique de l'agence
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Détails de l'agence récupérés avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 agence:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 60c72b2f5f1b2c001c8d4e0b
+ *                     nom:
+ *                       type: string
+ *                       example: Agence Yennega
+ *                     email:
+ *                       type: string
+ *                       example: contact@yennega.com
+ *                     telephone:
+ *                       type: string
+ *                       example: "+22670707070"
+ *       404:
+ *         description: Aucune agence trouvée avec cet ID
+ *       500:
+ *         description: Erreur serveur lors de la récupération
+ */
+router.get('/recuperation/:id', getAgencyById);
 
 export default router;
