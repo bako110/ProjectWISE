@@ -17,25 +17,17 @@ const clientSchema = new mongoose.Schema({
     ref: 'Agency'
   }],
 
-  serviceAddress: {
-    ville: { type: String, trim: true },
+  address: {
+    street: { type: String, trim: true, required: true },
+    doorNumber: { type: String, trim: true, required: true },
+    doorColor: { type: String, trim: true },
     arrondissement: { type: String, trim: true },
-    secteur: { type: String, trim: true },
-    quartier: { type: String, trim: true },
-    rue: { type: String, trim: true },
-    porte: { type: String, trim: true },
-    couleurPorte: { type: String, trim: true },
-    coordinates: {
-      type: {
-        type: String, 
-        enum: ['Point'], 
-        default: 'Point'
-      },
-      coordinates: { 
-        type: [Number], // [longitude, latitude]
-        default: [0, 0] 
-      }
-    }
+    sector: { type: String, trim: true },           // secteur ajouté
+    neighborhood: { type: String, trim: true, required: true },
+    city: { type: String, trim: true, required: true },
+    postalCode: { type: String, trim: true },
+    latitude: { type: Number },
+    longitude: { type: Number }
   },
 
   subscribedAgencyId: { 
@@ -76,7 +68,7 @@ const clientSchema = new mongoose.Schema({
   }],
 
   // Consentements
-  termsAccepted: { 
+  acceptTerms: { 
     type: Boolean, 
     required: true 
   },
@@ -88,8 +80,8 @@ const clientSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// Index géospatial pour la géolocalisation
-clientSchema.index({ 'serviceAddress.coordinates': '2dsphere' });
+// ➤ Tu peux ajouter un index géospatial plus tard si latitude/longitude sont utilisés
+// clientSchema.index({ 'address.location': '2dsphere' });
 
 const Client = mongoose.model('Client', clientSchema);
 export default Client;

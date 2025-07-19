@@ -7,28 +7,45 @@ const agencySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  firstName: { type: String, required: true, trim: true },  // ajouté
+  lastName: { type: String, required: true, trim: true },   // ajouté
 
-  name: { type: String, required: true, trim: true },
+  agencyName: { type: String, required: true, trim: true },
 
-  description: { type: String, default: '', trim: true },
+  agencyDescription: { type: String, default: '', trim: true },
 
   phone: { type: String, required: true, trim: true },
-
-  email: { type: String, trim: true },
-
-  logo: { type: String }, 
-
   address: {
-    street: String,
-    doorNumber: String,
-    doorColor: String,
-    neighborhood: String,
-    city: String,
-    postalCode: String,
-    latitude: Number,
-    longitude: Number,
+    street: { type: String, trim: true },
+    arrondissement: { type: String, trim: true },
+    sector: { type: String, trim: true },
+    neighborhood: { type: String, trim: true },
+    city: { type: String, trim: true },
+    postalCode: { type: String, trim: true },
+    latitude: { type: Number },
+    longitude: { type: Number }
   },
 
+
+  logo: { type: String },
+
+  licenseNumber: { type: String, required: true, unique: true },
+
+  // 🔐 Membres de l'agence avec rôles
+  members: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    role: {
+      type: String,
+      enum: ['owner', 'admin', 'staff'],
+      default: 'staff'
+    }
+  }],
+
+  // Relations
   serviceZones: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ServiceZone',
@@ -49,15 +66,25 @@ const agencySchema = new mongoose.Schema({
     ref: 'CollectionSchedule',
   }],
 
+  collectors: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Collector',
+  }],
+
+  clients: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  }],
+
   rating: { type: Number, default: 0 },
 
   totalClients: { type: Number, default: 0 },
 
-  termsAccepted: { type: Boolean, required: true },
+  acceptTerms: { type: Boolean, required: true },
 
   receiveOffers: { type: Boolean, default: false },
 
-  isActive: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: false }
 
 }, { timestamps: true });
 

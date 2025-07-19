@@ -33,7 +33,7 @@ export const register = async (req, res) => {
       agencyDescription,
       address = {},
       acceptTerms,
-      acceptNewsletter = false
+      receiveOffers = false
     } = req.body;
 
     const allowedRoles = ['client', 'agency'];
@@ -44,7 +44,6 @@ export const register = async (req, res) => {
       });
     }
 
-    // Vérification des champs requis
     if (!email || !password || !role || !firstName || !lastName || !phone || acceptTerms !== true) {
       return res.status(400).json({
         message: 'Champs obligatoires manquants ou conditions non acceptées.',
@@ -83,18 +82,19 @@ export const register = async (req, res) => {
     }
 
     if (role === 'client') {
-      if (!address.street || !address.doorNumber || !address.neighborhood || !address.city || !address.arrondissement) {
-        return res.status(400).json({
-          message: "Adresse complète requise pour le client (rue, numéro, quartier, ville).",
-          error: 'CLIENT_ADDRESS_INCOMPLETE'
-        });
+      const requiredFields = ['street', 'doorNumber', 'neighborhood', 'city', 'arrondissement'];
+      for (const field of requiredFields) {
+        if (!address[field]) {
+          return res.status(400).json({
+            message: `Champ d'adresse manquant : ${field}`,
+            error: 'CLIENT_ADDRESS_INCOMPLETE'
+          });
+        }
       }
     }
 
-    // Hash du mot de passe
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Création de l'utilisateur principal
     createdUser = await User.create({
       email,
       password: hashedPassword,
@@ -104,44 +104,59 @@ export const register = async (req, res) => {
 
     let profileData = {};
 
-    // Création du profil client
     if (role === 'client') {
       profileData = {
         firstName,
         lastName,
         phone,
-        termsAccepted: acceptTerms,
-        receiveOffers: acceptNewsletter,
-        serviceAddress: {
-          rue: address.street,
-          numero: address.doorNumber,
-          arrondissement: address.district || '',
-          couleurPorte: address.doorColor || '',
-          quartier: address.neighborhood,
-          ville: address.city,
-          codePostal: address.postalCode || ''
+        address: {
+          street: address.street,
+          doorNumber: address.doorNumber,
+          doorColor: address.doorColor || '',
+          sector: address.sector || '',       // secteur en anglais ajouté
+          neighborhood: address.neighborhood,
+          city: address.city,
+          postalCode: address.postalCode || '',
+          latitude: address.latitude || null,
+          longitude: address.longitude || null,
+          arrondissement: address.arrondissement || ''  // arrondissement déplacé ici dans address
         },
+        acceptTerms,
+        receiveOffers,
         userId: createdUser._id
       };
+
 
       createdProfile = await Client.create(profileData);
 
     } else if (role === 'agency') {
-      // Générer un numéro de licence unique
       const licenseNumber = `AGCY-${randomUUID()}`;
-      if (!licenseNumber) {
-        throw new Error("La génération du numéro de licence a échoué.");
-      }
 
       profileData = {
-        name: agencyName,
+        agencyName,
+        agencyDescription: agencyDescription || '',
+        firstName,
+        lastName,
         phone,
-        description: agencyDescription || '',
-        termsAccepted: acceptTerms,
         licenseNumber,
-        receiveOffers: acceptNewsletter,
-        collectors: [],
+        address: {
+          street: address.street,
+          sector: address.sector || '',       // secteur en anglais ajouté
+          neighborhood: address.neighborhood,
+          city: address.city,
+          postalCode: address.postalCode || '',
+          latitude: address.latitude || null,
+          longitude: address.longitude || null,
+          arrondissement: address.arrondissement || ''  // arrondissement déplacé ici dans address
+        },
+        acceptTerms,
+        receiveOffers,
         clients: [],
+        collectors: [],
+        members: [{
+          user: createdUser._id,
+          role: 'owner' // 🟢 Le créateur est automatiquement propriétaire
+        }],
         userId: createdUser._id
       };
 
@@ -159,7 +174,6 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error('Erreur globale inscription:', error);
 
-    // Annuler la création si erreur
     if (createdUser) await User.findByIdAndDelete(createdUser._id);
     if (createdProfile) {
       const ProfileModel = role === 'client' ? Client : Agency;
@@ -173,8 +187,6 @@ export const register = async (req, res) => {
     });
   }
 };
-
-
 
 /* ------------------------------- LOGIN -------------------------------- */
 
