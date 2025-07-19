@@ -8,12 +8,11 @@ import employees from '../models/Agency/Employee.js';
 import Agency from '../models/Agency/Agency.js';
 import MunicipalManager from '../models/Mairies/MunicipalManager.js';
 import Admin from '../models/admin/admin.js';
-import { randomUUID } from 'crypto';
 
 import { sendResetCodeEmail } from '../utils/resetcodemail.js';
 import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
 
-// Cache in-memory pour codes vérification email
+// Cache temporaire pour les codes de vérification
 const verificationCodes = new Map();
 
 /* --------------------------- ENREGISTREMENT --------------------------- */
@@ -45,6 +44,7 @@ export const register = async (req, res) => {
       });
     }
 
+    // Vérification des champs requis
     if (!email || !password || !role || !firstName || !lastName || !phone || acceptTerms !== true) {
       return res.status(400).json({
         message: 'Champs obligatoires manquants ou conditions non acceptées.',
@@ -83,7 +83,7 @@ export const register = async (req, res) => {
     }
 
     if (role === 'client') {
-      if (!address.street || !address.doorNumber || !address.neighborhood || !address.city) {
+      if (!address.street || !address.doorNumber || !address.neighborhood || !address.city || !address.arrondissement) {
         return res.status(400).json({
           message: "Adresse complète requise pour le client (rue, numéro, quartier, ville).",
           error: 'CLIENT_ADDRESS_INCOMPLETE'
@@ -91,8 +91,10 @@ export const register = async (req, res) => {
       }
     }
 
+    // Hash du mot de passe
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Création de l'utilisateur principal
     createdUser = await User.create({
       email,
       password: hashedPassword,
@@ -102,6 +104,7 @@ export const register = async (req, res) => {
 
     let profileData = {};
 
+    // Création du profil client
     if (role === 'client') {
       profileData = {
         firstName,
@@ -112,6 +115,7 @@ export const register = async (req, res) => {
         serviceAddress: {
           rue: address.street,
           numero: address.doorNumber,
+          arrondissement: address.district || '',
           couleurPorte: address.doorColor || '',
           quartier: address.neighborhood,
           ville: address.city,
@@ -119,20 +123,28 @@ export const register = async (req, res) => {
         },
         userId: createdUser._id
       };
+
       createdProfile = await Client.create(profileData);
 
     } else if (role === 'agency') {
+      // Générer un numéro de licence unique
+      const licenseNumber = `AGCY-${randomUUID()}`;
+      if (!licenseNumber) {
+        throw new Error("La génération du numéro de licence a échoué.");
+      }
+
       profileData = {
         name: agencyName,
         phone,
         description: agencyDescription || '',
         termsAccepted: acceptTerms,
-        licenseNumber: randomUUID(),
+        licenseNumber,
         receiveOffers: acceptNewsletter,
         collectors: [],
         clients: [],
         userId: createdUser._id
       };
+
       createdProfile = await Agency.create(profileData);
     }
 
@@ -147,6 +159,7 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error('Erreur globale inscription:', error);
 
+    // Annuler la création si erreur
     if (createdUser) await User.findByIdAndDelete(createdUser._id);
     if (createdProfile) {
       const ProfileModel = role === 'client' ? Client : Agency;
@@ -160,6 +173,7 @@ export const register = async (req, res) => {
     });
   }
 };
+
 
 
 /* ------------------------------- LOGIN -------------------------------- */
