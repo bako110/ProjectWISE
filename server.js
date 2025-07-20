@@ -13,6 +13,7 @@ import zoneRoutes from './routes/agency/zoneRoutes.js';
 import profileRoutes from './routes/profile.js';
 import agenceSearchRoutes from './routes/clients/agencySearchRoutes.js'
 import agencyClientRoutes from './routes/clients/clientRoutes.js';
+import agencyClientSubRoutes from './routes/agency/clientRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -39,6 +40,7 @@ app.use('/api', profileRoutes);
 // app.use('/api/plannings', planningRoutes);
 app.use('/api/agences', agenceSearchRoutes);
 app.use('/api/clients', agencyClientRoutes);
+app.use('/api', agencyClientSubRoutes); // Routes pour les clients liés aux agences
 // app.use('/api/clients', clientRoutes);
 
 // Middleware 404 pour routes non trouvées

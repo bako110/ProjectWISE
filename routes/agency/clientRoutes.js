@@ -7,6 +7,7 @@ import {
   reportNonPassage,
   validateClientSubscription
 } from '../../controllers/agency/clientController.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -105,9 +106,9 @@ const router = express.Router();
  *         description: Client non trouvé
  */
 
-router.get('/clients/agency/:agencyId', auth('agence'), getClientsByAgency);
+router.get('/clients/agency/:agencyId', authMiddleware('agence'), getClientsByAgency);
 // router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
-router.post('/clients/:id/signalement', auth, authorizeRoles('client'), reportNonPassage);
-router.put('/clients/:clientId/validate', auth('agence'), validateClientSubscription);
+router.post('/clients/:id/signalement', authMiddleware('client'), reportNonPassage);
+router.put('/clients/:clientId/validate', authMiddleware('agence'), validateClientSubscription);
 
 export default router;
