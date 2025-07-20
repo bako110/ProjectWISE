@@ -37,10 +37,12 @@ app.use('/api/auth', municipalityRoutes);  // <-- Nouvelle route municipalité
 
 app.use('/api/zones', zoneRoutes);
 app.use('/api', profileRoutes);
+// app.use('/api', profileRoutes);
 // app.use('/api/plannings', planningRoutes);
 app.use('/api/agences', agenceSearchRoutes);
 app.use('/api/clients', agencyClientRoutes);
-app.use('/api/agences', agencyClientSubRoutes); // Routes pour les clients liés aux agences
+app.use('/api/clients', agencyClientSubRoutes); // Routes pour les clients liés aux agences
+app.use('/api/agences', agencyClientSubRoutes); // route pour recuperer une par son ID
 // app.use('/api/clients', clientRoutes);
 
 // Middleware 404 pour routes non trouvées
