@@ -36,7 +36,7 @@ const router = express.Router();
  *       200:
  *         description: Liste des clients
  */
-router.get('/agency/:agencyId', authMiddleware('agence'), getClientsByAgency);
+router.get('/agency/:agencyId', authMiddleware('agency'), getClientsByAgency);
 
 /**
  * @swagger
