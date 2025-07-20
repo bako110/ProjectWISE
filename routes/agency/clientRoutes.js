@@ -61,7 +61,7 @@ router.get('/clients/agency/:agencyId', authMiddleware('agence'), getClientsByAg
  *       404:
  *         description: Client ou agence non trouvé
  */
-router.put('/clients/:clientId/validate', authMiddleware('agence'), validateClientSubscription);
+router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClientSubscription);
 
 /**
  * @swagger
