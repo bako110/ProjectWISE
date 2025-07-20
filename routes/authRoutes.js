@@ -5,7 +5,8 @@ import {
   logout,
   forgotPassword,
   verifyCode,
-  resetPassword
+  resetPassword,
+  changePassword
 } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 
@@ -879,5 +880,6 @@ router.post('/logout', authMiddleware(), logout);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode', verifyCode);
 router.post('/resetPassword', authMiddleware, resetPassword);
+router.put('/changePassword', authMiddleware(), changePassword);
 
 export default router;
