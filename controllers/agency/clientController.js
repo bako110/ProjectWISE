@@ -51,7 +51,6 @@ export const reportNonPassage = async (req, res) => {
   }
 };
 
-
 export const validateClientSubscription = async (req, res) => {
   console.log("✅ [validateClientSubscription] - Début");
 
@@ -59,17 +58,18 @@ export const validateClientSubscription = async (req, res) => {
     const { clientId } = req.params;
     const userId = req.user.id; // ID utilisateur connecté (l’agence)
 
-    // Trouver l'agence associée à l'utilisateur connecté
+    // 🔍 Récupération de l'agence liée à cet utilisateur
     const agency = await Agency.findOne({ userId });
     if (!agency) {
       console.log("❌ Agence non trouvée pour cet utilisateur");
       return res.status(404).json({ message: 'Agence non trouvée pour cet utilisateur' });
     }
-    const agencyId = agency._id.toString();
 
+    const agencyId = agency._id.toString();
     console.log("🔎 clientId:", clientId);
     console.log("🏢 agencyId (de l'agence connectée):", agencyId);
 
+    // 🔍 Récupération du client
     const client = await Client.findById(clientId);
     if (!client) {
       console.log("❌ Client non trouvé");
@@ -81,7 +81,13 @@ export const validateClientSubscription = async (req, res) => {
       return res.status(403).json({ message: 'Ce client n’est pas lié à votre agence' });
     }
 
-    client.subscriptionStatus = 'active';
+    // 🟢 Ajout à l'historique
+    client.subscriptionHistory.push({
+      date: new Date(),
+      status: 'active',
+      offer: '' // à remplir si tu veux associer une offre précise
+    });
+
     await client.save();
 
     console.log("✅ Abonnement validé pour le client:", client._id);
@@ -91,7 +97,8 @@ export const validateClientSubscription = async (req, res) => {
         id: client._id,
         firstName: client.firstName,
         lastName: client.lastName,
-        subscriptionStatus: client.subscriptionStatus
+        subscriptionStatus: client.subscriptionStatus,
+        subscriptionHistory: client.subscriptionHistory
       }
     });
 

@@ -35,12 +35,6 @@ const clientSchema = new mongoose.Schema({
     ref: 'Agency' 
   },
 
-  subscriptionStatus: {
-    type: String,
-    enum: ['active', 'pending', 'cancelled'],
-    default: 'pending'
-  },
-
   subscriptionHistory: [{
     date: { type: Date, default: Date.now },
     status: { 
