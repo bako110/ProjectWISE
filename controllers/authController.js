@@ -12,6 +12,9 @@ import Admin from '../models/admin/admin.js';
 import { sendResetCodeEmail } from '../utils/resetcodemail.js';
 import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
 
+const DEFAULT_LIMIT = 10;
+const DEFAULT_PAGE = 1;
+
 // Cache temporaire pour les codes de vérification
 const verificationCodes = new Map();
 
@@ -413,7 +416,15 @@ export const logout = async (req, res) => {
 
 export const getAllAgencies = async (req, res) => {
   try {
-    const agencies = await Agency.find()
+    const { query,  limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = req.query;
+
+    const skip = (page - 1) * parseInt(limit);
+    const filter = query ? { name: new RegExp(query, 'i') } : {};
+
+
+    const agencies = await Agency.find(filter)
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate({
         path: 'clients',
         model: 'Client',
@@ -426,10 +437,17 @@ export const getAllAgencies = async (req, res) => {
       })
       .lean();
 
+      const total = await Agency.countDocuments(filter);
+
     return res.status(200).json({
       success: true,
       count: agencies.length,
-      data: agencies
+      data: agencies,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      pages: Math.ceil(total / limit),
+      query: query || ''
     });
   } catch (error) {
     console.error('Erreur récupération agences:', error);
