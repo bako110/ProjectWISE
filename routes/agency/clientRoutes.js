@@ -1,13 +1,12 @@
 // routes/agency/clientRoutes.js
+
 import express from 'express';
-import auth from '../../middlewares/authMiddleware.js';
-import { authorizeRoles } from '../../middlewares/agency/roleMiddleware.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   getClientsByAgency,
   reportNonPassage,
   validateClientSubscription
 } from '../../controllers/agency/clientController.js';
-import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -37,46 +36,36 @@ const router = express.Router();
  *       200:
  *         description: Liste des clients
  */
+router.get('/clients/agency/:agencyId', authMiddleware('agence'), getClientsByAgency);
 
 /**
  * @swagger
- * /api/clients/{id}:
- *   patch:
- *     summary: Modifier le profil client (adresse, abonnement)
+ * /api/agences/clients/{clientId}/validate:
+ *   put:
+ *     summary: Valider la souscription d’un client à une agence
  *     tags: [Clients]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: clientId
  *         required: true
  *         schema:
  *           type: string
- *         description: ID du client
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               serviceAddress:
- *                 type: object
- *               subscribedAgencyId:
- *                 type: string
- *               subscriptionStatus:
- *                 type: string
- *                 enum: [active, pending, cancelled]
+ *         description: ID du client à valider
  *     responses:
  *       200:
- *         description: Profil client mis à jour
+ *         description: Souscription validée
+ *       403:
+ *         description: Accès interdit ou client lié à une autre agence
  *       404:
- *         description: Client non trouvé
+ *         description: Client ou agence non trouvé
  */
+router.put('/clients/:clientId/validate', authMiddleware('agence'), validateClientSubscription);
 
 /**
  * @swagger
- * /api/clients/{id}/signalement:
+ * /api/agences/clients/{id}/signalement:
  *   post:
  *     summary: Ajouter un signalement de non-passage par un client
  *     tags: [Clients]
@@ -105,10 +94,6 @@ const router = express.Router();
  *       404:
  *         description: Client non trouvé
  */
-
-router.get('/clients/agency/:agencyId', authMiddleware('agence'), getClientsByAgency);
-// router.patch('/clients/:id', auth, authorizeRoles('agence', 'client'), updateClientProfile);
 router.post('/clients/:id/signalement', authMiddleware('client'), reportNonPassage);
-router.put('/clients/:clientId/validate', authMiddleware('agence'), validateClientSubscription);
 
 export default router;
