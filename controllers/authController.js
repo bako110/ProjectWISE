@@ -413,7 +413,18 @@ export const logout = async (req, res) => {
 
 export const getAllAgencies = async (req, res) => {
   try {
-    const agencies = await Agency.find().lean();
+    const agencies = await Agency.find()
+      .populate({
+        path: 'clients',
+        model: 'Client',
+        populate: {
+          path: 'userId',
+          model: 'User',
+          select: '-password -__v -updatedAt' // on masque le mot de passe pour la sécurité
+        },
+        select: '-__v -updatedAt'
+      })
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -429,6 +440,7 @@ export const getAllAgencies = async (req, res) => {
     });
   }
 };
+
 
 
 // Récupérer une agence par son ID
