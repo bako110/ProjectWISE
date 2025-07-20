@@ -15,7 +15,7 @@ export const subscribeToAgency = async (req, res) => {
       return res.status(400).json({ message: 'ID de l’agence requis' });
     }
 
-    const client = await Client.findOne({ userId });
+    const client = await Client.findOne({ userId: new mongoose.Types.ObjectId(userId) });
     if (!client) return res.status(404).json({ message: 'Client non trouvé' });
 
     const agency = await Agency.findById(agencyId);
