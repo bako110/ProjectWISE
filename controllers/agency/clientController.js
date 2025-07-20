@@ -56,20 +56,18 @@ export const validateClientSubscription = async (req, res) => {
 
   try {
     const { clientId } = req.params;
-    const userId = req.user.id; // ID utilisateur connecté (l’agence)
+    const userId = req.user.id;
 
-    // 🔍 Récupération de l'agence liée à cet utilisateur
+    // 🔍 Trouver l'agence liée à l'utilisateur connecté
     const agency = await Agency.findOne({ userId });
     if (!agency) {
-      console.log("❌ Agence non trouvée pour cet utilisateur");
+      console.log("❌ Agence non trouvée");
       return res.status(404).json({ message: 'Agence non trouvée pour cet utilisateur' });
     }
 
     const agencyId = agency._id.toString();
-    console.log("🔎 clientId:", clientId);
-    console.log("🏢 agencyId (de l'agence connectée):", agencyId);
 
-    // 🔍 Récupération du client
+    // 🔍 Récupérer le client
     const client = await Client.findById(clientId);
     if (!client) {
       console.log("❌ Client non trouvé");
@@ -77,17 +75,18 @@ export const validateClientSubscription = async (req, res) => {
     }
 
     if (client.subscribedAgencyId?.toString() !== agencyId) {
-      console.log("⛔ Client lié à une autre agence");
+      console.log("⛔ Ce client n’est pas lié à votre agence");
       return res.status(403).json({ message: 'Ce client n’est pas lié à votre agence' });
     }
 
-    // 🟢 Ajout à l'historique
-    client.subscriptionHistory.push({
-      date: new Date(),
-      status: 'active',
-      offer: '' // à remplir si tu veux associer une offre précise
-    });
+    // ✅ Mise à jour du statut de la dernière demande
+    const lastEntry = [...client.subscriptionHistory].reverse().find(e => e.status === 'pending');
+    if (lastEntry) {
+      lastEntry.status = 'active';
+      lastEntry.date = new Date(); // mettre à jour la date si souhaité
+    }
 
+    client.subscriptionStatus = 'active';
     await client.save();
 
     console.log("✅ Abonnement validé pour le client:", client._id);
