@@ -209,9 +209,25 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
 
-    // Vérifie uniquement si l'agence est active
-    if (user.role === 'agency' && !user.isActive) {
-      return res.status(403).json({ message: 'Votre compte agence n’a pas encore été activé' });
+    // Vérifie si le compte de l'agence est activé
+    if (user.role === 'agency') {
+      if (!user.isActive) {
+        return res.status(403).json({
+          message: 'Votre compte agence est en cours de validation par l’administrateur.'
+        });
+      }
+
+      // Optionnel : tu peux aussi vérifier que l’agence elle-même est active
+      const agency = await Agency.findOne({ userId: user._id });
+      if (!agency) {
+        return res.status(404).json({ message: 'Profil agence introuvable' });
+      }
+
+      if (!agency.isActive) {
+        return res.status(403).json({
+          message: 'Votre agence n’est pas encore activée. Veuillez patienter pendant la validation.'
+        });
+      }
     }
 
     const token = jwt.sign(
@@ -269,6 +285,7 @@ export const login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
+
 /* ---------------------- MOT DE PASSE OUBLIÉ --------------------------- */
 
 /* forgotPassword */
