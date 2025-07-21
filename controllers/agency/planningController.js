@@ -1,65 +1,87 @@
-import Planning from '../../models/Agency/WasteService.js';
+import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 
-// Créer un planning
+// ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
   try {
-    const { date, heure, zone, collecteur } = req.body;
-    if (!date || !heure || !zone || !collecteur) {
-      return res.status(400).json({ error: "Champs obligatoires manquants" });
+    const { zoneId, dayOfWeek, startTime, endTime, collectorId } = req.body;
+
+    if (!zoneId || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
+      return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
-    const planning = new Planning({ date, heure, zone, collecteur });
+
+    const planning = new CollectionSchedule({
+      zoneId,
+      dayOfWeek,
+      startTime,
+      endTime,
+      collectorId
+    });
+
     await planning.save();
-    res.status(201).json(planning);
+
+    res.status(201).json({
+      message: "Planning créé avec succès",
+      planning
+    });
   } catch (error) {
+    console.error("Erreur lors de la création du planning :", error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Lister plannings (avec filtres)
+// ➤ Lister les plannings (avec filtres)
 export const listerPlannings = async (req, res) => {
   try {
-    const { collecteur, zone, date } = req.query;
+    const { collectorId, zoneId, dayOfWeek } = req.query;
     const filtre = {};
-    if (collecteur) filtre.collecteur = collecteur;
-    if (zone) filtre.zone = zone;
-    if (date) filtre.date = new Date(date);
 
-    const plannings = await Planning.find(filtre)
-      .populate('zone', 'name')
-      .populate('collecteur', 'name phone');
+    if (collectorId) filtre.collectorId = collectorId;
+    if (zoneId) filtre.zoneId = zoneId;
+    if (dayOfWeek) filtre.dayOfWeek = parseInt(dayOfWeek);
+
+    const plannings = await CollectionSchedule.find(filtre)
+      .populate('zoneId', 'name')
+      .populate('collectorId', 'firstName lastName phone');
+
     res.json(plannings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Mettre à jour un planning (ex: marquer collecte effectuée)
+// ➤ Mettre à jour un planning
 export const mettreAJourPlanning = async (req, res) => {
   try {
-    const planning = await Planning.findById(req.params.id);
+    const planning = await CollectionSchedule.findById(req.params.id);
     if (!planning) return res.status(404).json({ error: 'Planning non trouvé' });
 
-    const { statut, commentaire, photos, positionGPS } = req.body;
-    if (statut) planning.statut = statut;
-    if (commentaire) planning.commentaire = commentaire;
-    if (photos) planning.photos = photos;
-    if (positionGPS) planning.positionGPS = positionGPS;
-    if (statut === 'effectué') planning.dateEffectuee = new Date();
+    const { startTime, endTime, collectorId, isActive } = req.body;
+
+    if (startTime) planning.startTime = startTime;
+    if (endTime) planning.endTime = endTime;
+    if (collectorId) planning.collectorId = collectorId;
+    if (typeof isActive === 'boolean') planning.isActive = isActive;
 
     await planning.save();
-    res.json(planning);
+    res.json({
+      message: 'Planning mis à jour',
+      planning
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Historique des tournées d'un collecteur
+// ➤ Historique des tournées d’un collecteur
 export const historiqueParCollecteur = async (req, res) => {
   try {
-    const plannings = await Planning.find({ collecteur: req.params.collecteurId })
-      .sort({ date: -1 })
-      .populate('zone', 'name')
-      .populate('collecteur', 'name');
+    const { collectorId } = req.params;
+
+    const plannings = await CollectionSchedule.find({ collectorId })
+      .sort({ createdAt: -1 })
+      .populate('zoneId', 'name')
+      .populate('collectorId', 'firstName lastName');
+
     res.json(plannings);
   } catch (error) {
     res.status(500).json({ error: error.message });

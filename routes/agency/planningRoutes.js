@@ -1,6 +1,5 @@
 import express from 'express';
-import auth from '../../middlewares/authMiddleware.js';
-import { authorizeRoles } from '../../middlewares/agency/roleMiddleware.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   creerPlanning,
   listerPlannings,
@@ -19,11 +18,10 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/plannings:
+ * /api/zones/plannings:
  *   post:
  *     summary: Créer un nouveau planning
- *     tags:
- *       - Plannings
+ *     tags: [Plannings]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -34,22 +32,26 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - date
- *               - heure
- *               - zone
- *               - collecteur
+ *               - zoneId
+ *               - dayOfWeek
+ *               - startTime
+ *               - endTime
+ *               - collectorId
  *             properties:
- *               date:
- *                 type: string
- *                 format: date
- *                 example: "2025-07-16"
- *               heure:
- *                 type: string
- *                 example: "14:00"
- *               zone:
+ *               zoneId:
  *                 type: string
  *                 example: "64fa7cf123abc456def78901"
- *               collecteur:
+ *               dayOfWeek:
+ *                 type: number
+ *                 example: 1
+ *                 description: 0 pour dimanche, 1 pour lundi...
+ *               startTime:
+ *                 type: string
+ *                 example: "08:00"
+ *               endTime:
+ *                 type: string
+ *                 example: "10:00"
+ *               collectorId:
  *                 type: string
  *                 example: "64fa7cf123abc456def78902"
  *     responses:
@@ -61,86 +63,68 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/plannings:
+ * /api/zones/plannings:
  *   get:
- *     summary: Lister les plannings (filtrables par collecteur, zone, date)
- *     tags:
- *       - Plannings
+ *     summary: Lister les plannings (filtrables par collecteur, zone ou jour)
+ *     tags: [Plannings]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: collecteur
+ *         name: collectorId
  *         schema:
  *           type: string
  *         description: ID du collecteur
  *       - in: query
- *         name: zone
+ *         name: zoneId
  *         schema:
  *           type: string
  *         description: ID de la zone
  *       - in: query
- *         name: date
+ *         name: dayOfWeek
  *         schema:
- *           type: string
- *           format: date
- *         description: Date de la tournée
+ *           type: number
+ *         description: Jour de la semaine (0 = dimanche, 6 = samedi)
  *     responses:
  *       200:
  *         description: Liste des plannings
  */
 
 /**
-/**
  * @swagger
- * /api/plannings/{id}:
+ * /api/zones/plannings/{id}:
  *   patch:
- *     summary: "Mettre à jour un planning (ex: marquer collecte effectuée)"
- *     tags:
- *       - Plannings
+ *     summary: Mettre à jour un planning
+ *     tags: [Plannings]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID du planning
  *         schema:
  *           type: string
+ *         description: ID du planning à mettre à jour
  *     requestBody:
- *       description: Données à mettre à jour
+ *       description: Données à modifier
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               statut:
+ *               startTime:
  *                 type: string
- *                 enum:
- *                   - prévu
- *                   - effectué
- *                   - problème
- *                 example: effectué
- *               commentaire:
+ *                 example: "09:00"
+ *               endTime:
  *                 type: string
- *                 example: "Collecte réalisée sans problème"
- *               photos:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example:
- *                   - "url1.jpg"
- *                   - "url2.jpg"
- *               positionGPS:
- *                 type: object
- *                 properties:
- *                   lat:
- *                     type: number
- *                     example: 12.345678
- *                   lng:
- *                     type: number
- *                     example: -1.234567
+ *                 example: "11:00"
+ *               collectorId:
+ *                 type: string
+ *                 example: "64fbc0d2a95e1234ef567890"
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       200:
  *         description: Planning mis à jour
@@ -150,11 +134,10 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/plannings/historique/{collecteurId}:
+ * /api/zones/plannings/historique/{collecteurId}:
  *   get:
  *     summary: Récupérer l'historique des tournées d'un collecteur
- *     tags:
- *       - Plannings
+ *     tags: [Plannings]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -166,12 +149,12 @@ const router = express.Router();
  *         description: ID du collecteur
  *     responses:
  *       200:
- *         description: Liste des tournées historiques
+ *         description: Liste des tournées passées du collecteur
  */
 
-router.post('/', auth, authorizeRoles('agence'), creerPlanning);
-router.get('/', auth, authorizeRoles('agence', 'collector'), listerPlannings);
-router.patch('/:id', auth, authorizeRoles('collector', 'agence'), mettreAJourPlanning);
-router.get('/historique/:collecteurId', auth, authorizeRoles('collector', 'agence'), historiqueParCollecteur);
+router.post('/', authMiddleware('agency'), creerPlanning);
+router.get('/', authMiddleware('agency', 'collector'), listerPlannings);
+router.patch('/:id', authMiddleware('agency'), mettreAJourPlanning);
+router.get('/historique/:collecteurId', authMiddleware('agency', 'collector'), historiqueParCollecteur);
 
 export default router;
