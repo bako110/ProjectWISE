@@ -4,7 +4,7 @@ import express from 'express';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   getClientsByAgency,
-  reportNonPassage,
+  reportNoShow,
   validateClientSubscription
 } from '../../controllers/agency/clientController.js';
 
@@ -85,15 +85,68 @@ router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClie
  *           schema:
  *             type: object
  *             properties:
+ *               type:
+ *                 type: string
+ *                 example: "absence"
+ *                 description: Type du signalement
  *               comment:
  *                 type: string
  *                 example: "Le camion n’est pas passé ce jour"
+ *                 description: Commentaire associé au signalement
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-07-21T12:34:56Z"
+ *                 description: Date du signalement (fourni par le client)
+ *             required:
+ *               - type
+ *               - comment
+ *               - date
  *     responses:
  *       200:
  *         description: Signalement enregistré
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Report saved"
+ *                 noShowReports:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       type:
+ *                         type: string
+ *                       comment:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                         format: date-time
  *       404:
  *         description: Client non trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Client not found"
+ *       500:
+ *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
-router.post('/clients/:id/signalement', authMiddleware('client'), reportNonPassage);
+router.post('/clients/:id/signalement', authMiddleware('client'), reportNoShow);
+
 
 export default router;
