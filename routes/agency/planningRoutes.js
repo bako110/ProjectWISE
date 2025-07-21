@@ -44,7 +44,7 @@ const router = express.Router();
  *               dayOfWeek:
  *                 type: number
  *                 example: 1
- *                 description: 0 pour dimanche, 1 pour lundi...
+ *                 description: 0 pour dimanche, 1 pour lundi, etc.
  *               startTime:
  *                 type: string
  *                 example: "08:00"
@@ -60,6 +60,7 @@ const router = express.Router();
  *       400:
  *         description: Données invalides
  */
+router.post('/', authMiddleware('agency', 'manager'), creerPlanning);
 
 /**
  * @swagger
@@ -84,11 +85,13 @@ const router = express.Router();
  *         name: dayOfWeek
  *         schema:
  *           type: number
+ *           example: 2
  *         description: Jour de la semaine (0 = dimanche, 6 = samedi)
  *     responses:
  *       200:
  *         description: Liste des plannings
  */
+router.get('/', authMiddleware('agency', 'manager', 'collector'), listerPlannings);
 
 /**
  * @swagger
@@ -131,6 +134,7 @@ const router = express.Router();
  *       404:
  *         description: Planning non trouvé
  */
+router.patch('/:id', authMiddleware('agency', 'manager'), mettreAJourPlanning);
 
 /**
  * @swagger
@@ -151,10 +155,6 @@ const router = express.Router();
  *       200:
  *         description: Liste des tournées passées du collecteur
  */
-
-router.post('/', authMiddleware('agency'), creerPlanning);
-router.get('/', authMiddleware('agency', 'collector'), listerPlannings);
-router.patch('/:id', authMiddleware('agency'), mettreAJourPlanning);
-router.get('/historique/:collecteurId', authMiddleware('agency', 'collector'), historiqueParCollecteur);
+router.get('/historique/:collecteurId', authMiddleware('agency', 'manager', 'collector'), historiqueParCollecteur);
 
 export default router;

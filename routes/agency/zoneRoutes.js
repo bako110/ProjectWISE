@@ -8,8 +8,6 @@ import {
   assignCollectorsToZone
 } from '../../controllers/agency/zoneController.js';
 
-import auth from '../../middlewares/authMiddleware.js';
-import { authorizeRoles } from '../../middlewares/agency/roleMiddleware.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -79,6 +77,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  */
+router.post('/register', authMiddleware('agency', 'manager'), createZone);
 
 /**
  * @swagger
@@ -101,6 +100,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  */
+router.get('/agency/:agencyId', authMiddleware('agency', 'manager'), getZonesByAgency);
 
 /**
  * @swagger
@@ -123,6 +123,7 @@ const router = express.Router();
  *       404:
  *         description: Zone non trouvée
  */
+router.get('/:id', authMiddleware('agency', 'manager'), getZoneById);
 
 /**
  * @swagger
@@ -175,6 +176,7 @@ const router = express.Router();
  *       404:
  *         description: Zone non trouvée
  */
+router.put('/:id', authMiddleware('agency', 'manager'), updateZone);
 
 /**
  * @swagger
@@ -197,6 +199,7 @@ const router = express.Router();
  *       404:
  *         description: Zone non trouvée
  */
+router.delete('/:id', authMiddleware('agency', 'manager'), deleteZone);
 
 /**
  * @swagger
@@ -231,12 +234,6 @@ const router = express.Router();
  *       404:
  *         description: Zone non trouvée
  */
-
-router.post('/register',authMiddleware('agency'), createZone);
-router.get('/agency/:agencyId', authMiddleware('agency'), getZonesByAgency);
-router.get('/:id', authMiddleware('agency'), getZoneById);
-router.put('/:id', authMiddleware('agency'), updateZone);
-router.delete('/:id', authMiddleware('agency'), deleteZone);
-router.put('/:id/assign-collectors', authMiddleware('agency'), assignCollectorsToZone);
+router.put('/:id/assign-collectors', authMiddleware('agency', 'manager'), assignCollectorsToZone);
 
 export default router;
