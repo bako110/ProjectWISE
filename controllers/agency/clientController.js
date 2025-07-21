@@ -100,3 +100,24 @@ export const validateClientSubscription = async (req, res) => {
     });
   }
 };
+
+
+// Récupérer tous les signalements des clients d’une agence
+export const getReportsByAgency = async (req, res) => {
+  try {
+    const { agencyId } = req.params;
+
+    // Récupérer clients abonnés à cette agence
+    const clients = await Client.find({ subscribedAgencyId: agencyId }, 'firstName lastName nonPassageReports');
+
+    if (!clients.length) {
+      return res.status(404).json({ message: "Aucun client trouvé pour cette agence" });
+    }
+
+    // Optionnel : filtrer ou organiser les rapports selon besoin
+
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

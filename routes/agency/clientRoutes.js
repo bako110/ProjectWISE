@@ -5,7 +5,8 @@ import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   getClientsByAgency,
   reportNoShow,
-  validateClientSubscription
+  validateClientSubscription,
+  getReportsByAgency
 } from '../../controllers/agency/clientController.js';
 
 const router = express.Router();
@@ -147,6 +148,62 @@ router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClie
  *                   example: "Internal server error"
  */
 router.post('/clients/:id/signalement', authMiddleware('client'), reportNoShow);
+/**
+ * @swagger
+ * /api/agences/{agencyId}/clients/signalements:
+ *   get:
+ *     summary: Récupérer tous les signalements de non‑passage des clients d'une agence
+ *     tags: [Agences]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         description: Liste des clients avec leurs signalements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: ID du client
+ *                   firstName:
+ *                     type: string
+ *                     example: "Jean"
+ *                   lastName:
+ *                     type: string
+ *                     example: "Dupont"
+ *                   nonPassageReports:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         type:
+ *                           type: string
+ *                           example: "Non‑passage"
+ *                         comment:
+ *                           type: string
+ *                           example: "Le camion n’est pas passé ce jour"
+ *                         date:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2025-07-21T10:30:00Z"
+ *       404:
+ *         description: Aucun client trouvé pour cette agence
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/agences/:agencyId/clients/signalements', getReportsByAgency);
+
 
 
 export default router;
