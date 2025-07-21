@@ -35,8 +35,8 @@ const router = express.Router();
  *               status:
  *                 type: string
  *                 enum: [collected, problem]
- *                 description: |
- *                   'collected' signifie que la collecte s'est bien déroulée,  
+ *                 description: >
+ *                   'collected' signifie que la collecte s'est bien déroulée,
  *                   'problem' signifie qu'un problème a été rencontré (un commentaire est alors requis)
  *               comment:
  *                 type: string
@@ -59,12 +59,15 @@ const router = express.Router();
  *       201:
  *         description: Scan enregistré avec succès
  *       400:
- *         description: Données invalides (ex: absence de clientId ou commentaire manquant si problème)
+ *         description: |
+ *           Données invalides (ex: absence de clientId ou commentaire manquant si problème)
  *       401:
  *         description: Non autorisé (token invalide ou rôle incorrect)
  *       500:
  *         description: Erreur serveur
  */
+
+
 router.post('/qr-code', authMiddleware('collector'), scanBarrel);
 
 export default router;

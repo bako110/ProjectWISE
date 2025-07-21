@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 const positionGPSSchema = new mongoose.Schema({
   lat: {
     type: Number,
-    required: function() { return this.positionGPS != null; },
+    required: function() { return this != null; }, // ce champ est requis si positionGPS existe
   },
   lng: {
     type: Number,
-    required: function() { return this.positionGPS != null; },
+    required: function() { return this != null; },
   },
 }, { _id: false });
 
@@ -38,13 +38,12 @@ const scanReportSchema = new mongoose.Schema({
   },
   comment: {
     type: String,
-    // obligatoire si status === 'problem'
     required: function() {
       return this.status === 'problem';
     },
   },
   photos: {
-    type: [String], // tableau d'urls / chemins de photos
+    type: [String],
     default: [],
   },
   positionGPS: {

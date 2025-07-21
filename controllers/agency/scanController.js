@@ -1,12 +1,12 @@
-import scanBarrel from '../../controllers/agency/scanBarrel.js';
-import Client from '../../models/Client.js';
-import Employee from '../../models/Employee.js';
+import ScanReport from '../../models/agency/ScanReport.js';
+import Client from '../../models/clients/Client.js';
+import Employee from '../../models/Agency/Employee.js';
 
 export const scanBarrel = async (req, res) => {
   try {
     const {
       clientId,
-      status = 'collected',  // défaut à "collected"
+      status = 'collected',
       comment,
       photos,
       positionGPS
@@ -14,31 +14,35 @@ export const scanBarrel = async (req, res) => {
 
     const collectorId = req.user._id;
 
+    // Vérification clientId obligatoire
     if (!clientId) {
       return res.status(400).json({ error: 'clientId requis' });
     }
 
+    // Vérifier que le client existe
     const client = await Client.findById(clientId);
     if (!client) return res.status(404).json({ error: 'Client non trouvé' });
 
+    // Vérifier que le collecteur existe
     const collector = await Employee.findById(collectorId);
     if (!collector) return res.status(404).json({ error: 'Collecteur non trouvé' });
 
     const agencyId = collector.agencyId;
 
-    // Si statut "problem", on vérifie qu'un commentaire est fourni (optionnel selon besoin)
+    // En cas de problème, un commentaire est obligatoire
     if (status === 'problem' && (!comment || comment.trim() === '')) {
       return res.status(400).json({ error: 'Un commentaire est requis en cas de problème' });
     }
 
+    // Créer le rapport de scan
     const report = await ScanReport.create({
       clientId,
       collectorId,
       agencyId,
       status,
       comment: comment || '',
-      photos: photos || [],
-      positionGPS: positionGPS || null,
+      photos: Array.isArray(photos) ? photos : [],
+      positionGPS: positionGPS && typeof positionGPS === 'object' ? positionGPS : null,
     });
 
     res.status(201).json({
@@ -48,7 +52,7 @@ export const scanBarrel = async (req, res) => {
       report,
     });
   } catch (error) {
-    console.error("Erreur scan :", error);
+    console.error("Erreur lors du scan :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
