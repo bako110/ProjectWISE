@@ -413,6 +413,40 @@ export const logout = async (req, res) => {
 };
 
 
+/* ------------------------------- CHANGEPASSWORD ------------------------------- */
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.query.userId || req.user.id;
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+    // const userId = req.user.id;
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
+    }
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({ message: 'Les mots de passe ne correspondent pas' });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    } 
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
+    }
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+    res.status(200).json({ message: 'Mot de passe modifié avec succès' });
+  } catch (error) {
+    console.error('Erreur lors du changement de mot de passe :', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+
+
 
 export const getAllAgencies = async (req, res) => {
   try {
