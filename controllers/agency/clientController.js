@@ -29,7 +29,7 @@ export const reportNoShow = async (req, res) => {
 
     const newReport = {
       type,
-      comment,
+      description,
       date: date ? new Date(date) : new Date()  // convertit la date envoyée, ou date actuelle si absente
     };
 

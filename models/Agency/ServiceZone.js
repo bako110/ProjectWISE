@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const coordinateSchema = new mongoose.Schema({
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
+  latitude: { type: Number},
+  longitude: { type: Number},
 });
 
 const serviceZoneSchema = new mongoose.Schema({

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
   type: { type: String, required: true, trim: true },
-  comment: { type: String, required: true, trim: true },
+  description: { type: String, required: true, trim: true },
   date: { type: Date, required: true }
 });
 
