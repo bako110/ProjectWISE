@@ -20,22 +20,25 @@ connectDB();
 
 const app = express();
 
-//  Middleware CORS (autoriser toutes les origines, ou configurer)
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
-
 const allowedOrigins = [
   'https://collect-dechets.vercel.app',
   'http://localhost:4200'
 ];
+
+//  Middleware CORS (autoriser uniquement les origines listées)
+app.use(cors({
+  origin: function (origin, callback) {
+    // Autorise les requêtes sans origin (ex: Postman, curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true
+}));
 
 // Middlewares globaux
 app.use(express.json());
@@ -47,17 +50,14 @@ swaggerDocs(app);
 app.use('/api/auth', authRoutes);
 app.use('/api/agences', agencyRoutes);
 app.use('/api/auth', superAdminRoutes);
-app.use('/api/auth', municipalityRoutes);  // <-- Nouvelle route municipalité
+app.use('/api/auth', municipalityRoutes);
 
 app.use('/api/zones', zoneRoutes);
 app.use('/api', profileRoutes);
-// app.use('/api', profileRoutes);
-// app.use('/api/plannings', planningRoutes);
 app.use('/api/agences', agenceSearchRoutes);
 app.use('/api/clients', agencyClientRoutes);
-app.use('/api/clients', agencyClientSubRoutes); // route pour recuperer une par son ID
-app.use('/api/agences', agencyClientSubRoutes); // Routes pour les clients liés aux agences
-// app.use('/api/clients', clientRoutes);
+app.use('/api/clients', agencyClientSubRoutes);
+app.use('/api/agences', agencyClientSubRoutes);
 
 // Middleware 404 pour routes non trouvées
 app.use((req, res) => {
