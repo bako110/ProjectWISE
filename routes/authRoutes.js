@@ -879,7 +879,7 @@ router.post('/login', login);
 router.post('/logout', authMiddleware(), logout);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode', verifyCode);
-router.post('/resetPassword', authMiddleware, resetPassword);
+router.post('/resetPassword', authMiddleware(), resetPassword);
 router.put('/changePassword', authMiddleware(), changePassword);
 
 
