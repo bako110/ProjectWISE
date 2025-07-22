@@ -1,6 +1,7 @@
 import express from 'express';
 import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
+import { createTarif, updateTarif, getTarifByAgency, getTarifById, deleteTarif } from '../../controllers/tarifController.js';
 import {
   getAllAgencies,
   getAgencyById
@@ -270,5 +271,170 @@ router.get('/:agencyId/employees', authMiddleware('agency'), getAllEmployees);
 router.get('/:agencyId/employees/role/:role', authMiddleware('agency'), getEmployeeByRoleAndAgency);
 
 
+/**
+ * @swagger
+ * /api/agences/tarif:
+ *   post:
+ *     summary: Créer un tarif
+ *     tags:
+ *       - Tarifs
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agencyId
+ *               - type
+ *               - price
+ *             properties:
+ *               agencyId:
+ *                 type: string
+ *                 description: ID de l'agence
+ *               type:
+ *                 type: string
+ *                 enum: [standard, premium, enterprise]
+ *               price:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               nbPassages:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Tarif créé avec succès
+ *       400:
+ *         description: Requête invalide
+ *       500:
+ *         description: Erreur serveur
+ */
+
+router.post('/tarif',authMiddleware('agency'), createTarif);
+
+/**
+ * @swagger
+ * /api/agences/tarif/{tarifId}:
+ *   put:
+ *     summary: Mettre à jour un tarif
+ *     tags:
+ *       - Tarifs
+ *     parameters:
+ *       - in: path
+ *         name: tarifId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du tarif à mettre à jour
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - price
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [standard, premium, enterprise]
+ *               price:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *               nbPassages:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Tarif mis à jour avec succès
+ *       404:
+ *         description: Tarif non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/tarif/:tarifId', authMiddleware('agency'), updateTarif);
+
+/**
+ * @swagger
+ * /api/agences/{agencyId}/tarif:
+ *   get:
+ *     summary: Récupérer les tarifs d'une agence
+ *     tags:
+ *       - Tarifs
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         description: ID de l'agence
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des tarifs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tarif'
+ *       404:
+ *         description: Aucun tarif trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/:agencyId/tarif', authMiddleware('agency'), getTarifByAgency);
+
+/**
+ * @swagger
+ * /api/agences/tarif/{tarifId}:
+ *   get:
+ *     summary: Récupérer un tarif par ID
+ *     tags:
+ *       - Tarifs
+ *     parameters:
+ *       - in: path
+ *         name: tarifId
+ *         required: true
+ *         description: ID du tarif à récupérer
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Détails du tarif récupérés avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tarif'
+ *       404:
+ *         description: Tarif non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/tarif/:tarifId', authMiddleware('agency'), getTarifById);
+
+/**
+ * @swagger
+ * /api/agences/tarif/{tarifId}:
+ *   delete:
+ *     summary: Supprimer un tarif par ID
+ *     tags:
+ *       - Tarifs
+ *     parameters:
+ *       - in: path
+ *         name: tarifId
+ *         required: true
+ *         description: ID du tarif à supprimer
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tarif supprimé avec succès
+ *       404:
+ *         description: Tarif non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.delete('/tarif/:tarifId', authMiddleware('agency'), deleteTarif);
 
 export default router;
