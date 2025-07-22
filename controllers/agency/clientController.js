@@ -42,6 +42,8 @@ export const reportNoShow = async (req, res) => {
   }
 };
 
+
+
 export const validateClientSubscription = async (req, res) => {
   console.log("✅ [validateClientSubscription] - Début");
 
@@ -65,12 +67,13 @@ export const validateClientSubscription = async (req, res) => {
       return res.status(404).json({ message: 'Client non trouvé' });
     }
 
+    // 🔐 Vérifier si le client est lié à cette agence
     if (client.subscribedAgencyId?.toString() !== agencyId) {
       console.log("⛔ Ce client n’est pas lié à votre agence");
       return res.status(403).json({ message: 'Ce client n’est pas lié à votre agence' });
     }
 
-    // ✅ Mise à jour ciblée du statut de la dernière demande avec updateOne (évite validation complète)
+    // ✅ Mettre à jour la dernière demande "pending"
     await Client.updateOne(
       { _id: clientId },
       {
@@ -85,15 +88,20 @@ export const validateClientSubscription = async (req, res) => {
       }
     );
 
-    console.log("✅ Abonnement validé pour le client:", client._id);
+    // 🔁 Recharger le client mis à jour
+    const updatedClient = await Client.findById(clientId);
+
+    console.log("✅ Abonnement validé pour le client:", updatedClient._id);
+
     return res.status(200).json({
       message: 'Abonnement validé avec succès',
       client: {
-        id: client._id,
-        firstName: client.firstName,
-        lastName: client.lastName,
-        subscriptionStatus: 'active',
-        subscriptionHistory: client.subscriptionHistory
+        id: updatedClient._id,
+        firstName: updatedClient.firstName,
+        lastName: updatedClient.lastName,
+        phone: updatedClient.phone,
+        subscriptionStatus: updatedClient.subscriptionStatus,
+        subscriptionHistory: updatedClient.subscriptionHistory
       }
     });
 

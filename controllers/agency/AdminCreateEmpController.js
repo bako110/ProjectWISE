@@ -55,9 +55,7 @@ export const createEmployee = async (req, res) => {
       firstName,
       lastName,
       phone,
-      role,
       zones,
-      avatar,
       agencyId,
       isActive: true,
       hiredAt: new Date()
