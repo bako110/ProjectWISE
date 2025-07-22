@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { isBlacklisted } from './tokenBlacklist.js';
 import User from '../models/User.js';
-import Agency from '../models/Agency.js';  // Import du modèle Agency
+import Agency from '../models/Agency/Agency.js';
 
 dotenv.config();
 
