@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../../models/User.js';
-import employees from '../../models/Agency/Employee.js';
+import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
 import ServiceZone from '../../models/Agency/ServiceZone.js';
 import crypto from 'crypto';
@@ -18,7 +18,7 @@ export const createEmployee = async (req, res) => {
       avatar
     } = req.body;
 
-    const agencyId = req.user.id; // L'agence actuellement connectée
+    const agencyId = req.user.id; // L'agence actuellement connectée (via middleware)
 
     if (!['manager', 'collector'].includes(role)) {
       return res.status(400).json({ message: 'Rôle invalide. Doit être manager ou collector.' });
@@ -39,6 +39,9 @@ export const createEmployee = async (req, res) => {
 
     // 🔎 Récupération du nom de l’agence
     const agency = await Agency.findOne({ userId: agencyId });
+    if (!agency) {
+      return res.status(404).json({ message: "Agence introuvable." });
+    }
     const agencyName = agency?.agencyName || 'Votre agence';
 
     // 👤 Création de l'utilisateur (User)
@@ -50,15 +53,21 @@ export const createEmployee = async (req, res) => {
     });
 
     // 👥 Création de l'employé (Employee)
-    const newEmployee = await employees.create({
+    const newEmployee = await Employee.create({
       userId: newUser._id,
       firstName,
       lastName,
       phone,
       zones,
-      agencyId,
+      agencyId: agency._id,
       isActive: true,
-      hiredAt: new Date()
+      hiredAt: new Date(),
+      avatar
+    });
+
+    // 🔁 Mise à jour de l'agence : ajout de l'employé dans la liste
+    await Agency.findByIdAndUpdate(agency._id, {
+      $push: { employees: newEmployee._id }
     });
 
     // 📧 Envoi des identifiants au nouvel employé
@@ -88,7 +97,6 @@ export const createEmployee = async (req, res) => {
     });
   }
 };
-
 
 export const getEmployee = async (req, res) => {
   try {
