@@ -70,15 +70,20 @@ export const validateClientSubscription = async (req, res) => {
       return res.status(403).json({ message: 'Ce client n’est pas lié à votre agence' });
     }
 
-    // ✅ Mise à jour du statut de la dernière demande
-    const lastEntry = [...client.subscriptionHistory].reverse().find(e => e.status === 'pending');
-    if (lastEntry) {
-      lastEntry.status = 'active';
-      lastEntry.date = new Date(); // mettre à jour la date si souhaité
-    }
-
-    client.subscriptionStatus = 'active';
-    await client.save();
+    // ✅ Mise à jour ciblée du statut de la dernière demande avec updateOne (évite validation complète)
+    await Client.updateOne(
+      { _id: clientId },
+      {
+        $set: {
+          subscriptionStatus: 'active',
+          'subscriptionHistory.$[elem].status': 'active',
+          'subscriptionHistory.$[elem].date': new Date(),
+        }
+      },
+      {
+        arrayFilters: [{ 'elem.status': 'pending' }]
+      }
+    );
 
     console.log("✅ Abonnement validé pour le client:", client._id);
     return res.status(200).json({
@@ -87,7 +92,7 @@ export const validateClientSubscription = async (req, res) => {
         id: client._id,
         firstName: client.firstName,
         lastName: client.lastName,
-        subscriptionStatus: client.subscriptionStatus,
+        subscriptionStatus: 'active',
         subscriptionHistory: client.subscriptionHistory
       }
     });

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../../models/User.js';
-import Employee from '../../models/Agency/Employee.js';
+import employees from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
 import ServiceZone from '../../models/Agency/ServiceZone.js';
 import crypto from 'crypto';
@@ -50,7 +50,7 @@ export const createEmployee = async (req, res) => {
     });
 
     // 👥 Création de l'employé (Employee)
-    const newEmployee = await Employee.create({
+    const newEmployee = await employees.create({
       userId: newUser._id,
       firstName,
       lastName,
