@@ -7,8 +7,6 @@ import crypto from 'crypto';
 import { sendMail } from '../../utils/resetcodemail.js';
 
 export const createEmployee = async (req, res) => {
-  let session = null;
-  
   try {
     const {
       firstName,
@@ -20,13 +18,14 @@ export const createEmployee = async (req, res) => {
       avatar
     } = req.body;
 
-    const agencyId = req.user.id; // L'agence actuellement connectée (via middleware)
+    const agencyUserId = req.user.id; // l'utilisateur (admin agence) connecté
 
-    // Validations
+    // Validation du rôle
     if (!['manager', 'collector'].includes(role)) {
       return res.status(400).json({ message: 'Rôle invalide. Doit être manager ou collector.' });
     }
 
+    // Validation des champs
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ message: 'Prénom, nom et email sont obligatoires.' });
     }
@@ -36,119 +35,73 @@ export const createEmployee = async (req, res) => {
       return res.status(400).json({ message: 'Email déjà utilisé.' });
     }
 
-    // 🔎 Récupération de l'agence
-    const agency = await Agency.findOne({ userId: agencyId });
+    // Trouver l'agence par userId
+    const agency = await Agency.findOne({ userId: agencyUserId });
     if (!agency) {
-      return res.status(404).json({ message: "Agence introuvable." });
+      return res.status(404).json({ message: 'Agence introuvable pour cet utilisateur.' });
     }
-    const agencyName = agency?.agencyName || 'Votre agence';
 
-    // 🔐 Génération du mot de passe
+    const agencyName = agency.agencyName || 'Votre agence';
+
+    // Générer et hasher mot de passe
     const generatedPassword = crypto.randomBytes(6).toString('hex');
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
-    // Variables pour stocker les résultats
-    let newUser, newEmployee;
-
-    // 🚀 Démarrer la session et transaction
-    session = await mongoose.startSession();
-    
-    await session.withTransaction(async () => {
-      console.log('🚀 Début de la transaction');
-      
-      // 👤 Création de l'utilisateur (User) dans la transaction
-      const userResult = await User.create([{
-        email,
-        password: hashedPassword,
-        role,
-        isActive: true
-      }], { session });
-      newUser = userResult[0];
-      console.log('👤 User créé:', newUser._id);
-
-      // 👥 Création de l'employé (Employee) dans la transaction
-      const employeeResult = await Employee.create([{
-        userId: newUser._id,
-        firstName,
-        lastName,
-        phone,
-        zones,
-        agencyId: agency._id,
-        isActive: true,
-        hiredAt: new Date(),
-        avatar
-      }], { session });
-      newEmployee = employeeResult[0];
-      console.log('👥 Employee créé:', newEmployee._id);
-
-      // 🔁 Mise à jour de l'agence : ajout de l'employé dans la liste
-      await Agency.findByIdAndUpdate(
-        agency._id, 
-        { $push: { employees: newEmployee._id } },
-        { session, new: true }
-      );
-      console.log('🏢 Agency mise à jour avec nouvel employé');
+    // Créer utilisateur
+    const newUser = await User.create({
+      email,
+      password: hashedPassword,
+      role,
+      isActive: true
     });
 
-    console.log('✅ Transaction terminée avec succès');
+    // Créer employé
+    const newEmployee = await Employee.create({
+      userId: newUser._id,
+      firstName,
+      lastName,
+      phone,
+      zones,
+      agencyId: agency._id,
+      isActive: true,
+      hiredAt: new Date(),
+      avatar
+    });
 
-    // 📧 Envoi des identifiants au nouvel employé (après la transaction)
-    try {
-      await sendMail(
+    // 🧠 Ajouter l'employé à la liste de l'agence
+    await Agency.findByIdAndUpdate(
+      agency._id,
+      { $push: { employees: newEmployee._id } },
+      { new: true }
+    );
+
+    // Envoyer mail
+    await sendMail(
+      email,
+      `🎉 Bienvenue chez ${agencyName} - Vos identifiants`,
+      {
+        firstName,
         email,
-        `🎉 Bienvenue chez ${agencyName} - Vos identifiants`,
-        {
-          firstName,
-          email,
-          password: generatedPassword,
-          agencyName
-        }
-      );
-      console.log('📧 Email envoyé avec succès');
-    } catch (emailError) {
-      console.error('⚠️ Erreur envoi email (employé créé quand même):', emailError);
-      // On continue car l'employé a été créé avec succès
-    }
+        password: generatedPassword,
+        agencyName
+      }
+    );
 
     return res.status(201).json({
       message: `${role} créé avec succès.`,
       employeeId: newEmployee._id,
       userId: newUser._id,
-      email: newUser.email,
-      employee: {
-        _id: newEmployee._id,
-        userId: newUser._id,
-        firstName,
-        lastName,
-        agencyName,
-        phone,
-        zones,
-        isActive: true,
-        hiredAt: newEmployee.hiredAt
-      }
+      email: newUser.email
     });
 
   } catch (error) {
-    console.error('❌ Erreur création employé :', error);
-    console.error('Stack trace:', error.stack);
-    
+    console.error('Erreur création employé :', error);
     return res.status(500).json({
-      message: 'Erreur lors de la création de l\'employé. Aucune donnée n\'a été sauvegardée.',
+      message: 'Erreur serveur.',
       error: error.message
     });
-  } finally {
-    // Fermer la session si elle existe
-    if (session) {
-      try {
-        await session.endSession();
-        console.log('🔚 Session fermée');
-      } catch (sessionError) {
-        console.error('Erreur fermeture session:', sessionError);
-      }
-    }
   }
 };
-
 
 export const getEmployee = async (req, res) => {
   try {
