@@ -82,3 +82,46 @@ export const createEmployee = async (req, res) => {
     return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
   }
 };
+
+export const getEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const employee = await Employee.findById(id).populate('userId', 'nom prenom email role isActive');
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employé non trouvé.' });
+    }
+
+    return res.status(200).json(employee);
+  } catch (error) {
+    console.error('Erreur récupération employé:', error);
+    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+  }
+}
+
+export const getAllEmployees = async (req, res) => {
+  try {
+    const agencyId = req.params.agencyId; 
+    const employees = await Employee.find({ agencyId })
+      .populate('userId', 'nom prenom email role isActive')
+      .sort({ createdAt: -1 });
+    return res.status(200).json(employees);
+  } catch (error) {
+    console.error('Erreur récupération employés:', error);
+    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+  }
+}
+
+export const getEmployeeByRoleAndAgency = async (req, res) => {
+  try {
+    const { role } = req.params;
+    const agencyId = req.params.agencyId;
+    const employees = await Employee.find({ role, agencyId })
+      .populate('userId', 'nom prenom email role isActive')
+      .sort({ createdAt: -1 });
+    return res.status(200).json(employees);
+  } catch (error) {
+    console.error('Erreur récupération employés par rôle et agence:', error);
+    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+  }
+}
