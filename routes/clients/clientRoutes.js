@@ -1,6 +1,10 @@
 import express from 'express';
 import authMiddleware from '../../middlewares/authMiddleware.js';
-import { subscribeToAgency, getClientProfile } from '../../controllers/clients/clientController.js';
+import {
+  subscribeToAgency,
+  getClientProfile,
+  getClientById
+} from '../../controllers/clients/clientController.js';
 
 const router = express.Router();
 
@@ -65,5 +69,39 @@ router.get('/profile', authMiddleware, getClientProfile);
  *         description: Non autorisé.
  */
 router.post('/subscribe', authMiddleware('client'), subscribeToAgency);
+
+/**
+ * @swagger
+ * /api/clients/{id}:
+ *   get:
+ *     summary: Récupérer un client par son ID
+ *     tags: [Client]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du client à récupérer
+ *     responses:
+ *       200:
+ *         description: Client récupéré avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Client'
+ *       400:
+ *         description: ID invalide.
+ *       404:
+ *         description: Client non trouvé.
+ */
+router.get('/:id', authMiddleware, getClientById);
 
 export default router;

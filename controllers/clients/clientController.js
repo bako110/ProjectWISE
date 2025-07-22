@@ -89,3 +89,34 @@ export const getClientProfile = async (req, res) => {
     });
   }
 };
+
+// 🔹 Récupération d’un client par son ID (admin / agence)
+export const getClientById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Vérifie la validité de l’ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'ID client invalide.' });
+    }
+
+    // Recherche du client + population éventuelle
+    const client = await Client.findById(id)
+      .populate('userId', '-password -__v -updatedAt')   // masque mot de passe
+      .lean();
+
+    if (!client) {
+      return res.status(404).json({ message: 'Client non trouvé.' });
+    }
+
+    return res.status(200).json({ success: true, data: client });
+
+  } catch (error) {
+    console.error('Erreur récupération client :', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération du client.',
+      details: error.message
+    });
+  }
+};
