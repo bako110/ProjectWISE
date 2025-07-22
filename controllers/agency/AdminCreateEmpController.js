@@ -7,8 +7,7 @@ import crypto from 'crypto';
 import { sendMail } from '../../utils/resetcodemail.js';
 
 export const createEmployee = async (req, res) => {
-  // Démarrer une session pour la transaction
-  const session = await mongoose.startSession();
+  let session = null;
   
   try {
     const {
@@ -48,19 +47,27 @@ export const createEmployee = async (req, res) => {
     const generatedPassword = crypto.randomBytes(6).toString('hex');
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
-    // 🚀 Démarrer la transaction
+    // Variables pour stocker les résultats
+    let newUser, newEmployee;
+
+    // 🚀 Démarrer la session et transaction
+    session = await mongoose.startSession();
+    
     await session.withTransaction(async () => {
+      console.log('🚀 Début de la transaction');
       
       // 👤 Création de l'utilisateur (User) dans la transaction
-      const [newUser] = await User.create([{
+      const userResult = await User.create([{
         email,
         password: hashedPassword,
         role,
         isActive: true
       }], { session });
+      newUser = userResult[0];
+      console.log('👤 User créé:', newUser._id);
 
       // 👥 Création de l'employé (Employee) dans la transaction
-      const [newEmployee] = await Employee.create([{
+      const employeeResult = await Employee.create([{
         userId: newUser._id,
         firstName,
         lastName,
@@ -71,38 +78,37 @@ export const createEmployee = async (req, res) => {
         hiredAt: new Date(),
         avatar
       }], { session });
+      newEmployee = employeeResult[0];
+      console.log('👥 Employee créé:', newEmployee._id);
 
       // 🔁 Mise à jour de l'agence : ajout de l'employé dans la liste
       await Agency.findByIdAndUpdate(
         agency._id, 
         { $push: { employees: newEmployee._id } },
-        { session }
+        { session, new: true }
       );
-
-      // Stocker les données pour l'envoi d'email après la transaction
-      req.tempData = {
-        newUser,
-        newEmployee,
-        generatedPassword,
-        firstName,
-        email,
-        agencyName
-      };
+      console.log('🏢 Agency mise à jour avec nouvel employé');
     });
 
+    console.log('✅ Transaction terminée avec succès');
+
     // 📧 Envoi des identifiants au nouvel employé (après la transaction)
-    const { newUser, newEmployee } = req.tempData;
-    
-    await sendMail(
-      email,
-      `🎉 Bienvenue chez ${agencyName} - Vos identifiants`,
-      {
-        firstName,
+    try {
+      await sendMail(
         email,
-        password: generatedPassword,
-        agencyName
-      }
-    );
+        `🎉 Bienvenue chez ${agencyName} - Vos identifiants`,
+        {
+          firstName,
+          email,
+          password: generatedPassword,
+          agencyName
+        }
+      );
+      console.log('📧 Email envoyé avec succès');
+    } catch (emailError) {
+      console.error('⚠️ Erreur envoi email (employé créé quand même):', emailError);
+      // On continue car l'employé a été créé avec succès
+    }
 
     return res.status(201).json({
       message: `${role} créé avec succès.`,
@@ -123,20 +129,26 @@ export const createEmployee = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur création employé :', error);
-    
-    // En cas d'erreur, la transaction est automatiquement annulée
-    // Aucun User ni Employee ne sera créé
+    console.error('❌ Erreur création employé :', error);
+    console.error('Stack trace:', error.stack);
     
     return res.status(500).json({
       message: 'Erreur lors de la création de l\'employé. Aucune donnée n\'a été sauvegardée.',
       error: error.message
     });
   } finally {
-    // Fermer la session
-    await session.endSession();
+    // Fermer la session si elle existe
+    if (session) {
+      try {
+        await session.endSession();
+        console.log('🔚 Session fermée');
+      } catch (sessionError) {
+        console.error('Erreur fermeture session:', sessionError);
+      }
+    }
   }
 };
+
 
 export const getEmployee = async (req, res) => {
   try {
