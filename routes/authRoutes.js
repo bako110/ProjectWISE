@@ -880,7 +880,7 @@ router.post('/logout', authMiddleware(), logout);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode', verifyCode);
 
-router.post('/resetPassword/:token', authMiddleware(), resetPassword);
+router.post('/resetPassword/:token', resetPassword);
 
 router.put('/changePassword', authMiddleware(), changePassword);
 
