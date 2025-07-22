@@ -252,7 +252,7 @@ router.get('/:agencyId/employees', authMiddleware('agency'), getAllEmployees);
  *       - in: path
  *         name: role
  *         required: true
- *         description: Rôle de l'employé (ex: livreur, manager)
+ *         description: Rôle de l'employé
  *         schema:
  *           type: string
  *     responses:
