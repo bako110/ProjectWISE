@@ -8,6 +8,8 @@ import employees from '../models/Agency/Employee.js';
 import Agency from '../models/Agency/Agency.js';
 import MunicipalManager from '../models/Mairies/MunicipalManager.js';
 import Admin from '../models/admin/admin.js';
+import QRCode from 'qrcode';
+import { sendQRCodeEmail } from '../utils/qrcodemail.js';
 
 import { sendResetCodeEmail } from '../utils/resetcodemail.js';
 import { isBlacklisted, addToBlacklist } from '../middlewares/tokenBlacklist.js';
@@ -20,9 +22,12 @@ const verificationCodes = new Map();
 
 /* --------------------------- ENREGISTREMENT --------------------------- */
 
+// controllers/auth/register.js
+
 export const register = async (req, res) => {
   let createdUser = null;
   let createdProfile = null;
+  let normalizedRole = null;
 
   try {
     const {
@@ -39,22 +44,30 @@ export const register = async (req, res) => {
       receiveOffers = false
     } = req.body;
 
+    if (!role || typeof role !== 'string') {
+      return res.status(400).json({
+        message: 'Le rôle est requis et doit être une chaîne de caractères.',
+        error: 'ROLE_REQUIRED'
+      });
+    }
+
+    normalizedRole = role.trim().toLowerCase();
     const allowedRoles = ['client', 'agency'];
-    if (!allowedRoles.includes(role)) {
+    if (!allowedRoles.includes(normalizedRole)) {
       return res.status(403).json({
         message: 'Rôle non autorisé pour cette route.',
         error: 'INVALID_ROLE_FOR_ROUTE'
       });
     }
 
-    if (!email || !password || !role || !firstName || !lastName || !phone || acceptTerms !== true) {
+    if (!email || !password || !firstName || !lastName || !phone || acceptTerms !== true) {
       return res.status(400).json({
         message: 'Champs obligatoires manquants ou conditions non acceptées.',
         error: 'MISSING_REQUIRED_FIELDS'
       });
     }
 
-    if (password.length < 8) {
+    if (typeof password !== 'string' || password.length < 8) {
       return res.status(400).json({
         message: 'Mot de passe trop court (min 8 caractères).',
         error: 'PASSWORD_TOO_SHORT'
@@ -69,7 +82,7 @@ export const register = async (req, res) => {
       });
     }
 
-    const exists = await User.findOne({ email });
+    const exists = await User.findOne({ email: email.trim().toLowerCase() });
     if (exists) {
       return res.status(400).json({
         message: 'Email déjà utilisé.',
@@ -77,19 +90,19 @@ export const register = async (req, res) => {
       });
     }
 
-    if (role === 'agency' && !agencyName) {
+    if (normalizedRole === 'agency' && (!agencyName || agencyName.trim() === '')) {
       return res.status(400).json({
         message: "Nom de l'agence requis pour le rôle agency.",
         error: 'AGENCY_NAME_REQUIRED'
       });
     }
 
-    if (role === 'client') {
+    if (normalizedRole === 'client') {
       const requiredFields = ['street', 'doorNumber', 'neighborhood', 'city', 'arrondissement'];
       for (const field of requiredFields) {
-        if (!address[field]) {
+        if (!address[field] || typeof address[field] !== 'string' || address[field].trim() === '') {
           return res.status(400).json({
-            message: `Champ d'adresse manquant : ${field}`,
+            message: `Champ d'adresse manquant ou invalide : ${field}`,
             error: 'CLIENT_ADDRESS_INCOMPLETE'
           });
         }
@@ -99,56 +112,66 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     createdUser = await User.create({
-      email,
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
-      role,
+      role: normalizedRole,
       isActive: true
     });
 
     let profileData = {};
 
-    if (role === 'client') {
+    if (normalizedRole === 'client') {
+      // Génère un token unique à utiliser pour le scan
+      const qrToken = `https://tonapp.com/collecte/scan?id=${createdUser._id}`;
+
+      // Génère l’image QR en base64
+      const qrCodeImage = await QRCode.toDataURL(qrToken);
+
       profileData = {
-        firstName,
-        lastName,
-        phone,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
         address: {
-          street: address.street,
-          doorNumber: address.doorNumber,
-          doorColor: address.doorColor || '',
-          sector: address.sector || '',       // secteur en anglais ajouté
-          neighborhood: address.neighborhood,
-          city: address.city,
-          postalCode: address.postalCode || '',
-          arrondissement: address.arrondissement || ''  // arrondissement déplacé ici dans address
+          street: address.street.trim(),
+          doorNumber: address.doorNumber.trim(),
+          doorColor: address.doorColor ? address.doorColor.trim() : '',
+          sector: address.sector ? address.sector.trim() : '',
+          neighborhood: address.neighborhood.trim(),
+          city: address.city.trim(),
+          postalCode: address.postalCode ? address.postalCode.trim() : '',
+          arrondissement: address.arrondissement.trim()
         },
         acceptTerms,
         receiveOffers,
+        qrToken,         // Stocke l'URL de scan
+        qrCodeImage,     // Stocke l'image QR code
         userId: createdUser._id
       };
 
-
       createdProfile = await Client.create(profileData);
 
-    } else if (role === 'agency') {
+      // Envoie de l'e-mail avec le QR code
+      await sendQRCodeEmail(email, firstName.trim(), qrCodeImage);
+
+    } else if (normalizedRole === 'agency') {
       const licenseNumber = `AGCY-${randomUUID()}`;
 
       profileData = {
-        agencyName,
-        agencyDescription: agencyDescription || '',
-        firstName,
-        lastName,
-        phone,
+        agencyName: agencyName.trim(),
+        agencyDescription: agencyDescription ? agencyDescription.trim() : '',
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
         licenseNumber,
         address: {
-          street: address.street,
-          sector: address.sector || '',       // secteur en anglais ajouté
-          neighborhood: address.neighborhood,
-          city: address.city,
-          postalCode: address.postalCode || '',
+          street: address.street.trim(),
+          sector: address.sector ? address.sector.trim() : '',
+          neighborhood: address.neighborhood ? address.neighborhood.trim() : '',
+          city: address.city.trim(),
+          postalCode: address.postalCode ? address.postalCode.trim() : '',
           latitude: address.latitude || null,
           longitude: address.longitude || null,
-          arrondissement: address.arrondissement || ''  // arrondissement déplacé ici dans address
+          arrondissement: address.arrondissement ? address.arrondissement.trim() : ''
         },
         acceptTerms,
         receiveOffers,
@@ -156,7 +179,7 @@ export const register = async (req, res) => {
         collectors: [],
         members: [{
           user: createdUser._id,
-          role: 'owner' // 🟢 Le créateur est automatiquement propriétaire
+          role: 'owner'
         }],
         userId: createdUser._id
       };
@@ -177,7 +200,7 @@ export const register = async (req, res) => {
 
     if (createdUser) await User.findByIdAndDelete(createdUser._id);
     if (createdProfile) {
-      const ProfileModel = role === 'client' ? Client : Agency;
+      const ProfileModel = normalizedRole === 'client' ? Client : Agency;
       await ProfileModel.findByIdAndDelete(createdProfile._id);
     }
 
@@ -188,6 +211,7 @@ export const register = async (req, res) => {
     });
   }
 };
+
 
 /* ------------------------------- LOGIN -------------------------------- */
 

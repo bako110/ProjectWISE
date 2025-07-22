@@ -45,8 +45,8 @@ export const registerSuperAdmin = async (req, res) => {
     // Créer le profil Admin lié à cet utilisateur
     const adminProfile = await Admin.create({
       userId: user._id,
-      firstname,
-      lastname,
+      firstName,
+      lastName,
       isActive: true
     });
 

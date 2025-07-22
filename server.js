@@ -16,6 +16,7 @@ import agencyClientRoutes from './routes/clients/clientRoutes.js';
 import agencyClientSubRoutes from './routes/agency/clientRoutes.js';
 import planningRoutes from './routes/agency/planningRoutes.js';
 import scanRoutes from './routes/agency/scanRoutes.js';
+import collecteRoutes from './routes/agency/scanRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -58,6 +59,7 @@ app.use('/api/clients', agencyClientRoutes);
 app.use('/api/clients', agencyClientSubRoutes);
 app.use('/api/agences', agencyClientSubRoutes);
 app.use('/api/scan', scanRoutes); 
+app.use('/api/collecte', collecteRoutes);
 
 // 404
 app.use((req, res) => {

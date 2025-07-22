@@ -1,75 +1,55 @@
+import mongoose from 'mongoose';
 import ScanReport from '../../models/Agency/ScanReport.js';
 import Client from '../../models/clients/Client.js';
-import mongoose from 'mongoose';
 
 /**
  * Valider un scan de barrique via QR code
- * Deux cas possibles :
- * 1. Collecte normale : status = 'collected' (juste clientId requis)
- * 2. Problème : status = 'problem' (clientId + comment obligatoire + optionnels: photos, GPS)
  */
+
+// 👉 Nouveau : accepte GET auto + fallback POST
 export const scanBarrel = async (req, res) => {
   try {
-    const { clientId, status = 'collected', comment, photos, positionGPS } = req.body;
-    const collectorId = req.user.id; // récupéré du middleware d'auth
-    const agencyId = req.user.agencyId; // récupéré du middleware d'auth
+    // ✅ Priorité au GET query param (scan auto), sinon body
+    const clientId = req.query.clientId || req.body.clientId;
+    const status = req.body.status || 'collected';
+    const comment = req.body.comment;
+    const photos = req.body.photos;
+    const positionGPS = req.body.positionGPS;
 
-    // Validation des données requises
-    if (!clientId) {
-      return res.status(400).json({
-        error: 'ClientId est requis'
-      });
+    const collectorId = req.user?.id;         // Authentifié (token)
+    const agencyId = req.user?.agencyId;
+
+    // 🔎 Vérification de base
+    if (!clientId || !mongoose.Types.ObjectId.isValid(clientId)) {
+      return res.status(400).json({ error: 'ClientId invalide ou manquant.' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(clientId)) {
-      return res.status(400).json({
-        error: 'Format de clientId invalide'
-      });
-    }
-
-    // Validation du statut
     if (!['collected', 'problem'].includes(status)) {
-      return res.status(400).json({
-        error: 'Status doit être "collected" ou "problem"'
-      });
+      return res.status(400).json({ error: 'Status doit être "collected" ou "problem".' });
     }
 
-    // Si problème, commentaire obligatoire
     if (status === 'problem' && (!comment || comment.trim() === '')) {
-      return res.status(400).json({
-        error: 'Un commentaire est obligatoire quand le statut est "problem"'
-      });
+      return res.status(400).json({ error: 'Commentaire obligatoire si status = problem.' });
     }
 
-    // Vérifier que le client existe
     const client = await Client.findById(clientId);
     if (!client) {
-      return res.status(404).json({
-        error: 'Client introuvable'
-      });
+      return res.status(404).json({ error: 'Client introuvable.' });
     }
 
-    // Validation des coordonnées GPS si présentes
     if (positionGPS) {
       const { lat, lng } = positionGPS;
-      if (typeof lat !== 'number' || typeof lng !== 'number') {
-        return res.status(400).json({
-          error: 'Les coordonnées GPS doivent être des nombres'
-        });
-      }
-      if (lat < -90 || lat > 90) {
-        return res.status(400).json({
-          error: 'La latitude doit être entre -90 et 90'
-        });
-      }
-      if (lng < -180 || lng > 180) {
-        return res.status(400).json({
-          error: 'La longitude doit être entre -180 et 180'
-        });
+      if (
+        typeof lat !== 'number' ||
+        typeof lng !== 'number' ||
+        lat < -90 || lat > 90 ||
+        lng < -180 || lng > 180
+      ) {
+        return res.status(400).json({ error: 'Coordonnées GPS invalides.' });
       }
     }
 
-    // Préparer les données du rapport
+    // 📄 Préparation des données de rapport
     const reportData = {
       clientId,
       collectorId,
@@ -78,40 +58,29 @@ export const scanBarrel = async (req, res) => {
       scannedAt: new Date()
     };
 
-    // Ajouter les champs optionnels seulement s'ils sont fournis
     if (status === 'problem') {
-      reportData.comment = comment.trim();
-      
-      if (photos && Array.isArray(photos) && photos.length > 0) {
-        reportData.photos = photos.filter(photo => photo && photo.trim() !== '');
+      reportData.comment = comment?.trim();
+      if (Array.isArray(photos)) {
+        reportData.photos = photos.filter(p => p && p.trim() !== '');
       }
-      
       if (positionGPS) {
-        reportData.positionGPS = {
-          lat: positionGPS.lat,
-          lng: positionGPS.lng
-        };
+        reportData.positionGPS = { lat: positionGPS.lat, lng: positionGPS.lng };
       }
     }
 
-    // Créer le rapport de scan
-    const scanReport = new ScanReport(reportData);
-    await scanReport.save();
+    // ✅ Enregistrement
+    const scanReport = await new ScanReport(reportData).save();
 
-    // Peupler les références pour la réponse
     await scanReport.populate([
-      { path: 'clientId', select: 'name email phone' },
+      { path: 'clientId', select: 'firstName lastName phone' },
       { path: 'collectorId', select: 'firstName lastName' },
-      { path: 'agencyId', select: 'name' }
+      { path: 'agencyId', select: 'agencyName' }
     ]);
 
-    // Réponse adaptée selon le statut
-    const message = status === 'collected' 
-      ? 'Collecte validée avec succès'
-      : 'Problème signalé avec succès';
-
-    res.status(201).json({
-      message,
+    return res.status(201).json({
+      message: status === 'collected'
+        ? 'Collecte validée avec succès'
+        : 'Problème signalé avec succès',
       report: {
         id: scanReport._id,
         client: scanReport.clientId,
@@ -129,31 +98,12 @@ export const scanBarrel = async (req, res) => {
 
   } catch (error) {
     console.error('Erreur lors du scan:', error);
-    
-    // Gestion des erreurs de validation Mongoose
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        error: 'Erreur de validation',
-        details: validationErrors
-      });
-    }
-
-    // Erreur de référence (client inexistant par exemple)
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        error: 'Format de données invalide'
-      });
-    }
-
-    res.status(500).json({
-      error: 'Erreur serveur interne'
-    });
+    return res.status(500).json({ error: 'Erreur serveur interne.' });
   }
 };
 
 /**
- * Récupérer l'historique des scans d'un collector
+ * Récupérer l'historique des scans d’un collector
  */
 export const getScanHistory = async (req, res) => {
   try {
@@ -161,23 +111,17 @@ export const getScanHistory = async (req, res) => {
     const { page = 1, limit = 20, status, clientId } = req.query;
 
     const query = { collectorId };
-    
-    // Filtres optionnels
-    if (status && ['collected', 'problem'].includes(status)) {
-      query.status = status;
-    }
-    
-    if (clientId && mongoose.Types.ObjectId.isValid(clientId)) {
-      query.clientId = clientId;
-    }
+
+    if (status && ['collected', 'problem'].includes(status)) query.status = status;
+    if (clientId && mongoose.Types.ObjectId.isValid(clientId)) query.clientId = clientId;
 
     const skip = (page - 1) * limit;
-    
+
     const [scans, total] = await Promise.all([
       ScanReport.find(query)
-        .populate('clientId', 'name email phone')
+        .populate('clientId', 'firstName lastName phone')
         .populate('collectorId', 'firstName lastName')
-        .populate('agencyId', 'name')
+        .populate('agencyId', 'agencyName')
         .sort({ scannedAt: -1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -191,20 +135,18 @@ export const getScanHistory = async (req, res) => {
         totalPages: Math.ceil(total / limit),
         totalScans: total,
         hasNext: skip + scans.length < total,
-        hasPrev: page > 1
+        hasPrev: Number(page) > 1
       }
     });
 
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'historique:', error);
-    res.status(500).json({
-      error: 'Erreur serveur interne'
-    });
+    console.error('Erreur historique scan:', error);
+    res.status(500).json({ error: 'Erreur serveur interne' });
   }
 };
 
 /**
- * Récupérer les détails d'un scan spécifique
+ * Détails d’un scan spécifique
  */
 export const getScanDetails = async (req, res) => {
   try {
@@ -212,36 +154,29 @@ export const getScanDetails = async (req, res) => {
     const collectorId = req.user.id;
 
     if (!mongoose.Types.ObjectId.isValid(scanId)) {
-      return res.status(400).json({
-        error: 'Format de scanId invalide'
-      });
+      return res.status(400).json({ error: 'ID de scan invalide.' });
     }
 
-    const scan = await ScanReport.findOne({
-      _id: scanId,
-      collectorId // S'assurer que le collector peut seulement voir ses propres scans
-    })
-      .populate('clientId', 'name email phone address')
+    const scan = await ScanReport.findOne({ _id: scanId, collectorId })
+      .populate('clientId', 'firstName lastName phone address')
       .populate('collectorId', 'firstName lastName')
-      .populate('agencyId', 'name address');
+      .populate('agencyId', 'agencyName address');
 
     if (!scan) {
-      return res.status(404).json({
-        error: 'Scan introuvable'
-      });
+      return res.status(404).json({ error: 'Scan introuvable' });
     }
 
-    res.json({ scan });
+    return res.json({ scan });
 
   } catch (error) {
-    console.error('Erreur lors de la récupération du scan:', error);
-    res.status(500).json({
-      error: 'Erreur serveur interne'
-    });
+    console.error('Erreur détails scan:', error);
+    res.status(500).json({ error: 'Erreur serveur interne' });
   }
 };
 
-
+/**
+ * Statistiques de collecte par client pour une agence
+ */
 export const getCollecteStatsByClient = async (req, res) => {
   try {
     const { agencyId } = req.params;
@@ -251,17 +186,8 @@ export const getCollecteStatsByClient = async (req, res) => {
     }
 
     const stats = await ScanReport.aggregate([
-      {
-        $match: {
-          agencyId: new mongoose.Types.ObjectId(agencyId),
-        }
-      },
-      {
-        $group: {
-          _id: '$clientId',
-          nombreDeCollectes: { $sum: 1 },
-        }
-      },
+      { $match: { agencyId: new mongoose.Types.ObjectId(agencyId) } },
+      { $group: { _id: '$clientId', nombreDeCollectes: { $sum: 1 } } },
       {
         $lookup: {
           from: 'clients',
@@ -270,26 +196,22 @@ export const getCollecteStatsByClient = async (req, res) => {
           as: 'client'
         }
       },
-      {
-        $unwind: '$client'
-      },
+      { $unwind: '$client' },
       {
         $project: {
           _id: 0,
           clientId: '$_id',
-          clientName: '$client.name',
+          clientName: { $concat: ['$client.firstName', ' ', '$client.lastName'] },
           nombreDeCollectes: 1
         }
       },
-      {
-        $sort: { nombreDeCollectes: -1 }
-      }
+      { $sort: { nombreDeCollectes: -1 } }
     ]);
 
     return res.status(200).json(stats);
 
   } catch (error) {
-    console.error('Erreur récupération stats:', error);
-    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+    console.error('Erreur stats collecte:', error);
+    res.status(500).json({ message: 'Erreur serveur.', error: error.message });
   }
 };
