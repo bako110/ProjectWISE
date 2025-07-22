@@ -36,23 +36,25 @@ export const createEmployee = async (req, res) => {
     const generatedPassword = crypto.randomBytes(6).toString('hex');
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
-    // 👤 Création de l'utilisateur
+    // 🔎 Récupération du nom de l’agence
+    const agency = await Agency.findOne({ userId: agencyId });
+    const agencyName = agency?.agencyName || 'Votre agence';
+
+    // 👤 Création de l'utilisateur (User)
     const newUser = await User.create({
-      nom: lastName,
       prenom: firstName,
+      nom: lastName,
       email,
       password: hashedPassword,
       role,
-      agencyId,
       isActive: true
     });
 
-    // 👥 Création de l'employé
+    // 👥 Création de l'employé (Employee)
     const newEmployee = await Employee.create({
       userId: newUser._id,
       firstName,
       lastName,
-      email,
       phone,
       role,
       zones,
@@ -62,14 +64,15 @@ export const createEmployee = async (req, res) => {
       hiredAt: new Date()
     });
 
-    // 📧 Envoi des identifiants par email
+    // 📧 Envoi des identifiants au nouvel employé
     await sendMail(
       email,
-      '🎉 Bienvenue chez WISE - Vos identifiants',
+      `🎉 Bienvenue chez ${agencyName} - Vos identifiants`,
       {
         firstName,
         email,
-        password: generatedPassword
+        password: generatedPassword,
+        agencyName
       }
     );
 
@@ -81,10 +84,14 @@ export const createEmployee = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur création employee:', error);
-    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+    console.error('Erreur création employé :', error);
+    return res.status(500).json({
+      message: 'Erreur serveur.',
+      error: error.message
+    });
   }
 };
+
 
 export const getEmployee = async (req, res) => {
   try {
