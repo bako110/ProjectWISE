@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// ✅ Création du transporteur de mail avec configuration .env
+// Transporteur global unique configuré avec SMTP .env
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT, 10),
@@ -14,7 +14,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ Fonction pour envoyer l'email de code de réinitialisation
 export const sendResetCodeEmail = async (email, verificationCode) => {
   try {
     await transporter.sendMail({
@@ -55,16 +54,7 @@ export const sendResetCodeEmail = async (email, verificationCode) => {
   }
 };
 
-
 export const sendMail = async (to, subject, { firstName, email, password }) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail', // ou smtp.example.com
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS
-    }
-  });
-
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 30px;">
       <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
@@ -85,7 +75,7 @@ export const sendMail = async (to, subject, { firstName, email, password }) => {
   `;
 
   await transporter.sendMail({
-    from: `"WISE Agency" <${process.env.MAIL_USER}>`,
+    from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM_ADDRESS}>`,
     to,
     subject,
     html: htmlContent
