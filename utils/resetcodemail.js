@@ -54,3 +54,40 @@ export const sendResetCodeEmail = async (email, verificationCode) => {
     throw new Error("Échec de l'envoi de l'email de réinitialisation");
   }
 };
+
+
+export const sendMail = async (to, subject, { firstName, email, password }) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // ou smtp.example.com
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS
+    }
+  });
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 30px;">
+      <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+        <h2 style="color: #2c3e50;">Bienvenue chez <span style="color: #2980b9;">WISE</span> 🎉</h2>
+        <p style="font-size: 16px; color: #333;">Bonjour <strong>${firstName}</strong>,</p>
+        <p style="font-size: 16px; color: #333;">Votre compte employé a été créé avec succès par votre agence.</p>
+        <p style="font-size: 16px; color: #333;">Voici vos identifiants de connexion :</p>
+        <ul style="font-size: 16px; color: #2d3436;">
+          <li><strong>Email :</strong> ${email}</li>
+          <li><strong>Mot de passe :</strong> ${password}</li>
+        </ul>
+        <p style="font-size: 16px; color: #333;">Pour des raisons de sécurité, nous vous recommandons de changer votre mot de passe dès votre première connexion.</p>
+        <p style="font-size: 16px; color: #333;">Si vous avez des questions, n’hésitez pas à contacter votre responsable d’agence.</p>
+        <br/>
+        <p style="font-size: 14px; color: #95a5a6; text-align: center;">© ${new Date().getFullYear()} WISE. Tous droits réservés.</p>
+      </div>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: `"WISE Agency" <${process.env.MAIL_USER}>`,
+    to,
+    subject,
+    html: htmlContent
+  });
+};
