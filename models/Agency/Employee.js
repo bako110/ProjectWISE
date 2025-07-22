@@ -18,11 +18,11 @@ const employeeSchema = new mongoose.Schema({
 
   phone: { type: String },
 
-  role: {
-    type: String,
-    enum: ['manager', 'collector'],
-    required: true
-  },
+  // role: {
+  //   type: String,
+  //   enum: ['manager', 'collector'],
+  //   required: true
+  // },
 
   zones: [{
     type: mongoose.Schema.Types.ObjectId,
