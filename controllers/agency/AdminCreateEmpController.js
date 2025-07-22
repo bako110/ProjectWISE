@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import User from '../../models/User.js';
 import Employee from '../../models/Agency/Employee.js';
+import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
 import ServiceZone from '../../models/Agency/ServiceZone.js';
 import crypto from 'crypto';
 import { sendMail } from '../../utils/resetcodemail.js';
@@ -42,8 +43,6 @@ export const createEmployee = async (req, res) => {
 
     // 👤 Création de l'utilisateur (User)
     const newUser = await User.create({
-      prenom: firstName,
-      nom: lastName,
       email,
       password: hashedPassword,
       role,
