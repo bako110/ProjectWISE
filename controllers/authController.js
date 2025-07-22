@@ -122,7 +122,8 @@ export const register = async (req, res) => {
 
     if (normalizedRole === 'client') {
       // Génère un token unique à utiliser pour le scan
-      const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdUser._id}`;
+     const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdProfile._id}`;
+
 
       // Génère l’image QR en base64
       const qrCodeImage = await QRCode.toDataURL(qrToken);

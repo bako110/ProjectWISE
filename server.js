@@ -58,7 +58,7 @@ app.use('/api/agences', agenceSearchRoutes);
 app.use('/api/clients', agencyClientRoutes);
 app.use('/api/clients', agencyClientSubRoutes);
 app.use('/api/agences', agencyClientSubRoutes);
-app.use('/api/scan', scanRoutes); 
+app.use('/api/collecte', scanRoutes); 
 app.use('/api/collecte', collecteRoutes);
 
 // 404

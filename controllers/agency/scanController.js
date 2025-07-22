@@ -7,19 +7,21 @@ import Client from '../../models/clients/Client.js';
  * Contrôleur : scan d’un QR code client (collecte ou problème signalé)
  * URL : GET ou POST /api/collecte/scan?id=<clientId> ou ?clientId=<clientId>
  */
+
 export const scanBarrel = async (req, res) => {
   try {
-    // ✅ Supporte les deux formats de paramètre : id ou clientId
+    // ✅ Accepte GET (QR code) ou POST (app)
     const clientId = req.query.clientId || req.query.id || req.body.clientId;
     const status = req.body.status || 'collected';
     const comment = req.body.comment;
     const photos = req.body.photos;
     const positionGPS = req.body.positionGPS;
 
-    const collectorId = req.user?.id || null;       // Nécessite authentification
+    // ✅ Auth facultative (QR public vs app privée)
+    const collectorId = req.user?.id || null;
     const agencyId = req.user?.agencyId || null;
 
-    // 🔍 Validation du clientId
+    // 🔍 Valider ID client
     if (!clientId || !mongoose.Types.ObjectId.isValid(clientId)) {
       return res.status(400).json({ error: 'ClientId invalide ou manquant.' });
     }
@@ -37,7 +39,7 @@ export const scanBarrel = async (req, res) => {
       return res.status(404).json({ error: 'Client introuvable.' });
     }
 
-    // 🔍 Validation GPS (optionnelle)
+    // 🔍 Valider GPS si fourni
     if (positionGPS) {
       const { lat, lng } = positionGPS;
       if (
@@ -48,11 +50,11 @@ export const scanBarrel = async (req, res) => {
       }
     }
 
-    // 📄 Préparation des données de scan
+    // 📄 Préparer les données du rapport
     const reportData = {
       clientId,
+      scannedAt: new Date(),
       status,
-      scannedAt: new Date()
     };
 
     if (collectorId) reportData.collectorId = collectorId;
@@ -60,47 +62,49 @@ export const scanBarrel = async (req, res) => {
 
     if (status === 'problem') {
       reportData.comment = comment?.trim();
+
       if (Array.isArray(photos)) {
-        reportData.photos = photos.filter(p => p && typeof p === 'string' && p.trim() !== '');
+        reportData.photos = photos.filter(p => typeof p === 'string' && p.trim() !== '');
       }
+
       if (positionGPS) {
         reportData.positionGPS = {
           lat: positionGPS.lat,
-          lng: positionGPS.lng
+          lng: positionGPS.lng,
         };
       }
     }
 
-    // 💾 Enregistrement en base
+    // 💾 Enregistrer
     const scanReport = await new ScanReport(reportData).save();
 
     await scanReport.populate([
       { path: 'clientId', select: 'firstName lastName phone' },
       { path: 'collectorId', select: 'firstName lastName' },
-      { path: 'agencyId', select: 'agencyName' }
+      { path: 'agencyId', select: 'agencyName' },
     ]);
 
     return res.status(201).json({
       message: status === 'collected'
-        ? 'Collecte validée avec succès'
-        : 'Problème signalé avec succès',
+        ? '✅ Collecte validée avec succès.'
+        : '⚠️ Problème signalé avec succès.',
       report: {
         id: scanReport._id,
         client: scanReport.clientId,
-        collector: scanReport.collectorId,
-        agency: scanReport.agencyId,
+        collector: scanReport.collectorId || null,
+        agency: scanReport.agencyId || null,
         status: scanReport.status,
         scannedAt: scanReport.scannedAt,
         ...(status === 'problem' && {
           comment: scanReport.comment,
           photos: scanReport.photos,
-          positionGPS: scanReport.positionGPS
-        })
+          positionGPS: scanReport.positionGPS,
+        }),
       }
     });
 
   } catch (error) {
-    console.error('Erreur lors du scan:', error);
+    console.error('❌ Erreur lors du scan :', error);
     return res.status(500).json({
       error: 'Erreur serveur interne.',
       details: error.message
