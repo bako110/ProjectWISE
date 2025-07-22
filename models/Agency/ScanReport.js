@@ -3,11 +3,15 @@ import mongoose from 'mongoose';
 const positionGPSSchema = new mongoose.Schema({
   lat: {
     type: Number,
-    required: function() { return this != null; }, // ce champ est requis si positionGPS existe
+    required: function () {
+      return this != null;
+    },
   },
   lng: {
     type: Number,
-    required: function() { return this != null; },
+    required: function () {
+      return this != null;
+    },
   },
 }, { _id: false });
 
@@ -38,7 +42,7 @@ const scanReportSchema = new mongoose.Schema({
   },
   comment: {
     type: String,
-    required: function() {
+    required: function () {
       return this.status === 'problem';
     },
   },

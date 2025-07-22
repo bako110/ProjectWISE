@@ -240,3 +240,56 @@ export const getScanDetails = async (req, res) => {
     });
   }
 };
+
+
+export const getCollecteStatsByClient = async (req, res) => {
+  try {
+    const { agencyId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      return res.status(400).json({ message: 'ID agence invalide.' });
+    }
+
+    const stats = await ScanReport.aggregate([
+      {
+        $match: {
+          agencyId: new mongoose.Types.ObjectId(agencyId),
+        }
+      },
+      {
+        $group: {
+          _id: '$clientId',
+          nombreDeCollectes: { $sum: 1 },
+        }
+      },
+      {
+        $lookup: {
+          from: 'clients',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'client'
+        }
+      },
+      {
+        $unwind: '$client'
+      },
+      {
+        $project: {
+          _id: 0,
+          clientId: '$_id',
+          clientName: '$client.name',
+          nombreDeCollectes: 1
+        }
+      },
+      {
+        $sort: { nombreDeCollectes: -1 }
+      }
+    ]);
+
+    return res.status(200).json(stats);
+
+  } catch (error) {
+    console.error('Erreur récupération stats:', error);
+    return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+  }
+};

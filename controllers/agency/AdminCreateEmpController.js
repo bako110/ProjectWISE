@@ -32,12 +32,12 @@ export const createEmployee = async (req, res) => {
     }
 
     // ✅ Vérifier que les zones appartiennent bien à l'agence
-    if (zones.length > 0) {
-      const foundZones = await ServiceZone.find({ _id: { $in: zones }, agencyId });
-      if (foundZones.length !== zones.length) {
-        return res.status(403).json({ message: 'Une ou plusieurs zones ne vous appartiennent pas.' });
-      }
-    }
+    // if (zones.length > 0) {
+    //   const foundZones = await ServiceZone.find({ _id: { $in: zones }, agencyId });
+    //   if (foundZones.length !== zones.length) {
+    //     return res.status(403).json({ message: 'Une ou plusieurs zones ne vous appartiennent pas.' });
+    //   }
+    // }
 
     // 🔐 Génération mot de passe
     const generatedPassword = crypto.randomBytes(6).toString('hex');
