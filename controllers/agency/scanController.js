@@ -88,19 +88,19 @@ export const scanBarrel = async (req, res) => {
       message: status === 'collected'
         ? '✅ Collecte validée avec succès.'
         : '⚠️ Problème signalé avec succès.',
-      report: {
-        id: scanReport._id,
-        client: scanReport.clientId,
-        collector: scanReport.collectorId || null,
-        agency: scanReport.agencyId || null,
-        status: scanReport.status,
-        scannedAt: scanReport.scannedAt,
-        ...(status === 'problem' && {
-          comment: scanReport.comment,
-          photos: scanReport.photos,
-          positionGPS: scanReport.positionGPS,
-        }),
-      }
+      // report: {
+      //   id: scanReport._id,
+      //   client: scanReport.clientId,
+      //   collector: scanReport.collectorId || null,
+      //   agency: scanReport.agencyId || null,
+      //   status: scanReport.status,
+      //   scannedAt: scanReport.scannedAt,
+      //   ...(status === 'problem' && {
+      //     comment: scanReport.comment,
+      //     photos: scanReport.photos,
+      //     positionGPS: scanReport.positionGPS,
+      //   }),
+      // }
     });
 
   } catch (error) {
@@ -155,73 +155,43 @@ export const getScanHistory = async (req, res) => {
   }
 };
 
-/**
- * Détails d’un scan spécifique
- */
-export const getScanDetails = async (req, res) => {
+
+export const getScanReports = async (req, res) => {
   try {
-    const { scanId } = req.params;
-    const collectorId = req.user.id;
+    const { agencyId, clientId, collectorId } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(scanId)) {
-      return res.status(400).json({ error: 'ID de scan invalide.' });
+    const filters = {};
+
+    if (agencyId) {
+      filters.agencyId = agencyId;
     }
 
-    const scan = await ScanReport.findOne({ _id: scanId, collectorId })
-      .populate('clientId', 'firstName lastName phone address')
-      .populate('collectorId', 'firstName lastName')
-      .populate('agencyId', 'agencyName address');
-
-    if (!scan) {
-      return res.status(404).json({ error: 'Scan introuvable' });
+    if (clientId) {
+      filters.clientId = clientId;
     }
 
-    return res.json({ scan });
+    if (collectorId) {
+      filters.collectorId = collectorId;
+    }
+
+    const reports = await ScanReport.find(filters)
+      .populate([
+        { path: 'clientId', select: 'firstName lastName phone' },
+        { path: 'collectorId', select: 'firstName lastName' },
+        { path: 'agencyId', select: 'agencyName' }
+      ])
+      .sort({ scannedAt: -1 });
+
+    return res.status(200).json({
+      count: reports.length,
+      reports
+    });
 
   } catch (error) {
-    console.error('Erreur détails scan:', error);
-    res.status(500).json({ error: 'Erreur serveur interne' });
-  }
-};
-
-/**
- * Statistiques de collecte par client pour une agence
- */
-export const getCollecteStatsByClient = async (req, res) => {
-  try {
-    const { agencyId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      return res.status(400).json({ message: 'ID agence invalide.' });
-    }
-
-    const stats = await ScanReport.aggregate([
-      { $match: { agencyId: new mongoose.Types.ObjectId(agencyId) } },
-      { $group: { _id: '$clientId', nombreDeCollectes: { $sum: 1 } } },
-      {
-        $lookup: {
-          from: 'clients',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'client'
-        }
-      },
-      { $unwind: '$client' },
-      {
-        $project: {
-          _id: 0,
-          clientId: '$_id',
-          clientName: { $concat: ['$client.firstName', ' ', '$client.lastName'] },
-          nombreDeCollectes: 1
-        }
-      },
-      { $sort: { nombreDeCollectes: -1 } }
-    ]);
-
-    return res.status(200).json(stats);
-
-  } catch (error) {
-    console.error('Erreur stats collecte:', error);
-    res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+    console.error('Erreur récupération scan reports:', error);
+    return res.status(500).json({
+      message: 'Erreur serveur interne.',
+      error: error.message
+    });
   }
 };
