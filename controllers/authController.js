@@ -22,8 +22,6 @@ const verificationCodes = new Map();
 
 /* --------------------------- ENREGISTREMENT --------------------------- */
 
-// controllers/auth/register.js
-
 export const register = async (req, res) => {
   let createdUser = null;
   let createdProfile = null;
@@ -44,6 +42,7 @@ export const register = async (req, res) => {
       receiveOffers = false
     } = req.body;
 
+    // ✅ Vérification du rôle
     if (!role || typeof role !== 'string') {
       return res.status(400).json({
         message: 'Le rôle est requis et doit être une chaîne de caractères.',
@@ -60,6 +59,7 @@ export const register = async (req, res) => {
       });
     }
 
+    // ✅ Champs obligatoires
     if (!email || !password || !firstName || !lastName || !phone || acceptTerms !== true) {
       return res.status(400).json({
         message: 'Champs obligatoires manquants ou conditions non acceptées.',
@@ -82,6 +82,7 @@ export const register = async (req, res) => {
       });
     }
 
+    // 🔍 Vérifie si email déjà utilisé
     const exists = await User.findOne({ email: email.trim().toLowerCase() });
     if (exists) {
       return res.status(400).json({
@@ -109,8 +110,10 @@ export const register = async (req, res) => {
       }
     }
 
+    // 🔐 Hash mot de passe
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // 👤 Création utilisateur
     createdUser = await User.create({
       email: email.trim().toLowerCase(),
       password: hashedPassword,
@@ -121,14 +124,8 @@ export const register = async (req, res) => {
     let profileData = {};
 
     if (normalizedRole === 'client') {
-      // Génère un token unique à utiliser pour le scan
-     const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdProfile._id}`;
-
-
-      // Génère l’image QR en base64
-      const qrCodeImage = await QRCode.toDataURL(qrToken);
-
-      profileData = {
+      // ⬇️ Création profil sans QR au départ
+      createdProfile = await Client.create({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
@@ -144,14 +141,18 @@ export const register = async (req, res) => {
         },
         acceptTerms,
         receiveOffers,
-        qrToken,         // Stocke l'URL de scan
-        qrCodeImage,     // Stocke l'image QR code
         userId: createdUser._id
-      };
+      });
 
-      createdProfile = await Client.create(profileData);
+      // 🔗 Génération de l’URL et image QR
+      const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdProfile._id}`;
+      const qrCodeImage = await QRCode.toDataURL(qrToken);
 
-      // Envoie de l'e-mail avec le QR code
+      createdProfile.qrToken = qrToken;
+      createdProfile.qrCodeImage = qrCodeImage;
+      await createdProfile.save();
+
+      // 📧 Envoi de l’e-mail avec le QR code
       await sendQRCodeEmail(email, firstName.trim(), qrCodeImage);
 
     } else if (normalizedRole === 'agency') {
