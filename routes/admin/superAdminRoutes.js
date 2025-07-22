@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerSuperAdmin} from '../../controllers/admin/adminControllers.js';
+import { registerSuperAdmin, statistics} from '../../controllers/admin/adminControllers.js';
 import { toggleAgencyStatus } from '../../controllers/admin/Agencystatus.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 
@@ -102,5 +102,44 @@ router.post('/register-super-admin', registerSuperAdmin);
  *         description: Erreur serveur
  */
 router.patch('/agences/:userId/status', authMiddleware('super_admin'), toggleAgencyStatus);
+
+/**
+ * @swagger
+ * /api/auth/statistics:
+ *   get:
+ *     summary: Récupérer les statistiques globales
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques récupérées avec succès
+ *         content:
+ *           application/json:
+ *             example:
+ *               totalAgence: 15
+ *               activeAgence: 12
+ *               totalMairie: 8
+ *               totalClient: 250
+ *               totalCollector: 20
+ *               activeClient: 180
+ *               totalCollection: 1200
+ *               completeCollection: 950
+ *               message: "Statistiques récupérées avec succès"
+ *               success: true
+ *       401:
+ *         description: Non autorisé (accès refusé pour les rôles non super_admin)
+ *       500:
+ *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Erreur serveur lors de la récupération des statistiques"
+ *               error: "SERVER_ERROR"
+ */
+
+
+router.get("/statistics", authMiddleware('super_admin'), statistics);
 
 export default router;
