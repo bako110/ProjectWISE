@@ -86,7 +86,7 @@ export const createEmployee = async (req, res) => {
 export const getEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const employee = await Employee.findById(id).populate('userId', 'nom prenom email role isActive');
+    const employee = await Employee.findById(id).populate('_id', 'nom prenom email role isActive');
 
     if (!employee) {
       return res.status(404).json({ message: 'Employé non trouvé.' });
@@ -103,7 +103,7 @@ export const getAllEmployees = async (req, res) => {
   try {
     const agencyId = req.params.agencyId; 
     const employees = await Employee.find({ agencyId })
-      .populate('userId', 'nom prenom email role isActive')
+      .populate('_Id', 'nom prenom email role isActive')
       .sort({ createdAt: -1 });
     return res.status(200).json(employees);
   } catch (error) {
@@ -117,7 +117,7 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
     const { role } = req.params;
     const agencyId = req.params.agencyId;
     const employees = await Employee.find({ role, agencyId })
-      .populate('userId', 'nom prenom email role isActive')
+      .populate('_id', 'nom prenom email role isActive')
       .sort({ createdAt: -1 });
     return res.status(200).json(employees);
   } catch (error) {
