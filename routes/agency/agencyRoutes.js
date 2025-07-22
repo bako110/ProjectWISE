@@ -1,7 +1,7 @@
 import express from 'express';
 import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
-import { createTarif, updateTarif, getTarifByAgency, getTarifById, deleteTarif } from '../../controllers/tarifController.js';
+import { createTarif, updateTarif, getTarifByAgency, getTarifById, deleteTarif, getAllTarifs } from '../../controllers/tarifController.js';
 import {
   getAllAgencies,
   getAgencyById
@@ -436,5 +436,26 @@ router.get('/tarif/:tarifId', authMiddleware('agency'), getTarifById);
  *         description: Erreur serveur
  */
 router.delete('/tarif/:tarifId', authMiddleware('agency'), deleteTarif);
+
+/**
+ * @swagger
+ * /api/agences/tarifs:
+ *   get:
+ *     summary: Récupérer tous les tarifs
+ *     tags:
+ *       - Tarifs
+ *     responses:
+ *       200:
+ *         description: Liste de tous les tarifs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tarif'
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/tarifs', authMiddleware('agency'), getAllTarifs);
 
 export default router;
