@@ -3,6 +3,8 @@ import User from '../../models/User.js';
 import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
 import ServiceZone from '../../models/Agency/ServiceZone.js';
+import Client from '../../models/clients/Client.js';
+// import Signalement from '../../models/Signalement.js';
 import crypto from 'crypto';
 import { sendMail } from '../../utils/resetcodemail.js';
 
@@ -145,3 +147,28 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
     return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
   }
 }
+
+export const statistics = async (req, res) => {
+  try {
+    const agencyId = req.params.agencyId; 
+    const totalEmployees = await Employee.countDocuments({ agencyId, role: { $in: 'collector' } });
+   const totalClients = await Client.countDocuments({ agencyId });
+  //  const totalSignalements = await Signalement.countDocuments({ agencyId });
+    const totalZones = await ServiceZone.countDocuments({ agencyId });
+
+    res.status(200).json({
+      totalEmployees,
+      totalClients,
+      // totalSignalements,
+      totalZones,
+      message: 'Statistiques récupérées avec succès',
+      success: true
+    });
+  } catch (error) {
+    console.error('Erreur récupération statistiques:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des statistiques',
+      error: 'SERVER_ERROR'
+    });
+  }
+};

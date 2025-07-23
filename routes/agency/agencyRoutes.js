@@ -6,7 +6,7 @@ import {
   getAllAgencies,
   getAgencyById
 } from '../../controllers/authController.js';
-import { getEmployee, getAllEmployees, getEmployeeByRoleAndAgency } from '../../controllers/agency/AdminCreateEmpController.js';
+import { getEmployee, getAllEmployees, getEmployeeByRoleAndAgency, statistics } from '../../controllers/agency/AdminCreateEmpController.js';
 
 const router = express.Router();
 
@@ -457,5 +457,28 @@ router.delete('/tarif/:tarifId', authMiddleware('agency'), deleteTarif);
  *         description: Erreur serveur
  */
 router.get('/tarifs', authMiddleware('agency'), getAllTarifs);
+
+/**
+ * @swagger
+ * /api/agences/{agencyId}/statistiques:
+ *   get:
+ *     summary: Récupérer les statistiques d'une agence
+ *     tags: [Agences]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence pour laquelle récupérer les statistiques
+ *     responses:
+ *       200:
+ *         description: Statistiques récupérées avec succès
+ *       404:
+ *         description: Agence non trouvée
+ */
+router.get('/:agencyId/statistiques', authMiddleware('agency'), statistics);
 
 export default router;

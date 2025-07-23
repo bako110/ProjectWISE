@@ -46,16 +46,26 @@ const agencySchema = new mongoose.Schema({
   }],
 
   // Relations
+  // serviceZones: [{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'ServiceZone',
+  // }],
+
+  // services: [{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'WasteService',
+  // }],
+
+  //pout le moment on ne garde que les services de collecte
   serviceZones: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ServiceZone',
+    type: String,
   }],
-
   services: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'WasteService',
+    type: String,
   }],
 
+
+  
   employees: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
