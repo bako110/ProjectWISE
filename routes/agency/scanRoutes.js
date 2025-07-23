@@ -88,7 +88,7 @@ router.get('/scan', scanBarrel);
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan', authMiddleware, scanBarrel);
+router.post('/scan', authMiddleware(), scanBarrel);
 
 /**
  * @swagger
@@ -185,6 +185,6 @@ router.post('/scan', authMiddleware, scanBarrel);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/reports', authMiddleware, getScanReports);
+router.get('/reports', authMiddleware(), getScanReports);
 
 export default router;

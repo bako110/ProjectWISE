@@ -84,7 +84,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-
 // --- Filtrage des champs à mettre à jour selon rôle ---
 
 const filterClientFields = d => ({
@@ -93,26 +92,66 @@ const filterClientFields = d => ({
   ...(d.phone && { phone: d.phone }),
   ...(d.agencyId && { agencyId: d.agencyId }),
   ...(d.subscribedAgencyId && { subscribedAgencyId: d.subscribedAgencyId }),
-  ...(d.subscriptionStatus && { subscriptionStatus: d.subscriptionStatus }),
-  ...(d.serviceAddress && { serviceAddress: d.serviceAddress }),
-  ...(typeof d.termsAccepted === 'boolean' && { termsAccepted: d.termsAccepted }),
+  // Adresse complète avec nouveaux champs
+  ...(d.address && { 
+    address: {
+      ...(d.address.street && { street: d.address.street }),
+      ...(d.address.doorNumber && { doorNumber: d.address.doorNumber }),
+      ...(d.address.doorColor && { doorColor: d.address.doorColor }),
+      ...(d.address.arrondissement && { arrondissement: d.address.arrondissement }),
+      ...(d.address.sector && { sector: d.address.sector }),
+      ...(d.address.neighborhood && { neighborhood: d.address.neighborhood }),
+      ...(d.address.city && { city: d.address.city }),
+      ...(d.address.postalCode && { postalCode: d.address.postalCode }),
+      ...(d.address.latitude !== undefined && { latitude: d.address.latitude }),
+      ...(d.address.longitude !== undefined && { longitude: d.address.longitude })
+    }
+  }),
+  // Historiques (ajout uniquement, pas de remplacement complet)
+  ...(d.subscriptionHistory && { $push: { subscriptionHistory: d.subscriptionHistory } }),
+  ...(d.paymentHistory && { $push: { paymentHistory: d.paymentHistory } }),
+  ...(d.nonPassageReports && { $push: { nonPassageReports: d.nonPassageReports } }),
+  // Consentements
+  ...(typeof d.acceptTerms === 'boolean' && { acceptTerms: d.acceptTerms }),
   ...(typeof d.receiveOffers === 'boolean' && { receiveOffers: d.receiveOffers }),
 });
 
 const filterAgencyFields = d => ({
-  ...(d.name && { name: d.name }),
-  ...(d.description && { description: d.description }),
+  // Nouveaux champs firstName/lastName
+  ...(d.firstName && { firstName: d.firstName }),
+  ...(d.lastName && { lastName: d.lastName }),
+  // Champs renommés
+  ...(d.agencyName && { agencyName: d.agencyName }),
+  ...(d.agencyDescription && { agencyDescription: d.agencyDescription }),
   ...(d.phone && { phone: d.phone }),
-  ...(d.email && { email: d.email }),
   ...(d.logo && { logo: d.logo }),
-  ...(d.address && { address: d.address }),
+  ...(d.licenseNumber && { licenseNumber: d.licenseNumber }),
+  // Adresse mise à jour
+  ...(d.address && { 
+    address: {
+      ...(d.address.street && { street: d.address.street }),
+      ...(d.address.arrondissement && { arrondissement: d.address.arrondissement }),
+      ...(d.address.sector && { sector: d.address.sector }),
+      ...(d.address.neighborhood && { neighborhood: d.address.neighborhood }),
+      ...(d.address.city && { city: d.address.city }),
+      ...(d.address.postalCode && { postalCode: d.address.postalCode }),
+      ...(d.address.latitude !== undefined && { latitude: d.address.latitude }),
+      ...(d.address.longitude !== undefined && { longitude: d.address.longitude })
+    }
+  }),
+  // Relations (ajout/modification selon besoin)
+  ...(d.members && { members: d.members }),
   ...(d.serviceZones && { serviceZones: d.serviceZones }),
   ...(d.services && { services: d.services }),
   ...(d.employees && { employees: d.employees }),
   ...(d.schedule && { schedule: d.schedule }),
+  ...(d.collectors && { collectors: d.collectors }),
+  ...(d.clients && { clients: d.clients }),
+  // Statistiques
   ...(d.rating !== undefined && { rating: d.rating }),
   ...(d.totalClients !== undefined && { totalClients: d.totalClients }),
-  ...(typeof d.termsAccepted === 'boolean' && { termsAccepted: d.termsAccepted }),
+  // Consentements (nouveaux noms)
+  ...(typeof d.acceptTerms === 'boolean' && { acceptTerms: d.acceptTerms }),
   ...(typeof d.receiveOffers === 'boolean' && { receiveOffers: d.receiveOffers }),
   ...(d.isActive !== undefined && { isActive: d.isActive }),
 });
@@ -120,10 +159,9 @@ const filterAgencyFields = d => ({
 const filterEmployeeFields = d => ({
   ...(d.firstName && { firstName: d.firstName }),
   ...(d.lastName && { lastName: d.lastName }),
-  ...(d.email && { email: d.email }),
   ...(d.phone && { phone: d.phone }),
   ...(d.agencyId && { agencyId: d.agencyId }),
-  ...(d.role && { role: d.role }), // manager ou collector
+  // Le champ role n'existe plus dans le nouveau schéma
   ...(d.zones && { zones: d.zones }),
   ...(d.isActive !== undefined && { isActive: d.isActive }),
   ...(d.hiredAt && { hiredAt: d.hiredAt }),
@@ -136,14 +174,23 @@ const filterMunicipalFields = d => ({
   ...(d.name && { name: d.name }),
   ...(d.phone && { phone: d.phone }),
   ...(d.agencyId && { agencyId: d.agencyId }),
-  ...(d.commune && { commune: d.commune }),
+  // Structure commune mise à jour
+  ...(d.commune && { 
+    commune: {
+      ...(d.commune.region && { region: d.commune.region }),
+      ...(d.commune.province && { province: d.commune.province }),
+      ...(d.commune.name && { name: d.commune.name })
+    }
+  }),
+  // Zones gérées avec nouvelle structure
   ...(d.managedZones && { managedZones: d.managedZones }),
   ...(d.position && { position: d.position }),
 });
 
 const filterAdminFields = d => ({
-  ...(d.firstname && { firstname: d.firstname }),
-  ...(d.lastname && { lastname: d.lastname }),
+  // Champs renommés pour correspondre au nouveau schéma
+  ...(d.firstName && { firstName: d.firstName }),
+  ...(d.lastName && { lastName: d.lastName }),
   ...(d.phone && { phone: d.phone }),
   ...(d.isActive !== undefined && { isActive: d.isActive }),
 });
