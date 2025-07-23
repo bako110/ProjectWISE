@@ -3,7 +3,8 @@ import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   subscribeToAgency,
   getClientProfile,
-  getClientById
+  getClientById,
+  getAllClients
 } from '../../controllers/clients/clientController.js';
 
 const router = express.Router();
@@ -103,5 +104,30 @@ router.post('/subscribe', authMiddleware('client'), subscribeToAgency);
  *         description: Client non trouvé.
  */
 router.get('/:id', authMiddleware(), getClientById);
+
+/**
+ * @swagger
+ * /api/clients:
+ *   get:
+ *     summary: Récupérer tous les clients (admin/agence)
+ *     tags: [Client]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des clients récupérée avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 clients:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Client'
+ */
+router.get('/', authMiddleware('admin', 'agency', 'manager'), getAllClients);
 
 export default router;

@@ -87,3 +87,14 @@ export const historiqueParCollecteur = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const supprimerPlanning = async (req, res) => {
+  try {
+    const planning = await CollectionSchedule.findByIdAndDelete(req.params.id);
+    if (!planning) return res.status(404).json({ error: 'Planning non trouvé' });
+
+    res.json({ data: planning, message: 'Planning supprimé avec succès' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

@@ -5,6 +5,7 @@ import {
   listerPlannings,
   mettreAJourPlanning,
   historiqueParCollecteur,
+  supprimerPlanning
 } from '../../controllers/agency/planningController.js';
 
 const router = express.Router();
@@ -156,5 +157,28 @@ router.patch('/:id', authMiddleware('agency', 'manager'), mettreAJourPlanning);
  *         description: Liste des tournées passées du collecteur
  */
 router.get('/historique/:collecteurId', authMiddleware('agency', 'manager', 'collector'), historiqueParCollecteur);
+
+/**
+ * @swagger
+ * /api/zones/plannings/{id}:
+ *   delete:
+ *     summary: Supprimer un planning
+ *     tags: [Plannings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du planning à supprimer
+ *     responses:
+ *       200:
+ *         description: Planning supprimé avec succès
+ *       404:
+ *         description: Planning non trouvé
+ */
+router.delete('/:id', authMiddleware('agency', 'manager'), supprimerPlanning);
 
 export default router;

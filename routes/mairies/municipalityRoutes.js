@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerMunicipality } from '../../controllers/mairies/municipalityControllers.js';
+import { registerMunicipality,getMunicipality, getAllMunicipalities } from '../../controllers/mairies/municipalityControllers.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -72,5 +72,46 @@ const router = express.Router();
  *         description: Non autorisé, rôle super_admin requis
  */
 router.post('/municipality', authMiddleware('super_admin'), registerMunicipality);
+
+/**
+ * @swagger
+ * /api/auth/municipality/{municipalityId}:
+ *   get:
+ *     summary: Récupérer les détails d'une mairie par son ID
+ *     tags: [Mairies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: municipalityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la mairie à récupérer
+ *     responses:
+ *       200:
+ *         description: Détails de la mairie récupérés avec succès
+ *       400:
+ *         description: ID de la mairie requis
+ *       404:
+ *         description: Mairie non trouvée
+ */
+router.get('/municipality/:municipalityId', authMiddleware('super_admin'), getMunicipality);
+
+/**
+ * @swagger
+ * /api/auth/municipality:
+ *   get:
+ *     summary: Lister toutes les mairies
+ *     tags: [Mairies]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des mairies récupérée avec succès
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/municipality', authMiddleware('super_admin'), getAllMunicipalities);
 
 export default router;

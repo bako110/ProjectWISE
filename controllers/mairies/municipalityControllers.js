@@ -112,3 +112,39 @@ export const registerMunicipality = async (req, res) => {
     });
   }
 };
+
+export const getMunicipality = async (req, res) => {
+  const { municipalityId } = req.params;
+
+  if (!municipalityId) {
+    return res.status(400).json({ message: 'Municipality ID is required' });
+  }
+
+  try {
+    const profile = await MunicipalManager.findById(municipalityId);
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Municipality profile not found' });
+    }
+
+    res.status(200).json(profile);
+  } catch (error) {
+    console.error('Error fetching municipality profile:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
+export const getAllMunicipalities = async (req, res) => {
+  try {
+    const municipalities = await MunicipalManager.find();
+
+    if (municipalities.length === 0) {
+      return res.status(404).json({ message: 'No municipalities found' });
+    }
+
+    res.status(200).json(municipalities);
+  } catch (error) {
+    console.error('Error fetching municipalities:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
