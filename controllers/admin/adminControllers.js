@@ -77,25 +77,25 @@ export const registerSuperAdmin = async (req, res) => {
 export const statistics = async (req, res) => {
   try {
     // Récupérer les statistiques des admins
-    const totalAgence = await Agency.countDocuments();
-    const activeAgence = await Agency.countDocuments({ isActive: true });
-    const totalMairie = await Mairie.countDocuments();
-    const totalClient = await Client.countDocuments();
-    const totalCollector = await Employee.countDocuments({ role: 'collector' });
-    const activeClient = await Client.countDocuments({ subscriptionHistory: { $elemMatch: { status: 'active' } } });
-    const totalCollection = await Collection.countDocuments();
-    const completeCollection = await Collection.countDocuments({status: 'completed' });
+    const totalAgencies = await Agency.countDocuments();
+    const activeAgencies = await Agency.countDocuments({ isActive: true });
+    const totalMunicipalities = await Mairie.countDocuments();
+    const totalClients = await Client.countDocuments();
+    const totalCollectors = await Employee.countDocuments({ role: 'collector' });
+    const activeClients = await Client.countDocuments({ subscriptionHistory: { $elemMatch: { status: 'active' } } });
+    const totalCollections = await Collection.countDocuments();
+    const completeCollections = await Collection.countDocuments({status: 'completed' });
 
 
     res.status(200).json({
-      totalAgence,
-      activeAgence,
-      totalMairie,
-      totalClient,
-      totalCollector,
-      activeClient,
-      totalCollection,
-      completeCollection,
+      totalAgencies,
+      activeAgencies,
+      totalMunicipalities,
+      totalClients,
+      totalCollectors,
+      activeClients,
+      totalCollections,
+      completeCollections,
       message: 'Statistiques récupérées avec succès',
       success: true
     });
