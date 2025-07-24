@@ -106,6 +106,35 @@ export const createEmployee = async (req, res) => {
   }
 };
 
+
+export const updateEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { firstName, lastName, phone, role, zones, isActive } = req.body;
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            return res.status(404).json({ message: 'Employé non trouvé.' });
+        }
+        // Mettre à jour les informations de l'employé
+        employee.firstName = firstName || employee.firstName; 
+        employee.lastName = lastName || employee.lastName;
+        employee.phone = phone || employee.phone;
+        employee.role = role || employee.role;
+        employee.zones = zones || employee.zones;
+        
+        await employee.save();
+        return res.status(200).json({
+            message: 'Employé mis à jour avec succès.',
+            employee
+        });
+    } catch (error) {
+        console.error('Erreur mise à jour employé:', error);
+        return res.status(500).json({ message: 'Erreur serveur.', error: error.message });
+    }
+}
+
+
+
 export const getEmployee = async (req, res) => {
   try {
     const { id } = req.params;

@@ -6,7 +6,7 @@ import {
   getAllAgencies,
   getAgencyById
 } from '../../controllers/authController.js';
-import { getEmployee, getAllEmployees, getEmployeeByRoleAndAgency, statistics } from '../../controllers/agency/AdminCreateEmpController.js';
+import { getEmployee, getAllEmployees, getEmployeeByRoleAndAgency, statistics, updateEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 
 const router = express.Router();
 
@@ -77,6 +77,100 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.post('/employees', authMiddleware('agency'), createEmployee);
+
+/**
+ * @swagger
+ * /api/agences/employees/{id}:
+ *   put:
+ *    summary: Mettre à jour un employé par ID
+ *     tags:
+ *      - Employés
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *       name: id
+ *        required: true
+ *         schema:
+ *          type: string
+ *        description: ID de l'employé à mettre à jour
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstname:
+ *                type: string
+ *                 example: Marie
+ *               lastname:
+ *                 type: string
+ *                 example: Curie
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example:marie.cuirie@example.com
+ *               phone:
+ *                 type: string
+ *                 example: "+22670707070"
+ *               role:
+ *                 type: string
+ *                 enum:
+ *                   - manager 
+ *                   - collector
+ *                 example: collector
+ *     responses:
+ *       200:
+ *         description: Employé mis à jour avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Employé mis à jour avec succès
+ *                 employee:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 60c72b2f5f1b2c001c8d4e0b
+ *                     firstname:  
+ *                       type: string
+ *                       example: Marie
+ *                     lastname:
+ *                       type: string
+ *                       example: Curie
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                       example: string
+ *                     phone:
+ *                       type: string
+ *                       example: "+22670707070"
+ *                     role:
+ *                       type: string
+ *                       enum:
+ *                         - manager
+ *                         - collector
+ *                       example: collector
+ *                     isActive:
+ *                       type: boolean 
+ *                       example: true
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-07-21T12:34:56Z"
+ *       400:
+ *          description: ID invalide ou données manquantes
+ *       404:
+ *         description: Employé non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/employees/:id', authMiddleware('agency'), updateEmployee);
 
 /**
  * @swagger
