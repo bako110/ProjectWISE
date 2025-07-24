@@ -74,6 +74,30 @@ export const registerSuperAdmin = async (req, res) => {
   }
 };
 
+export const getAllEmployees = async (req, res) => {
+  try {
+    const {role } = req.params;
+    const employees = await Employee.find({role: role});
+    if (!employees || employees.length === 0) {
+      return res.status(404).json({
+        message: 'Aucun employé trouvé pour ce rôle.',
+        error: 'NO_EMPLOYEES_FOUND'
+      });
+    }
+    res.status(200).json({
+      message: 'Liste des employés récupérée avec succès',
+      employees,
+      success: true
+    });
+  } catch (error) {
+    console.error('Erreur récupération employés:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des employés',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+
 export const statistics = async (req, res) => {
   try {
     // Récupérer les statistiques des admins

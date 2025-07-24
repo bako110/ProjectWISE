@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerSuperAdmin, statistics} from '../../controllers/admin/adminControllers.js';
+import { registerSuperAdmin, statistics, getAllEmployees} from '../../controllers/admin/adminControllers.js';
 import { toggleAgencyStatus } from '../../controllers/admin/Agencystatus.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 
@@ -141,5 +141,88 @@ router.patch('/agences/:userId/status', authMiddleware('super_admin'), toggleAge
 
 
 router.get("/statistics", authMiddleware('super_admin'), statistics);
+
+/**
+ * @swagger
+ * /api/auth/employees/{role}:
+ *  get:
+ *  summary: Récupérer tous les employés par rôle
+ *   tags:
+ *     - Admin
+ *   security:
+ *     - bearerAuth: []
+ *   parameters:
+ *     - in: path
+ *       name: role
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: Le rôle des employés à récupérer (manager, collector)
+ *   responses:
+ *     200:
+ *       description: Liste des employés récupérée avec succès
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "Liste des employés récupérée avec succès"
+ *               employees:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60c72b2f5f1b2c001c8d4e0b"
+ *                     firstName:
+ *                       type: string
+ *                       example: "Jean"
+ *                     lastName:
+ *                       type: string
+ *                       example: "Dupont"
+ *                     phone:
+ *                       type: string
+ *                       example: "+1234567890"
+ *                     role:
+ *                       type: string
+ *                       enum: ["manager", "collector"]
+ *                       example: "manager"
+ *                     isActive:
+ *                       type: boolean
+ *                       example: true
+ *               success:
+ *                 type: boolean
+ *                 example: true
+ *     404:
+ *       description: Aucun employé trouvé pour ce rôle
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "Aucun employé trouvé pour ce rôle."
+ *               error:
+ *                 type: string
+ *                 example: "NO_EMPLOYEES_FOUND"
+ *     500:
+ *       description: Erreur serveur lors de la récupération des employés
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "Erreur serveur lors de la récupération des employés"
+ *               error:
+ *                 type: string
+ *                 example: "SERVER_ERROR"
+ */
+router.get('/employees/:role', authMiddleware('super_admin'), getAllEmployees);
 
 export default router;
