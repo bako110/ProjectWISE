@@ -128,6 +128,6 @@ router.get('/:id', authMiddleware(), getClientById);
  *                   items:
  *                     $ref: '#/components/schemas/Client'
  */
-router.get('/', authMiddleware('admin', 'agency', 'manager'), getAllClients);
+router.get('/', authMiddleware('super_admin', 'agency', 'manager'), getAllClients);
 
 export default router;
