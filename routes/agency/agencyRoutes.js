@@ -82,18 +82,18 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  * @swagger
  * /api/agences/employees/{id}:
  *   put:
- *    summary: Mettre à jour un employé par ID
+ *     summary: Mettre à jour un employé par ID
  *     tags:
- *      - Employés
+ *       - Employés
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *       name: id
- *        required: true
+ *         name: id
+ *         required: true
  *         schema:
- *          type: string
- *        description: ID de l'employé à mettre à jour
+ *           type: string
+ *         description: ID de l'employé à mettre à jour
  *     requestBody:
  *       required: true
  *       content:
@@ -102,7 +102,7 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *             type: object
  *             properties:
  *               firstname:
- *                type: string
+ *                 type: string
  *                 example: Marie
  *               lastname:
  *                 type: string
@@ -110,7 +110,7 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *               email:
  *                 type: string
  *                 format: email
- *                 example:marie.cuirie@example.com
+ *                 example: marie.curie@example.com
  *               phone:
  *                 type: string
  *                 example: "+22670707070"
@@ -137,7 +137,7 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *                     _id:
  *                       type: string
  *                       example: 60c72b2f5f1b2c001c8d4e0b
- *                     firstname:  
+ *                     firstname:
  *                       type: string
  *                       example: Marie
  *                     lastname:
@@ -146,7 +146,7 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *                     email:
  *                       type: string
  *                       format: email
- *                       example: string
+ *                       example: marie.curie@example.com
  *                     phone:
  *                       type: string
  *                       example: "+22670707070"
@@ -164,12 +164,46 @@ router.post('/employees', authMiddleware('agency'), createEmployee);
  *                       format: date-time
  *                       example: "2025-07-21T12:34:56Z"
  *       400:
- *          description: ID invalide ou données manquantes
+ *         description: ID invalide ou données manquantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Données invalides ou incomplètes
+ *                 error:
+ *                   type: string
+ *                   example: BAD_REQUEST
  *       404:
  *         description: Employé non trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Employé non trouvé
+ *                 error:
+ *                   type: string
+ *                   example: NOT_FOUND
  *       500:
  *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Erreur serveur interne
+ *                 error:
+ *                   type: string
+ *                   example: SERVER_ERROR
  */
+
 router.put('/employees/:id', authMiddleware('agency'), updateEmployee);
 
 /**
