@@ -495,26 +495,70 @@ export const getAllAgencies = async (req, res) => {
   try {
     const { query } = req.query;
 
-    const filter = query ? { name: new RegExp(query, 'i') } : {};
+    const filter = query ? { agencyName: new RegExp(query, 'i') } : {};
 
     const agencies = await Agency.find(filter)
+      .populate({
+        path: 'userId', // propriétaire de l'agence
+        model: 'User'
+      })
       .populate({
         path: 'clients',
         model: 'Client',
         populate: {
           path: 'userId',
-          model: 'User',
-          select: '-password -__v -updatedAt' // on masque le mot de passe
-        },
-        select: '-__v -updatedAt'
+          model: 'User'
+        }
       })
-      .lean();
+      .populate({
+        path: 'employees',
+        model: 'Employee',
+        populate: {
+          path: 'userId',
+          model: 'User'
+        }
+      })
+      .populate({
+        path: 'collectors',
+        model: 'Collector',
+        populate: {
+          path: 'userId',
+          model: 'User'
+        }
+      })
+      .populate({
+        path: 'members',
+        model: 'User'
+      })
+      .populate('services')
+      .populate('serviceZones')
+      .lean(); // transforme en objet JavaScript brut
+
+    // Facultatif : suppression des mots de passe
+    agencies.forEach(agency => {
+      if (agency.userId?.password) delete agency.userId.password;
+
+      agency.clients?.forEach(client => {
+        if (client.userId?.password) delete client.userId.password;
+      });
+
+      agency.employees?.forEach(emp => {
+        if (emp.userId?.password) delete emp.userId.password;
+      });
+
+      agency.collectors?.forEach(collector => {
+        if (collector.userId?.password) delete collector.userId.password;
+      });
+
+      agency.members?.forEach(member => {
+        if (member?.password) delete member.password;
+      });
+    });
 
     return res.status(200).json({
       success: true,
       count: agencies.length,
-      data: agencies,
-      query: query || ''
+      data: agencies
     });
 
   } catch (error) {
@@ -534,7 +578,31 @@ export const getAgencyById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const agency = await Agency.findById(id).lean();
+    const agency = await Agency.findById(id)
+      .populate('userId') // propriétaire
+      .populate({
+        path: 'members.user', // members est un tableau d'objets avec un champ user
+        model: 'User',
+      })
+      .populate({
+        path: 'clients',
+        model: 'Client',
+        populate: { path: 'userId', model: 'User' }
+      })
+      .populate({
+        path: 'employees',
+        model: 'Employee',
+        populate: { path: 'userId', model: 'User' }
+      })
+      .populate({
+        path: 'collectors',
+        model: 'Collector',
+        populate: { path: 'userId', model: 'User' }
+      })
+      .populate('services')
+      .populate('serviceZones')
+      .populate('schedule')
+      .lean();
 
     if (!agency) {
       return res.status(404).json({
@@ -542,6 +610,21 @@ export const getAgencyById = async (req, res) => {
         message: 'Agence non trouvée'
       });
     }
+
+    // Suppression des mots de passe
+    if (agency.userId?.password) delete agency.userId.password;
+    agency.members?.forEach(m => {
+      if (m.user?.password) delete m.user.password;
+    });
+    agency.clients?.forEach(c => {
+      if (c.userId?.password) delete c.userId.password;
+    });
+    agency.employees?.forEach(e => {
+      if (e.userId?.password) delete e.userId.password;
+    });
+    agency.collectors?.forEach(c => {
+      if (c.userId?.password) delete c.userId.password;
+    });
 
     return res.status(200).json({
       success: true,
@@ -556,3 +639,4 @@ export const getAgencyById = async (req, res) => {
     });
   }
 };
+
