@@ -489,8 +489,6 @@ export const changePassword = async (req, res) => {
 };
 
 
-
-
 export const getAllAgencies = async (req, res) => {
   try {
     const { query } = req.query;
@@ -519,14 +517,6 @@ export const getAllAgencies = async (req, res) => {
         }
       })
       .populate({
-        path: 'collectors',
-        model: 'Collector',
-        populate: {
-          path: 'userId',
-          model: 'User'
-        }
-      })
-      .populate({
         path: 'members',
         model: 'User'
       })
@@ -534,7 +524,7 @@ export const getAllAgencies = async (req, res) => {
       .populate('serviceZones')
       .lean(); // transforme en objet JavaScript brut
 
-    // Facultatif : suppression des mots de passe
+    // Supprimer les mots de passe
     agencies.forEach(agency => {
       if (agency.userId?.password) delete agency.userId.password;
 
@@ -546,13 +536,12 @@ export const getAllAgencies = async (req, res) => {
         if (emp.userId?.password) delete emp.userId.password;
       });
 
-      agency.collectors?.forEach(collector => {
-        if (collector.userId?.password) delete collector.userId.password;
-      });
-
       agency.members?.forEach(member => {
         if (member?.password) delete member.password;
       });
+
+      // Ajouter collectors en filtrant les employés par rôle
+      agency.collectors = agency.employees?.filter(emp => emp.role === 'collector') || [];
     });
 
     return res.status(200).json({
@@ -571,8 +560,6 @@ export const getAllAgencies = async (req, res) => {
   }
 };
 
-
-
 // Récupérer une agence par son ID
 export const getAgencyById = async (req, res) => {
   try {
@@ -581,7 +568,7 @@ export const getAgencyById = async (req, res) => {
     const agency = await Agency.findById(id)
       .populate('userId') // propriétaire
       .populate({
-        path: 'members.user', // members est un tableau d'objets avec un champ user
+        path: 'members.user',
         model: 'User',
       })
       .populate({
@@ -592,11 +579,6 @@ export const getAgencyById = async (req, res) => {
       .populate({
         path: 'employees',
         model: 'Employee',
-        populate: { path: 'userId', model: 'User' }
-      })
-      .populate({
-        path: 'collectors',
-        model: 'Collector',
         populate: { path: 'userId', model: 'User' }
       })
       .populate('services')
@@ -611,20 +593,23 @@ export const getAgencyById = async (req, res) => {
       });
     }
 
-    // Suppression des mots de passe
+    // Supprimer les mots de passe
     if (agency.userId?.password) delete agency.userId.password;
+
     agency.members?.forEach(m => {
       if (m.user?.password) delete m.user.password;
     });
+
     agency.clients?.forEach(c => {
       if (c.userId?.password) delete c.userId.password;
     });
+
     agency.employees?.forEach(e => {
       if (e.userId?.password) delete e.userId.password;
     });
-    agency.collectors?.forEach(c => {
-      if (c.userId?.password) delete c.userId.password;
-    });
+
+    // Ajouter collectors depuis les employés filtrés
+    agency.collectors = agency.employees?.filter(e => e.role === 'collector') || [];
 
     return res.status(200).json({
       success: true,
@@ -639,4 +624,3 @@ export const getAgencyById = async (req, res) => {
     });
   }
 };
-
