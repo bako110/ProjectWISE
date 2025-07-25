@@ -489,65 +489,32 @@ export const changePassword = async (req, res) => {
 };
 
 
+
+
 export const getAllAgencies = async (req, res) => {
   try {
     const { query } = req.query;
 
-    const filter = query ? { agencyName: new RegExp(query, 'i') } : {};
+    const filter = query ? { name: new RegExp(query, 'i') } : {};
 
     const agencies = await Agency.find(filter)
-      .populate({
-        path: 'userId', // propriétaire de l'agence
-        model: 'User'
-      })
       .populate({
         path: 'clients',
         model: 'Client',
         populate: {
           path: 'userId',
-          model: 'User'
-        }
+          model: 'User',
+          select: '-password -__v -updatedAt' // on masque le mot de passe
+        },
+        select: '-__v -updatedAt'
       })
-      .populate({
-        path: 'employees',
-        model: 'Employee',
-        populate: {
-          path: 'userId',
-          model: 'User'
-        }
-      })
-      .populate({
-        path: 'members',
-        model: 'User'
-      })
-      .populate('services')
-      .populate('serviceZones')
-      .lean(); // transforme en objet JavaScript brut
-
-    // Supprimer les mots de passe
-    agencies.forEach(agency => {
-      if (agency.userId?.password) delete agency.userId.password;
-
-      agency.clients?.forEach(client => {
-        if (client.userId?.password) delete client.userId.password;
-      });
-
-      agency.employees?.forEach(emp => {
-        if (emp.userId?.password) delete emp.userId.password;
-      });
-
-      agency.members?.forEach(member => {
-        if (member?.password) delete member.password;
-      });
-
-      // Ajouter collectors en filtrant les employés par rôle
-      agency.collectors = agency.employees?.filter(emp => emp.role === 'collector') || [];
-    });
+      .lean();
 
     return res.status(200).json({
       success: true,
       count: agencies.length,
-      data: agencies
+      data: agencies,
+      query: query || ''
     });
 
   } catch (error) {
@@ -560,31 +527,14 @@ export const getAllAgencies = async (req, res) => {
   }
 };
 
+
+
 // Récupérer une agence par son ID
 export const getAgencyById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const agency = await Agency.findById(id)
-      .populate('userId') // propriétaire
-      .populate({
-        path: 'members.user',
-        model: 'User',
-      })
-      .populate({
-        path: 'clients',
-        model: 'Client',
-        populate: { path: 'userId', model: 'User' }
-      })
-      .populate({
-        path: 'employees',
-        model: 'Employee',
-        populate: { path: 'userId', model: 'User' }
-      })
-      .populate('services')
-      .populate('serviceZones')
-      .populate('schedule')
-      .lean();
+    const agency = await Agency.findById(id).lean();
 
     if (!agency) {
       return res.status(404).json({
@@ -592,24 +542,6 @@ export const getAgencyById = async (req, res) => {
         message: 'Agence non trouvée'
       });
     }
-
-    // Supprimer les mots de passe
-    if (agency.userId?.password) delete agency.userId.password;
-
-    agency.members?.forEach(m => {
-      if (m.user?.password) delete m.user.password;
-    });
-
-    agency.clients?.forEach(c => {
-      if (c.userId?.password) delete c.userId.password;
-    });
-
-    agency.employees?.forEach(e => {
-      if (e.userId?.password) delete e.userId.password;
-    });
-
-    // Ajouter collectors depuis les employés filtrés
-    agency.collectors = agency.employees?.filter(e => e.role === 'collector') || [];
 
     return res.status(200).json({
       success: true,
