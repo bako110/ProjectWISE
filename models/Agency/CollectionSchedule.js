@@ -1,12 +1,15 @@
 import mongoose from 'mongoose';
 
 const collectionScheduleSchema = new mongoose.Schema({
-  zoneId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ServiceZone',
-    required: true
-  },
+  // zoneId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'ServiceZone',
+  //   required: true
+  // },
 
+  zone : {
+    type: String,
+  },
   dayOfWeek: { type: Number, required: true }, // 0=Sunday, 6=Saturday
 
   startTime: { type: String, required: true }, // HH:mm

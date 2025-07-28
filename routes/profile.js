@@ -203,7 +203,6 @@ const router = express.Router();
  *           description: URL du logo de l'agence
  *         address:
  *           $ref: '#/components/schemas/AgencyAddress'
- *         serviceZones:
  *           type: array
  *           items:
  *             type: string
@@ -502,7 +501,6 @@ const router = express.Router();
  *                   description: "Agence spécialisée dans la collecte des déchets"
  *                   phone: "+22670987654"
  *                   email: "contact@ecoclean.bf"
- *                   serviceZones: ["Secteur 1", "Secteur 2"]
  *                   services: ["Collecte ménagère", "Recyclage"]
  *                   isActive: true
  *       responses:

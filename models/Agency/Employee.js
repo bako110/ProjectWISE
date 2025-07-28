@@ -24,11 +24,15 @@ const employeeSchema = new mongoose.Schema({
     required: true
   },
 
-  zones: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ServiceZone',
-  }],
+  // zones: [{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'ServiceZone',
+  // }],
 
+  zones: [{
+    type: String,
+  }],
+  
   isActive: { type: Boolean, default: true },
 
   hiredAt: { type: Date, default: Date.now },

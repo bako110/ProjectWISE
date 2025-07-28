@@ -141,7 +141,7 @@ const filterAgencyFields = d => ({
   }),
   // Relations (ajout/modification selon besoin)
   ...(d.members && { members: d.members }),
-  ...(d.serviceZones && { serviceZones: d.serviceZones }),
+  ...(d.services && { services: d.services }),
   ...(d.services && { services: d.services }),
   ...(d.employees && { employees: d.employees }),
   ...(d.schedule && { schedule: d.schedule }),

@@ -60,9 +60,11 @@ const agencySchema = new mongoose.Schema({
   serviceZones: [{
     type: String,
   }],
-  services: [{
-    type: String,
-  }],
+
+    services: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Service',
+    }],
 
 
   

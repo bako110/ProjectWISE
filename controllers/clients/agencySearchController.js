@@ -1,5 +1,4 @@
 import Agency from '../../models/Agency/Agency.js';
-import ServiceZone from '../../models/Agency/ServiceZone.js';
 
 // ===== CONSTANTES =====
 const DEFAULT_LIMIT = 10;

@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import User from '../../models/User.js';
 import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
-import ServiceZone from '../../models/Agency/ServiceZone.js';
+import Service from '../../models/Agency/Service.js';
 import Client from '../../models/clients/Client.js';
 // import Signalement from '../../models/Signalement.js';
 import crypto from 'crypto';
@@ -184,7 +184,7 @@ export const statistics = async (req, res) => {
     const totalEmployees = await Employee.countDocuments({ agencyId, role: { $in: 'collector' } });
    const totalClients = await Client.countDocuments({ agencyId });
   //  const totalSignalements = await Signalement.countDocuments({ agencyId });
-    const totalZones = await ServiceZone.countDocuments({ agencyId });
+    const totalZones = await Service.countDocuments({ agencyId });
 
     res.status(200).json({
       totalEmployees,

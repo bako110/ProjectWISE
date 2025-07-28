@@ -511,7 +511,8 @@ router.put('/tarif/:tarifId', authMiddleware('agency'), updateTarif);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:agencyId/tarif', authMiddleware('agency'), getTarifByAgency);
+// router.get('/:agencyId/tarif', authMiddleware('agency'), getTarifByAgency);
+router.get('/:agencyId/tarif', getTarifByAgency);
 
 /**
  * @swagger
@@ -539,7 +540,7 @@ router.get('/:agencyId/tarif', authMiddleware('agency'), getTarifByAgency);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/tarif/:tarifId', authMiddleware('agency'), getTarifById);
+router.get('/tarif/:tarifId', authMiddleware('agency', 'client', 'super_admin'), getTarifById);
 
 /**
  * @swagger
