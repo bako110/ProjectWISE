@@ -4,7 +4,7 @@ const collectionReportSchema = new mongoose.Schema({
   collectionId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Collection',
-    required: true
+    // required: true
   },
 
   clientId: {
@@ -34,7 +34,7 @@ const collectionReportSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ['open', 'in_progress', 'resolved', 'closed'],
+    enum: ['open', 'in_progress', 'resolved', 'closed', 'initialized'],
     default: 'open'
   },
 

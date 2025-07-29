@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
+import { createEmployee, deleteEmployee } from '../../controllers/agency/AdminCreateEmpController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 import { createTarif, updateTarif, getTarifByAgency, getTarifById, deleteTarif, getAllTarifs } from '../../controllers/tarifController.js';
 import {
@@ -398,6 +398,38 @@ router.get('/:agencyId/employees', authMiddleware('agency'), getAllEmployees);
  */
 router.get('/:agencyId/employees/role/:role', authMiddleware('agency'), getEmployeeByRoleAndAgency);
 
+/**
+ * @swagger
+ * /api/agences/{agencyId}/employees/{employeeId}:
+ *   delete:
+ *     summary: Supprimer un employé par ID
+ *     tags:
+ *       - Employés
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         description: ID de l'agence
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         description: ID de l'employé à supprimer
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Employé supprimé avec succès
+ *       404:
+ *         description: Employé non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+
+router.delete('/:agencyId/employees/:employeeId', authMiddleware('agency','super_admin'), deleteEmployee);
 
 /**
  * @swagger

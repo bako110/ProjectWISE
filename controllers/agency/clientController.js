@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import Client from '../../models/clients/Client.js';
 import Agency from '../../models/Agency/Agency.js';
+import CollectionReport from '../../models/collections/CollectionReport.js';
 
 /* ---------------------------------------------------------------------- */
 /* 1. Liste des clients présents dans le tableau `clients` de l'agence    */
@@ -36,22 +37,19 @@ export const getClientsByAgency = async (req, res) => {
 /* ---------------------------------------------------------------------- */
 export const reportNoShow = async (req, res) => {
   try {
-    const clientId = req.params.id;
-    const { type, comment, date } = req.body;   // comment correspond au champ description
+    const {clientId, agencyId} = req.params;
+    const { type, comment, photos, status } = req.body;   // comment correspond au champ description
 
-    const client = await Client.findById(clientId);
-    if (!client) return res.status(404).json({ error: 'Client non trouvé' });
+    const report = CollectionReport.create({
+      clientId,
+      agencyId,
+      reportType: type,
+      description: comment,
+      photos,
+      status:'initialized'
+    });
 
-    const newReport = {
-      type,
-      description: comment,                    // 🔑 utiliser comment → description
-      date: date ? new Date(date) : new Date()
-    };
-
-    client.nonPassageReports.push(newReport);
-    await client.save();
-
-    res.json({ message: 'Report enregistré', nonPassageReports: client.nonPassageReports });
+    res.json({ message: 'Report enregistré', data: report });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -131,15 +129,15 @@ export const getReportsByAgency = async (req, res) => {
     const { agencyId } = req.params;
 
     // Récupérer clients abonnés à cette agence
-    const clients = await Client.find({ subscribedAgencyId: agencyId }, 'firstName lastName nonPassageReports');
+    const reports = await CollectionReport.find({ agencyId });
 
-    if (!clients.length) {
+    if (!reports.length) {
       return res.status(404).json({ message: "Aucun client trouvé pour cette agence" });
     }
 
     // Optionnel : filtrer ou organiser les rapports selon besoin
 
-    res.json(clients);
+    res.json(reports);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
