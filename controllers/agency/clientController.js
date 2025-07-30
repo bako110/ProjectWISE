@@ -40,7 +40,7 @@ export const reportNoShow = async (req, res) => {
     const {agencyId, clientId} = req.params;
     const { type, comment, photos, status } = req.body;   // comment correspond au champ description
 
-    const report = CollectionReport.create({
+    const report = new CollectionReport({
       clientId,
       agencyId,
       reportType: type,
@@ -48,6 +48,8 @@ export const reportNoShow = async (req, res) => {
       photos,
       status: status || 'initialized',
     });
+
+    await report.save();
 
     if (!report) {
       return res.status(400).json({ error: 'Erreur lors de la création du signalement' });
