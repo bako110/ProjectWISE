@@ -46,7 +46,7 @@ export const reportNoShow = async (req, res) => {
       reportType: type,
       description: comment,
       photos,
-      status:'initialized'
+      status
     });
 
     res.json({ message: 'Report enregistré', data: report });
