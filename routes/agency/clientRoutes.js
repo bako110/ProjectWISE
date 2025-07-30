@@ -66,7 +66,7 @@ router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClie
 
 /**
  * @swagger
- * /api/agences/{agenceId}/clients/{id}/signalement:
+ * /api/agences/{agencyId}/clients/{id}/signalement:
  *   post:
  *     summary: Ajouter un signalement de non-passage par un client
  *     tags: [Clients]
@@ -147,7 +147,7 @@ router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClie
  *                   type: string
  *                   example: "Internal server error"
  */
-router.post(':agenceId/clients/:id/signalement', authMiddleware('client', 'collector'), reportNoShow);
+router.post(':agencyId/clients/:clientId/signalement', authMiddleware('client', 'collector'), reportNoShow);
 /**
  * @swagger
  * /api/agences/{agencyId}/clients/signalements:
