@@ -37,7 +37,7 @@ export const getClientsByAgency = async (req, res) => {
 /* ---------------------------------------------------------------------- */
 export const reportNoShow = async (req, res) => {
   try {
-    const {clientId, agencyId} = req.params;
+    const {agencyId, clientId} = req.params;
     const { type, comment, photos, status } = req.body;   // comment correspond au champ description
 
     const report = CollectionReport.create({
@@ -48,6 +48,10 @@ export const reportNoShow = async (req, res) => {
       photos,
       status: status || 'initialized',
     });
+
+    if (!report) {
+      return res.status(400).json({ error: 'Erreur lors de la création du signalement' });
+    }
 
     res.json({ message: 'Report enregistré', data: report });
   } catch (error) {
