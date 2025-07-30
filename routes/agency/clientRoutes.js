@@ -202,7 +202,7 @@ router.post('/clients/:id/signalement', authMiddleware('client', 'collector'), r
  *       500:
  *         description: Erreur serveur
  */
-router.get('/agences/:agencyId/clients/signalements', getReportsByAgency);
+router.get('/:agencyId/clients/signalements', getReportsByAgency);
 
 
 
