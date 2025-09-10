@@ -640,6 +640,6 @@ router.get('/tarifs', authMiddleware('agency'), getAllTarifs);
  *       404:
  *         description: Agence non trouvée
  */
-router.get('/:agencyId/statistiques', authMiddleware('agency'), statistics);
+router.get('/:agencyId/statistiques', statistics);
 
 export default router;
