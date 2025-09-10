@@ -196,7 +196,7 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
 
 export const statistics = async (req, res) => {
   try {
-    const { agencyId } = req.params; 
+    const { agencyId } = req.params;
 
     if (!agencyId) {
       return res.status(400).json({
@@ -205,32 +205,40 @@ export const statistics = async (req, res) => {
       });
     }
 
-    // Comptage des employés collecteurs pour cette agence
-    const totalEmployees = await Employee.countDocuments({ agency: agencyId, role: 'collector' });
+    // Récupérer le document agence
+    const agency = await Agency.findById(agencyId);
+    if (!agency) {
+      return res.status(404).json({
+        success: false,
+        message: "Agence non trouvée"
+      });
+    }
 
-    // Comptage des clients pour cette agence
-    const totalClients = await Client.countDocuments({ agency: agencyId });
+    // Comptage des employés et clients directement depuis l'agence
+    const totalEmployees = agency.employees ? agency.employees.length : 0;
+    const totalCollectors = agency.collectors ? agency.collectors.length : 0;
+    const totalClients = agency.clients ? agency.clients.length : 0;
+    const totalZones = agency.serviceZones ? agency.serviceZones.length : 0;
+    const totalServices = agency.services ? agency.services.length : 0;
 
-    // Comptage des signalements pour cette agence
+    // Comptage des signalements depuis la collection Report
     const totalSignalements = await Report.countDocuments({ agency: agencyId });
-
-    // Comptage des zones/services pour cette agence
-    const totalZones = await Service.countDocuments({ agency: agencyId });
-
-    // Optionnel : Signalements par statut (pending / resolved)
     const pendingSignalements = await Report.countDocuments({ agency: agencyId, status: 'pending' });
     const resolvedSignalements = await Report.countDocuments({ agency: agencyId, status: 'resolved' });
 
     res.status(200).json({
       totalEmployees,
+      totalCollectors,
       totalClients,
+      totalZones,
+      totalServices,
       totalSignalements,
       pendingSignalements,
       resolvedSignalements,
-      totalZones,
       message: 'Statistiques récupérées avec succès',
       success: true
     });
+
   } catch (error) {
     console.error('Erreur récupération statistiques:', error);
     res.status(500).json({
