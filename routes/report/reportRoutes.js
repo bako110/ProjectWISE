@@ -232,4 +232,5 @@ router.get("/client/:clientId", getReportsByClient);
 router.get("/collector/:collectorId", getReportsByCollector);
 router.patch("/:reportId/status", updateReportStatus);
 
+
 export default router;
