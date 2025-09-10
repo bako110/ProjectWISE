@@ -4,7 +4,7 @@ import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js'; // <-- Ajout ici
 import Service from '../../models/Agency/Service.js';
 import Client from '../../models/clients/Client.js';
-// import Signalement from '../../models/Signalement.js';
+import Report from '../../models/report/report.js';
 import crypto from 'crypto';
 import { sendMail } from '../../utils/resetcodemail.js';
 
@@ -196,16 +196,37 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
 
 export const statistics = async (req, res) => {
   try {
-    const agencyId = req.params.agencyId; 
-    const totalEmployees = await Employee.countDocuments({ agencyId, role: { $in: 'collector' } });
-   const totalClients = await Client.countDocuments({ agencyId });
-  //  const totalSignalements = await Signalement.countDocuments({ agencyId });
-    const totalZones = await Service.countDocuments({ agencyId });
+    const { agencyId } = req.params; 
+
+    if (!agencyId) {
+      return res.status(400).json({
+        success: false,
+        message: "agencyId requis"
+      });
+    }
+
+    // Comptage des employés collecteurs pour cette agence
+    const totalEmployees = await Employee.countDocuments({ agency: agencyId, role: 'collector' });
+
+    // Comptage des clients pour cette agence
+    const totalClients = await Client.countDocuments({ agency: agencyId });
+
+    // Comptage des signalements pour cette agence
+    const totalSignalements = await Report.countDocuments({ agency: agencyId });
+
+    // Comptage des zones/services pour cette agence
+    const totalZones = await Service.countDocuments({ agency: agencyId });
+
+    // Optionnel : Signalements par statut (pending / resolved)
+    const pendingSignalements = await Report.countDocuments({ agency: agencyId, status: 'pending' });
+    const resolvedSignalements = await Report.countDocuments({ agency: agencyId, status: 'resolved' });
 
     res.status(200).json({
       totalEmployees,
       totalClients,
-      // totalSignalements,
+      totalSignalements,
+      pendingSignalements,
+      resolvedSignalements,
       totalZones,
       message: 'Statistiques récupérées avec succès',
       success: true
