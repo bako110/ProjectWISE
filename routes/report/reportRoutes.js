@@ -4,8 +4,7 @@ import {
   getReportsByAgency,
   getReportsByClient,
   getReportsByCollector,
-  updateReportStatus,
-  getAllReports
+  updateReportStatus
 } from "../../controllers/report/reportController.js";
 
 const router = express.Router();
@@ -225,6 +224,11 @@ router.get("/collector/:collectorId", getReportsByCollector);
  *             schema:
  *               $ref: '#/components/schemas/Report'
  */
+
+router.post("/", createReport);
+router.get("/agency/:agencyId", getReportsByAgency);
+router.get("/client/:clientId", getReportsByClient);
+router.get("/collector/:collectorId", getReportsByCollector);
 router.patch("/:reportId/status", updateReportStatus);
 
 export default router;
