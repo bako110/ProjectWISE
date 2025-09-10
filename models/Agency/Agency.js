@@ -78,10 +78,10 @@ const agencySchema = new mongoose.Schema({
     ref: 'CollectionSchedule',
   }],
 
-  collectors: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Collector',
-  }],
+  // collectors: [{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Collector',
+  // }],
 
   clients: [{
     type: mongoose.Schema.Types.ObjectId,

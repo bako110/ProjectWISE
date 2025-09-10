@@ -192,40 +192,64 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
 // 7. Récupération des statistiques
 export const statistics = async (req, res) => {
   try {
-    const agencyId = req.params.agencyId;
-    let agency = null;
-    if (agencyId) {
-      agency = await Agency.findById(agencyId)
-        .populate('employees')
-        .populate('collectors')
-        .populate('clients')
-        .populate('services');
+    const { agencyId } = req.params;
+
+    if (!agencyId) {
+      return res.status(400).json({
+        success: false,
+        message: "agencyId requis"
+      });
     }
 
-    const totalEmployees = agency ? agency.employees.length : await Employee.countDocuments();
-    const totalCollectors = agency ? agency.collectors.length : await Employee.countDocuments({ role: 'collector' });
-    const totalClients = agency ? agency.clients.length : await Client.countDocuments();
-    const totalZones = agency ? agency.serviceZones.length : 0;
-    const totalServices = agency ? agency.services.length : await Service.countDocuments();
+    // Récupérer le document agence
+    const agency = await Agency.findById(agencyId)
+      .populate('employees')   // tous les employés liés
+      .populate('clients')     // tous les clients liés
+      .populate('services');   // tous les services liés
 
-    const totalSignalements = await Report.countDocuments();
-    const pendingSignalements = await Report.countDocuments({ status: 'pending' });
-    const resolvedSignalements = await Report.countDocuments({ status: 'resolved' });
+    if (!agency) {
+      return res.status(404).json({
+        success: false,
+        message: "Agence non trouvée"
+      });
+    }
 
-    res.json({
-      success: true,
-      message: "Statistiques récupérées avec succès",
+    // Total employés
+    const totalEmployees = agency.employees.length;
+
+    // Total collecteurs (employés dont role === 'collector')
+    const totalCollectors = agency.employees.filter(emp => emp.role === 'collector').length;
+
+    // Total clients
+    const totalClients = agency.clients.length;
+
+    // Total services et zones
+    const totalServices = agency.services.length;
+    const totalZones = agency.serviceZones.length;
+
+    // Signalements liés à cette agence
+    const totalSignalements = await Report.countDocuments({ agency: agencyId });
+    const pendingSignalements = await Report.countDocuments({ agency: agencyId, status: 'pending' });
+    const resolvedSignalements = await Report.countDocuments({ agency: agencyId, status: 'resolved' });
+
+    res.status(200).json({
       totalEmployees,
       totalCollectors,
       totalClients,
-      totalZones,
       totalServices,
+      totalZones,
       totalSignalements,
       pendingSignalements,
-      resolvedSignalements
+      resolvedSignalements,
+      message: 'Statistiques récupérées avec succès',
+      success: true
     });
-  } catch (err) {
-    console.error('Erreur statistiques :', err);
-    res.status(500).json({ success: false, message: "Erreur serveur" });
+
+  } catch (error) {
+    console.error('Erreur récupération statistiques:', error);
+    res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des statistiques',
+      error: 'SERVER_ERROR'
+    });
   }
 };
