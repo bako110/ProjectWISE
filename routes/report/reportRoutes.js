@@ -4,7 +4,8 @@ import {
   getReportsByAgency,
   getReportsByClient,
   getReportsByCollector,
-  updateReportStatus
+  updateReportStatus, 
+  getAllReports
 } from "../../controllers/report/reportController.js";
 
 const router = express.Router();
