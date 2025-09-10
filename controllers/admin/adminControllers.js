@@ -100,16 +100,27 @@ export const getAllEmployees = async (req, res) => {
 
 export const statistics = async (req, res) => {
   try {
-    // Récupérer les statistiques des admins
+    // Récupérer les statistiques des admins (inchangées)
     const totalAgencies = await Agency.countDocuments();
     const activeAgencies = await Agency.countDocuments({ isActive: true });
     const totalMunicipalities = await Mairie.countDocuments();
     const totalClients = await Client.countDocuments();
     const totalCollectors = await Employee.countDocuments({ role: 'collector' });
-    const activeClients = await Client.countDocuments({ subscriptionHistory: { $elemMatch: { status: 'active' } } });
+    const activeClients = await Client.countDocuments({
+      subscriptionHistory: { $elemMatch: { status: 'active' } }
+    });
     const totalCollections = await Collection.countDocuments();
-    const completeCollections = await Collection.countDocuments({status: 'completed' });
+    const completeCollections = await Collection.countDocuments({ status: 'completed' });
 
+    // 📌 Signalements par CLIENTS
+    const totalClientReports = await Report.countDocuments({ client: { $ne: null } });
+    const pendingClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'pending' });
+    const resolvedClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'resolved' });
+
+    // 📌 Signalements par COLLECTEURS
+    const totalCollectorReports = await Report.countDocuments({ collector: { $ne: null } });
+    const pendingCollectorReports = await Report.countDocuments({ collector: { $ne: null }, status: 'pending' });
+    const resolvedCollectorReports = await Report.countDocuments({ collector: { $ne: null }, status: 'resolved' });
 
     res.status(200).json({
       totalAgencies,
@@ -120,6 +131,21 @@ export const statistics = async (req, res) => {
       activeClients,
       totalCollections,
       completeCollections,
+
+      // ✅ Partie clients
+      reportsFromClients: {
+        total: totalClientReports,
+        pending: pendingClientReports,
+        resolved: resolvedClientReports
+      },
+
+      // ✅ Partie collecteurs
+      reportsFromCollectors: {
+        total: totalCollectorReports,
+        pending: pendingCollectorReports,
+        resolved: resolvedCollectorReports
+      },
+
       message: 'Statistiques récupérées avec succès',
       success: true
     });
@@ -130,4 +156,5 @@ export const statistics = async (req, res) => {
       error: 'SERVER_ERROR'
     });
   }
-}
+};
+
