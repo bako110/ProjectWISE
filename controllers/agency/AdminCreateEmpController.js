@@ -194,39 +194,34 @@ export const getEmployeeByRoleAndAgency = async (req, res) => {
   }
 }
 
-export const statistics = async (req, res) => {
+export const getStatistics = async (req, res) => {
   try {
-    const { agencyId } = req.params;
+    // On peut filtrer par agencyId si nécessaire
+    const agencyId = req.params.agencyId;
 
-    if (!agencyId) {
-      return res.status(400).json({
-        success: false,
-        message: "agencyId requis"
-      });
+    let agency = null;
+    if (agencyId) {
+      agency = await Agency.findById(agencyId)
+        .populate('employees')
+        .populate('collectors')
+        .populate('clients')
+        .populate('services');
     }
 
-    // Récupérer le document agence
-    const agency = await Agency.findById(agencyId);
-    if (!agency) {
-      return res.status(404).json({
-        success: false,
-        message: "Agence non trouvée"
-      });
-    }
+    const totalEmployees = agency ? agency.employees.length : await Employee.countDocuments();
+    const totalCollectors = agency ? agency.collectors.length : await Collector.countDocuments();
+    const totalClients = agency ? agency.clients.length : await Client.countDocuments();
+    const totalZones = agency ? agency.serviceZones.length : 0;
+    const totalServices = agency ? agency.services.length : await Service.countDocuments();
 
-    // Comptage des employés et clients directement depuis l'agence
-    const totalEmployees = agency.employees ? agency.employees.length : 0;
-    const totalCollectors = agency.collectors ? agency.collectors.length : 0;
-    const totalClients = agency.clients ? agency.clients.length : 0;
-    const totalZones = agency.serviceZones ? agency.serviceZones.length : 0;
-    const totalServices = agency.services ? agency.services.length : 0;
+    // Signalements si tu as un modèle
+    const totalSignalements = await Report.countDocuments();
+    const pendingSignalements = await Report.countDocuments({ status: 'pending' });
+    const resolvedSignalements = await Report.countDocuments({ status: 'resolved' });
 
-    // Comptage des signalements depuis la collection Report
-    const totalSignalements = await Report.countDocuments({ agency: agencyId });
-    const pendingSignalements = await Report.countDocuments({ agency: agencyId, status: 'pending' });
-    const resolvedSignalements = await Report.countDocuments({ agency: agencyId, status: 'resolved' });
-
-    res.status(200).json({
+    res.json({
+      success: true,
+      message: "Statistiques récupérées avec succès",
       totalEmployees,
       totalCollectors,
       totalClients,
@@ -234,16 +229,11 @@ export const statistics = async (req, res) => {
       totalServices,
       totalSignalements,
       pendingSignalements,
-      resolvedSignalements,
-      message: 'Statistiques récupérées avec succès',
-      success: true
+      resolvedSignalements
     });
 
-  } catch (error) {
-    console.error('Erreur récupération statistiques:', error);
-    res.status(500).json({
-      message: 'Erreur serveur lors de la récupération des statistiques',
-      error: 'SERVER_ERROR'
-    });
+  } catch (err) {
+    console.error('Erreur statistiques :', err);
+    res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
