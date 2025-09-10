@@ -214,18 +214,24 @@ export const statistics = async (req, res) => {
       });
     }
 
+    // Sécuriser les arrays avec fallback []
+    const employees = agency.employees || [];
+    const clients = agency.clients || [];
+    const services = agency.services || [];
+    const serviceZones = agency.serviceZones || [];
+
     // Total employés
-    const totalEmployees = agency.employees.length;
+    const totalEmployees = employees.length;
 
     // Total collecteurs (employés dont role === 'collector')
-    const totalCollectors = agency.employees.filter(emp => emp.role === 'collector').length;
+    const totalCollectors = employees.filter(emp => emp.role === 'collector').length;
 
     // Total clients
-    const totalClients = agency.clients.length;
+    const totalClients = clients.length;
 
     // Total services et zones
-    const totalServices = agency.services.length;
-    const totalZones = agency.serviceZones.length;
+    const totalServices = services.length;
+    const totalZones = serviceZones.length;
 
     // Signalements liés à cette agence
     const totalSignalements = await Report.countDocuments({ agency: agencyId });
