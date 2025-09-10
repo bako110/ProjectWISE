@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import Client from '../../models/clients/Client.js';
 import Agency from '../../models/Agency/Agency.js';
-import CollectionReport from '../../models/collections/CollectionReport.js';
+// import CollectionReport from '../../models/collections/CollectionReport.js';
 
 /* ---------------------------------------------------------------------- */
 /* 1. Liste des clients présents dans le tableau `clients` de l'agence    */
@@ -28,35 +28,6 @@ export const getClientsByAgency = async (req, res) => {
     res.status(200).json(clients);
   } catch (error) {
     console.error('Erreur getClientsByAgency :', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/* ---------------------------------------------------------------------- */
-/* 2. Ajouter un signalement de non‑passage                               */
-/* ---------------------------------------------------------------------- */
-export const reportNoShow = async (req, res) => {
-  try {
-    const {agencyId, clientId} = req.params;
-    const { type, comment, photos, status } = req.body;   // comment correspond au champ description
-
-    const report = new CollectionReport({
-      clientId,
-      agencyId,
-      reportType: type,
-      description: comment,
-      photos,
-      status: status || 'initialized',
-    });
-
-    await report.save();
-
-    if (!report) {
-      return res.status(400).json({ error: 'Erreur lors de la création du signalement' });
-    }
-
-    res.json({ message: 'Report enregistré', data: report });
-  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
@@ -129,22 +100,22 @@ export const validateClientSubscription = async (req, res) => {
 
 
 
-// Récupérer tous les signalements des clients d’une agence
-export const getReportsByAgency = async (req, res) => {
-  try {
-    const { agencyId } = req.params;
+// // Récupérer tous les signalements des clients d’une agence
+// export const getReportsByAgency = async (req, res) => {
+//   try {
+//     const { agencyId } = req.params;
 
-    // Récupérer clients abonnés à cette agence
-    const reports = await CollectionReport.find({ agencyId });
+//     // Récupérer clients abonnés à cette agence
+//     const clients = await Client.find({ subscribedAgencyId: agencyId }, 'firstName lastName nonPassageReports');
 
-    if (!reports.length) {
-      return res.status(404).json({ message: "Aucun client trouvé pour cette agence" });
-    }
+//     if (!clients.length) {
+//       return res.status(404).json({ message: "Aucun client trouvé pour cette agence" });
+//     }
 
-    // Optionnel : filtrer ou organiser les rapports selon besoin
+//     // Optionnel : filtrer ou organiser les rapports selon besoin
 
-    res.json(reports);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+//     res.json(clients);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };

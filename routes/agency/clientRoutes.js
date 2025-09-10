@@ -1,12 +1,8 @@
-// routes/agency/clientRoutes.js
-
 import express from 'express';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 import {
   getClientsByAgency,
-  reportNoShow,
-  validateClientSubscription,
-  getReportsByAgency
+  validateClientSubscription
 } from '../../controllers/agency/clientController.js';
 
 const router = express.Router();
@@ -16,6 +12,16 @@ const router = express.Router();
  * tags:
  *   name: Clients
  *   description: Gestion des clients liés aux agences
+ */
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */
 
 /**
@@ -35,13 +41,36 @@ const router = express.Router();
  *         description: ID de l'agence
  *     responses:
  *       200:
- *         description: Liste des clients
+ *         description: Liste des clients abonnés à l'agence
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: ID du client
+ *                   name:
+ *                     type: string
+ *                     description: Nom du client
+ *                   email:
+ *                     type: string
+ *                     description: Email du client
+ *                   subscriptionStatus:
+ *                     type: string
+ *                     description: Statut de la souscription
+ *       403:
+ *         description: Accès interdit
+ *       404:
+ *         description: Agence non trouvée
  */
 router.get('/agency/:agencyId', authMiddleware('agency'), getClientsByAgency);
 
 /**
  * @swagger
- * /api/agences/clients/{clientId}/validate:
+ * /api/clients/{clientId}/validate:
  *   put:
  *     summary: Valider la souscription d’un client à une agence
  *     tags: [Clients]
@@ -56,161 +85,23 @@ router.get('/agency/:agencyId', authMiddleware('agency'), getClientsByAgency);
  *         description: ID du client à valider
  *     responses:
  *       200:
- *         description: Souscription validée
- *       403:
- *         description: Accès interdit ou client lié à une autre agence
- *       404:
- *         description: Client ou agence non trouvé
- */
-router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClientSubscription);
-
-/**
- * @swagger
- * /api/agences/{agencyId}/clients/{clientId}/signalement:
- *   post:
- *     summary: Ajouter un signalement de non-passage par un client
- *     tags: [Clients]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: clientId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID du client
- *      - in: path
- *        name: agencyId
- *       required: true
- *       schema:
- *        type: string
- *       description: ID de l'agence
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               type:
- *                 type: string
- *                 example: "absence"
- *                 description: Type du signalement
- *               comment:
- *                 type: string
- *                 example: "Le camion n’est pas passé ce jour"
- *                 description: Commentaire associé au signalement
- *               date:
- *                 type: string
- *                 format: date-time
- *                 example: "2025-07-21T12:34:56Z"
- *                 description: Date du signalement (fourni par le client)
- *             required:
- *               - type
- *               - comment
- *               - date
- *     responses:
- *       200:
- *         description: Signalement enregistré
+ *         description: Souscription validée avec succès
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Report saved"
- *                 noShowReports:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       type:
- *                         type: string
- *                       comment:
- *                         type: string
- *                       date:
- *                         type: string
- *                         format: date-time
+ *                   example: Souscription validée
+ *       403:
+ *         description: Accès interdit ou client déjà lié à une autre agence
  *       404:
  *         description: Client non trouvé
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Client not found"
- *       500:
- *         description: Erreur serveur
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Internal server error"
  */
-router.post('/:agencyId/clients/:clientId/signalement', authMiddleware('client', 'collector'), reportNoShow);
-
-/**
- * @swagger
- * /api/agences/{agencyId}/clients/signalements:
- *   get:
- *     summary: Récupérer tous les signalements de non‑passage des clients d'une agence
- *     tags: [Agences]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: agencyId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID de l'agence
- *     responses:
- *       200:
- *         description: Liste des clients avec leurs signalements
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     description: ID du client
- *                   firstName:
- *                     type: string
- *                     example: "Jean"
- *                   lastName:
- *                     type: string
- *                     example: "Dupont"
- *                   nonPassageReports:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         type:
- *                           type: string
- *                           example: "Non‑passage"
- *                         comment:
- *                           type: string
- *                           example: "Le camion n’est pas passé ce jour"
- *                         date:
- *                           type: string
- *                           format: date-time
- *                           example: "2025-07-21T10:30:00Z"
- *       404:
- *         description: Aucun client trouvé pour cette agence
- *       500:
- *         description: Erreur serveur
- */
-router.get('/:agencyId/clients/signalements', getReportsByAgency);
-
-
+router.put('/:clientId/validate', authMiddleware('agency'), validateClientSubscription);
 
 export default router;

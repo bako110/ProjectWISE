@@ -9,7 +9,6 @@ import {
   changePassword
 } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-
 const router = express.Router();
 
 /**
@@ -25,7 +24,7 @@ const router = express.Router();
  *       scheme: bearer
  *       bearerFormat: JWT
  *       description: Token JWT requis dans le header Authorization "Bearer <token>"
- *   
+ *
  *   schemas:
  *     # Schéma de base pour l'utilisateur
  *     BaseUser:
@@ -37,7 +36,7 @@ const router = express.Router();
  *         - email
  *         - password
  *         - confirmPassword
- *         - termsAccepted
+ *         - acceptTerms
  *       properties:
  *         role:
  *           type: string
@@ -71,14 +70,14 @@ const router = express.Router();
  *         confirmPassword:
  *           type: string
  *           description: Confirmation du mot de passe (doit correspondre)
- *         termsAccepted:
+ *         acceptTerms:
  *           type: boolean
  *           description: Acceptation des conditions d'utilisation (obligatoire)
  *         receiveOffers:
  *           type: boolean
  *           default: false
  *           description: Consentement pour recevoir des offres commerciales
- *     
+ *
  *     # Schéma pour l'adresse client
  *     ClientAddress:
  *       type: object
@@ -119,7 +118,7 @@ const router = express.Router();
  *           type: string
  *           example: "22600"
  *           description: Code postal
- *     
+ *
  *     # Inscription client
  *     ClientRegister:
  *       allOf:
@@ -133,7 +132,7 @@ const router = express.Router();
  *         phone: "+22670123456"
  *         password: "motDePasseFort123"
  *         confirmPassword: "motDePasseFort123"
- *         termsAccepted: true
+ *         acceptTerms: true
  *         receiveOffers: false
  *         arrondissement: "Arrondissement 3"
  *         rue: "Rue 14.19"
@@ -142,7 +141,7 @@ const router = express.Router();
  *         couleurPorte: "Bleu"
  *         ville: "Ouagadougou"
  *         codePostal: "22600"
- *     
+ *
  *     # Inscription agence
  *     AgenceRegister:
  *       allOf:
@@ -170,11 +169,11 @@ const router = express.Router();
  *         phone: "+22670123456"
  *         password: "motDePasseFort123"
  *         confirmPassword: "motDePasseFort123"
- *         termsAccepted: true
+ *         acceptTerms: true
  *         receiveOffers: true
  *         name: "Agence Propre"
  *         description: "Collecte des déchets ménagers à Ouagadougou."
- *     
+ *
  *     # Connexion utilisateur
  *     LoginRequest:
  *       type: object
@@ -197,7 +196,7 @@ const router = express.Router();
  *         email: "user@example.com"
  *         password: "strongPassword123"
  *         rememberMe: false
- *     
+ *
  *     # Réponse de connexion réussie
  *     LoginResponse:
  *       type: object
@@ -252,7 +251,7 @@ const router = express.Router();
  *               type: string
  *               example: "Bearer"
  *               description: Type de token
- *     
+ *
  *     # Demande de réinitialisation
  *     ForgotPasswordRequest:
  *       type: object
@@ -265,7 +264,7 @@ const router = express.Router();
  *           description: Email du compte à réinitialiser
  *       example:
  *         email: "user@example.com"
- *     
+ *
  *     # Vérification du code
  *     VerifyCodeRequest:
  *       type: object
@@ -284,7 +283,7 @@ const router = express.Router();
  *       example:
  *         code: "123456"
  *         email: "user@example.com"
- *     
+ *
  *     # Réinitialisation du mot de passe
  *     ResetPasswordRequest:
  *       type: object
@@ -303,7 +302,7 @@ const router = express.Router();
  *       example:
  *         newPassword: "newStrongPassword123"
  *         confirmNewPassword: "newStrongPassword123"
- *     
+ *
  *     # Réponse de succès standard
  *     SuccessResponse:
  *       type: object
@@ -317,7 +316,7 @@ const router = express.Router();
  *         data:
  *           type: object
  *           description: Données supplémentaires si nécessaire
- *     
+ *
  *     # Réponse d'erreur
  *     ErrorResponse:
  *       type: object
@@ -345,11 +344,11 @@ const router = express.Router();
  *       summary: Inscription d'un nouvel utilisateur
  *       description: |
  *         Permet l'inscription d'un nouveau compte utilisateur (client ou agence).
- *         
+ *
  *         **Types de comptes supportés :**
  *         - **Client** : Particulier souhaitant bénéficier des services de collecte
  *         - **Agence** : Entreprise de collecte de déchets
- *         
+ *
  *         **Validation requise :**
  *         - Email unique dans le système
  *         - Mot de passe sécurisé (min 8 caractères)
@@ -367,54 +366,48 @@ const router = express.Router();
  *               discriminator:
  *                 propertyName: role
  *             examples:
-*               client:
-*                 summary: Inscription client
-*                 description: Exemple d'inscription pour un client particulier
-*                 value:
-*                   role: "client"
-*                   firstName: "Awa"
-*                   lastName: "Ouédraogo"
-*                   email: "awa.client@gmail.com"
-*                   phone: "+22670123456"
-*                   password: "motDePasseFort123"
-*                   termsAccepted: true
-*                   receiveOffers: false
-*                   address:
-*                     street: "Rue 14.19"
-*                     doorNumber: "12"
-*                     doorColor: "Bleu"
-*                     sector: "Secteur 30"
-*                     neighborhood: "Tampouy"
-*                     city: "Ouagadougou"
-*                     postalCode: "22600"
-*                     arrondissement: "Arrondissement 3"
-*                     latitude: 12.3624
-*                     longitude: -1.5336
-
-*               agence:
-*                 summary: Inscription agence
-*                 description: Exemple d'inscription pour une agence de collecte
-*                 value:
-*                   role: "agence"
-*                   firstName: "Jean"
-*                   lastName: "Dupont"
-*                   email: "agence@example.com"
-*                   phone: "+22670123456"
-*                   password: "motDePasseFort123"
-*                   termsAccepted: true
-*                   receiveOffers: true
-*                   agencyName: "Agence Propreté Faso"
-*                   agencyDescription: "Entreprise spécialisée dans la collecte des déchets."
-*                   address:
-*                     street: "Rue 18.34"
-*                     sector: "Secteur 30"
-*                     neighborhood: "Karpala"
-*                     arrondissement: "Arrondissement 12"
-*                     city: "Ouagadougou"
-*                     postalCode: "22600"
-*                     latitude: 12.3624
-*                     longitude: -1.5336
-
+ *               client:
+ *                 summary: Inscription client
+ *                 description: Exemple d'inscription pour un client particulier
+ *                 value:
+ *                   role: "client"
+ *                   firstName: "Awa"
+ *                   lastName: "Ouédraogo"
+ *                   email: "awa.client@gmail.com"
+ *                   phone: "+22670123456"
+ *                   password: "motDePasseFort123"
+ *                   acceptTerms: true
+ *                   receiveOffers: false
+ *                   address:
+ *                     street: "Rue 14.19"
+ *                     doorNumber: "12"
+ *                     doorColor: "Bleu"
+ *                     sector: "Secteur 30"
+ *                     neighborhood: "Tampouy"
+ *                     city: "Ouagadougou"
+ *                     postalCode: "22600"
+ *                     arrondissement: "Arrondissement 3"
+ *               agence:
+ *                 summary: Inscription agence
+ *                 description: Exemple d'inscription pour une agence de collecte
+ *                 value:
+ *                   role: "agence"
+ *                   firstName: "Jean"
+ *                   lastName: "Dupont"
+ *                   email: "agence@example.com"
+ *                   phone: "+22670123456"
+ *                   password: "motDePasseFort123"
+ *                   acceptTerms: true
+ *                   receiveOffers: true
+ *                   agencyName: "Agence Propreté Faso"
+ *                   agencyDescription: "Entreprise spécialisée dans la collecte des déchets."
+ *                   address:
+ *                     street: "Rue 18.34"
+ *                     sector: "Secteur 30"
+ *                     neighborhood: "Karpala"
+ *                     arrondissement: "Arrondissement 12"
+ *                     city: "Ouagadougou"
+ *                     postalCode: "22600"
  *       responses:
  *         '201':
  *           description: Inscription réussie
@@ -489,19 +482,19 @@ const router = express.Router();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
- *   
+ *
  *   /api/auth/login:
  *     post:
  *       summary: Connexion utilisateur
  *       description: |
  *         Authentifie un utilisateur et retourne un token JWT pour l'accès aux ressources protégées.
- *         
+ *
  *         **Processus de connexion :**
  *         1. Validation des identifiants (email/mot de passe)
  *         2. Vérification du statut du compte (actif/inactif)
  *         3. Génération du token JWT et refresh token
  *         4. Mise à jour de la date de dernière connexion
- *         
+ *
  *         **Sécurité :**
  *         - Limitation du nombre de tentatives de connexion
  *         - Chiffrement des mots de passe avec bcrypt
@@ -603,13 +596,13 @@ const router = express.Router();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
- *   
+ *
  *   /api/auth/logout:
  *     post:
  *       summary: Déconnexion sécurisée
  *       description: |
  *         Déconnecte l'utilisateur en invalidant son token JWT et en supprimant les cookies de session.
- *         
+ *
  *         **Actions effectuées :**
  *         - Invalidation du token JWT actuel
  *         - Suppression du refresh token
@@ -647,19 +640,19 @@ const router = express.Router();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
- *   
+ *
  *   /api/auth/forgotPassword:
  *     post:
  *       summary: Demande de réinitialisation de mot de passe
  *       description: |
  *         Initie le processus de réinitialisation du mot de passe en envoyant un code de vérification par email.
- *         
+ *
  *         **Processus :**
  *         1. Vérification de l'existence du compte
  *         2. Génération d'un code de vérification à 6 chiffres
  *         3. Envoi du code par email
  *         4. Stockage temporaire du code (expiration 15 minutes)
- *         
+ *
  *         **Sécurité :**
  *         - Limitation du nombre de demandes par IP
  *         - Codes expirés automatiquement après 15 minutes
@@ -711,18 +704,18 @@ const router = express.Router();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
- *   
+ *
  *   /api/auth/verifyCode:
  *     post:
  *       summary: Vérification du code de réinitialisation
  *       description: |
  *         Vérifie le code de vérification envoyé par email et génère un token de réinitialisation.
- *         
+ *
  *         **Validation :**
  *         - Code à 6 chiffres valide
  *         - Code non expiré (15 minutes max)
  *         - Email correspondant au code
- *         
+ *
  *         **Résultat :**
  *         - Token de réinitialisation valide 1 heure
  *         - Invalidation du code utilisé
@@ -785,17 +778,17 @@ const router = express.Router();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
- *   
+ *
  *   /api/auth/resetPassword:
  *     post:
  *       summary: Réinitialisation du mot de passe
  *       description: |
  *         Finalise la réinitialisation du mot de passe en utilisant le token de réinitialisation.
- *         
+ *
  *         **Prérequis :**
  *         - Token de réinitialisation valide (obtenu après vérification du code)
  *         - Nouveau mot de passe respectant les critères de sécurité
- *         
+ *
  *         **Actions effectuées :**
  *         - Validation du token de réinitialisation
  *         - Chiffrement du nouveau mot de passe
@@ -879,10 +872,7 @@ router.post('/login', login);
 router.post('/logout', authMiddleware(), logout);
 router.post('/forgotPassword', forgotPassword);
 router.post('/verifyCode', verifyCode);
-
 router.post('/resetPassword/:token', resetPassword);
-
 router.put('/changePassword', authMiddleware(), changePassword);
-
 
 export default router;

@@ -23,12 +23,6 @@ const employeeSchema = new mongoose.Schema({
     enum: ['manager', 'collector'],
     required: true
   },
-
-  // zones: [{
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'ServiceZone',
-  // }],
-
   zones: [{
     type: String,
   }],
