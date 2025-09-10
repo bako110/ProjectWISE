@@ -27,7 +27,7 @@
 
 // utils/paginate.js
 
-async function paginate(model, req, {
+export async function paginate(model, req, {
   searchableFields = [],
   defaultSort = '-createdAt',
   populate = null,
@@ -76,4 +76,4 @@ async function paginate(model, req, {
   };
 }
 
-module.exports = paginate;
+// module.exports = paginate;

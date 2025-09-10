@@ -20,6 +20,10 @@ import collecteRoutes from './routes/agency/scanRoutes.js';
 import payment from './routes/paymentRoute.js';
 import serviceRoute from './routes/admin/serviceRoute.js';
 import reportRoutes from './routes/report/reportRoutes.js';
+import neighborhoodRoutes from './routes/adresse/neighbordhoodRoute.js';
+import sectorRoute from "./routes/adresse/sectorRoute.js";
+import arrondissementRoute from "./routes/adresse/arrondissementRoute.js";
+import cityRoute from "./routes/adresse/cityRoute.js";
 
 dotenv.config();
 connectDB();
@@ -66,6 +70,10 @@ app.use('/api/collecte', collecteRoutes);
 app.use('/api/payments', payment);
 app.use('/api/services', serviceRoute);
 app.use('/api/reports', reportRoutes);
+app.use('/api', neighborhoodRoutes);
+app.use('/api', sectorRoute);
+app.use('/api', arrondissementRoute);
+app.use('/api', cityRoute);
 
 // 404
 app.use((req, res) => {
