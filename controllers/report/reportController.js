@@ -67,13 +67,20 @@ export const getReportsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
 
+    // Récupération des reports pour cette agence
     const reports = await Report.find({ agency: agencyId })
       .populate('client', 'firstName lastName phone')
       .populate('collector', 'firstName lastName role')
       .populate('agency', 'agencyName')
       .sort({ createdAt: -1 });
 
-    res.json(reports);
+    // Comptage du nombre de reports
+    const totalReports = reports.length;
+
+    res.json({
+      totalReports,
+      reports,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -147,10 +154,9 @@ export const getAllReports = async (req, res) => {
     const reports = await Report.find()
       .populate('client', 'firstName lastName phone')
       .populate('collector', 'firstName lastName role')
-      .populate('agency', 'agencyName')
-      .sort({ createdAt: -1 });
+      .populate('agency', 'agencyName phone');
 
-    res.json(reports);
+    res.status(200).json(reports);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
