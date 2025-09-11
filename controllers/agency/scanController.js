@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import ScanReport from '../../models/Agency/ScanReport.js';
 import Client from '../../models/clients/Client.js';
-
+import { sendQRCodeEmail } from '../../utils/qrcodemail.js';
+import QRCode from 'qrcode';
+import User from '../../models/User.js'
 
 /**
  * Contrôleur : scan d’un QR code client (collecte ou problème signalé)
@@ -191,6 +193,49 @@ export const getScanReports = async (req, res) => {
     console.error('Erreur récupération scan reports:', error);
     return res.status(500).json({
       message: 'Erreur serveur interne.',
+      error: error.message
+    });
+  }
+};
+
+
+export const regenerateQRCode = async (req, res) => {
+  try {
+    const { clientId } = req.params;
+
+    // Vérifie si le client existe
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({
+        message: "Client introuvable",
+        error: "CLIENT_NOT_FOUND"
+      });
+    }
+
+    // Génère un nouveau token unique
+    const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${client._id}&ts=${Date.now()}`;
+    const qrCodeImage = await QRCode.toDataURL(qrToken);
+
+    // Mets à jour le client
+    client.qrToken = qrToken;
+    client.qrCodeImage = qrCodeImage;
+    await client.save();
+
+    // Récupérer l'email depuis la table User
+    const user = await User.findById(client.userId);
+    if (user && user.email) {
+      await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
+    }
+
+    return res.status(200).json({
+      message: "QR code régénéré avec succès",
+      qrToken,
+      qrCodeImage
+    });
+  } catch (error) {
+    console.error("Erreur lors de la régénération du QR code:", error);
+    return res.status(500).json({
+      message: "Erreur serveur lors de la régénération du QR code",
       error: error.message
     });
   }

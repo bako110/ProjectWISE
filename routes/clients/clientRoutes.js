@@ -103,7 +103,7 @@ router.post('/subscribe', authMiddleware('client'), subscribeToAgency);
  *       404:
  *         description: Client non trouvé.
  */
-router.get('/:id', authMiddleware(), getClientById);
+router.get('/:id', getClientById);
 
 /**
  * @swagger
