@@ -140,7 +140,7 @@ router.patch('/agences/:userId/status', authMiddleware('super_admin'), toggleAge
  */
 
 
-router.get("/statistics", authMiddleware('super_admin'), statistics);
+router.get("/statistics", statistics);
 
 /**
  * @swagger
