@@ -117,7 +117,7 @@ export const statistics = async (req, res) => {
     const totalClientReports = await Report.countDocuments({ client: { $ne: null } });
     const pendingClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'pending' });
     const resolvedClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'resolved' });
-
+  
     // 📌 Signalements par COLLECTEURS
     const totalCollectorReports = await Report.countDocuments({ collector: { $ne: null } });
     const pendingCollectorReports = await Report.countDocuments({ collector: { $ne: null }, status: 'pending' });
