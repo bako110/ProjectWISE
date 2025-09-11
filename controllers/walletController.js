@@ -1,14 +1,15 @@
-import Wallet from "../models/Wallet";
+import Wallet from "../models/Wallet.js";
 
 export const createWallet = async (req, res) => {
   try {
-    const { userId, balance, kind } = req.body;
+    // const { userId, balance, kind } = req.body;
     // if (balance == null || balance == undefined) {
     //   balance = 0; // Default balance if not provided
     // }
+    const { userId } = req.params;
 
-    if (!userId || typeof balance !== 'number' || !kind) {
-      return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
+    if (!userId) {
+      return res.status(400).json({ error: "UserId est obligatoire" });
     }
 
     const wallet = new Wallet({
@@ -25,6 +26,25 @@ export const createWallet = async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur lors de la création du wallet :", error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export const addFunds = async (req, res) => {
+  try {
+    const { userId, amount } = req.params;
+    if (!userId || !amount) {
+      return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
+    }
+    const wallet = await Wallet.findOne({ userId });
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found for this user" });
+    }
+    wallet.balance += amount;
+    await wallet.save();
+    res.status(200).json({message: "Funds added successfully", wallet});
+  } catch (error) {
+    console.error("Erreur lors de l'ajout de fonds au wallet :", error);
     res.status(500).json({ error: error.message });
   }
 }

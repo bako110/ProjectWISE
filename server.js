@@ -24,6 +24,10 @@ import neighborhoodRoutes from './routes/adresse/neighbordhoodRoute.js';
 import sectorRoute from "./routes/adresse/sectorRoute.js";
 import arrondissementRoute from "./routes/adresse/arrondissementRoute.js";
 import cityRoute from "./routes/adresse/cityRoute.js";
+import walletRoute from "./routes/walletRoute.js";
+import subscriptionRoute from "./routes/subscriptionRoute.js";
+
+import './cron/subscriptionChecker.js';
 
 dotenv.config();
 connectDB();
@@ -74,6 +78,8 @@ app.use('/api', neighborhoodRoutes);
 app.use('/api', sectorRoute);
 app.use('/api', arrondissementRoute);
 app.use('/api', cityRoute);
+app.use('/api', walletRoute);
+app.use('/api', subscriptionRoute);
 
 // 404
 app.use((req, res) => {

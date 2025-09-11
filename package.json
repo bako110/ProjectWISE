@@ -16,6 +16,7 @@
     "follow-redirects": "^1.15.9",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.2.0",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "public-ip": "^7.0.1",
     "qrcode": "^1.5.4",
