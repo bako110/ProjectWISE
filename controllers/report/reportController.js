@@ -9,14 +9,12 @@ import Agency from '../../models/Agency/Agency.js';
  */
 export const createReport = async (req, res) => {
   try {
-    const { clientId, collectorId, agencyId, type, description } = req.body;
+    const { clientId, collectorId, agencyId, type, description, severity } = req.body;
 
-    // Vérification des champs obligatoires
     if (!agencyId || !description || !type) {
       return res.status(400).json({ error: "Type, agence et description sont obligatoires." });
     }
 
-    // Vérifier qu’un seul auteur est présent
     if ((clientId && collectorId) || (!clientId && !collectorId)) {
       return res.status(400).json({ error: "Le signalement doit être fait soit par un client soit par un collecteur, pas les deux." });
     }
@@ -24,13 +22,11 @@ export const createReport = async (req, res) => {
     let client = null;
     let collector = null;
 
-    // Vérification du client
     if (clientId) {
       client = await Client.findById(clientId);
       if (!client) return res.status(404).json({ error: "Client introuvable" });
     }
 
-    // Vérification du collecteur
     if (collectorId) {
       collector = await Employee.findById(collectorId);
       if (!collector || collector.role !== "collector") {
@@ -38,28 +34,28 @@ export const createReport = async (req, res) => {
       }
     }
 
-    // Vérification de l'agence
     const agency = await Agency.findById(agencyId);
     if (!agency) return res.status(404).json({ error: "Agence introuvable" });
 
-    // Création du signalement
+    // 🔥 Ajout de severity (avec valeur par défaut si rien n’est fourni)
     const report = new Report({
       client: clientId || null,
       collector: collectorId || null,
       agency: agencyId,
       type,
       description,
+      severity: severity || "low", // 👈 valeur par défaut
       status: "pending"
     });
 
     await report.save();
 
     res.status(201).json({ message: "Signalement créé avec succès ✅", report });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 /**
  * 📌 Récupérer tous les signalements d’une agence
  */

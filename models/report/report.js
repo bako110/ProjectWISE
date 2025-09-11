@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const reportSchema = new mongoose.Schema({
   type: {
     type: String,
+    enum: ['missed_collection', 'compliance_issue', 'complaint', 'technical_issue'],
     required: true
   },
   description: {
@@ -13,7 +14,7 @@ const reportSchema = new mongoose.Schema({
   severity: {
     type: String,
     enum: ['critical', 'high', 'medium', 'low'], // valeurs autorisées
-    required: true
+    required: false
   },
   client: {
     type: mongoose.Schema.Types.ObjectId,
