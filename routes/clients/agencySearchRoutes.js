@@ -1,7 +1,10 @@
 import express from 'express';
 import { 
   rechercherAgences, 
-  getSuggestions
+  getSuggestions, 
+  filterByVille, 
+  filterByService, 
+  filterByNote 
 } from '../../controllers/clients/agencySearchController.js';
 
 const router = express.Router();
@@ -88,35 +91,21 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/agences/location:
+ * /api/agences/ville:
  *   get:
- *     summary: Filtrer les agences par localisation précise (région → secteur)
+ *     summary: Filtrer les agences par ville
  *     tags: [RechercheAgences]
  *     parameters:
  *       - in: query
- *         name: region
- *         schema:
- *           type: string
- *       - in: query
- *         name: province
- *         schema:
- *           type: string
- *       - in: query
- *         name: commune
- *         schema:
- *           type: string
- *       - in: query
  *         name: ville
+ *         required: true
  *         schema:
  *           type: string
  *       - in: query
- *         name: quartier
+ *         name: page
  *         schema:
- *           type: string
- *       - in: query
- *         name: secteur
- *         schema:
- *           type: string
+ *           type: integer
+ *           default: 1
  *       - in: query
  *         name: limit
  *         schema:
@@ -124,9 +113,64 @@ const router = express.Router();
  *           default: 10
  *     responses:
  *       200:
- *         description: Liste des agences correspondant aux filtres
- *       400:
- *         description: Paramètre invalide
+ *         description: Liste des agences correspondant à la ville
+ */
+
+/**
+ * @swagger
+ * /api/agences/service:
+ *   get:
+ *     summary: Filtrer les agences par service
+ *     tags: [RechercheAgences]
+ *     parameters:
+ *       - in: query
+ *         name: service
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Liste des agences correspondant au service
+ */
+
+/**
+ * @swagger
+ * /api/agences/note:
+ *   get:
+ *     summary: Filtrer les agences par note minimale et maximale
+ *     tags: [RechercheAgences]
+ *     parameters:
+ *       - in: query
+ *         name: noteMin
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: noteMax
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Liste des agences correspondant aux critères de note
  */
 
 // ----------------------- ROUTES -----------------------
@@ -137,7 +181,13 @@ router.get('/search', rechercherAgences);
 // GET /api/agences/suggestions?q=terme&limit=5
 router.get('/suggestions', getSuggestions);
 
-// GET /api/agences/location?region=Centre&ville=Ouagadougou&quartier=Cissin
-// router.get('/location', rechercherParLocalisation);
+// GET /api/agences/ville?ville=Ouagadougou&page=1&limit=10
+router.get('/city', filterByVille);
+
+// GET /api/agences/service?service=Livraison&page=1&limit=10
+router.get('/service', filterByService);
+
+// GET /api/agences/note?noteMin=3&noteMax=5&page=1&limit=10
+router.get('/note', filterByNote);
 
 export default router;

@@ -127,47 +127,22 @@ export const getSuggestions = async (req, res) => {
   }
 };
 
-/**
- * Recherche par zone
- */
-export const rechercherParZone = async (req, res) => {
+
+export const filterByVille = async (req, res) => {
   try {
-    const { zoneId, limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = req.query;
+    const { ville, page = DEFAULT_PAGE, limit = DEFAULT_LIMIT } = req.query;
+    if (!ville) return res.status(400).json({ error: 'Le paramètre ville est requis.' });
 
-    if (!zoneId) {
-      return res.status(400).json({
-        error: 'Paramètre zoneId requis'
-      });
-    }
-
-    const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
     const skip = (pageNum - 1) * limitNum;
 
-    const pipeline = [
-      { $match: { zone: zoneId } }, // sans filtre status
-      {
-        $lookup: {
-          from: 'zones',
-          localField: 'zone',
-          foreignField: '_id',
-          as: 'zoneDetails'
-        }
-      },
-      { $unwind: { path: '$zoneDetails', preserveNullAndEmptyArrays: true } },
-      { $sort: { verified: -1, name: 1 } },
-      { $skip: skip },
-      { $limit: limitNum }
-    ];
+    const agencies = await Agency.find({ 'address.city': new RegExp(ville, 'i') })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
 
-    const agencies = await Agency.aggregate(pipeline);
-
-    const totalPipeline = [
-      { $match: { zone: zoneId } }, // sans filtre status
-      { $count: 'total' }
-    ];
-    const countResults = await Agency.aggregate(totalPipeline);
-    const total = countResults.length > 0 ? countResults[0].total : 0;
+    const total = await Agency.countDocuments({ 'address.city': new RegExp(ville, 'i') });
 
     res.status(200).json({
       results: agencies,
@@ -175,49 +150,76 @@ export const rechercherParZone = async (req, res) => {
       page: pageNum,
       limit: limitNum,
       pages: Math.ceil(total / limitNum),
-      zone: { id: zoneId }
+      ville
     });
-
   } catch (error) {
-    console.error('Erreur recherche par zone:', error);
-    res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
-    });
+    console.error('Erreur filtre par ville:', error);
+    res.status(500).json({ error: 'Erreur serveur', message: error.message });
   }
 };
 
-/**
- * Liste des zones disponibles
- */
-export const getZones = async (req, res) => {
+// =========================
+// Rechercher par service
+// =========================
+export const filterByService = async (req, res) => {
   try {
-    const { q, limit = 20 } = req.query;
+    const { service, page = DEFAULT_PAGE, limit = DEFAULT_LIMIT } = req.query;
+    if (!service) return res.status(400).json({ error: 'Le paramètre service est requis.' });
 
-    let query = {};
-    if (q) {
-      query = {
-        $or: [
-          { name: new RegExp(q, 'i') },
-          { description: new RegExp(q, 'i') },
-          { code: new RegExp(q, 'i') }
-        ]
-      };
-    }
+    const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
+    const skip = (pageNum - 1) * limitNum;
 
-    const zones = await Zone.find(query)
-      .select('name description code')
-      .sort({ name: 1 })
-      .limit(parseInt(limit))
+    const agencies = await Agency.find({ services: service })
+      .skip(skip)
+      .limit(limitNum)
       .lean();
 
-    res.status(200).json(zones);
+    const total = await Agency.countDocuments({ services: service });
 
-  } catch (error) {
-    console.error('Erreur récupération zones:', error);
-    res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
+    res.status(200).json({
+      results: agencies,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+      service
     });
+  } catch (error) {
+    console.error('Erreur filtre par service:', error);
+    res.status(500).json({ error: 'Erreur serveur', message: error.message });
+  }
+};
+
+// =========================
+// Rechercher par note
+// =========================
+export const filterByNote = async (req, res) => {
+  try {
+    const { noteMin = 0, noteMax = 5, page = DEFAULT_PAGE, limit = DEFAULT_LIMIT } = req.query;
+
+    const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
+    const skip = (pageNum - 1) * limitNum;
+
+    const agencies = await Agency.find({ rating: { $gte: parseFloat(noteMin), $lte: parseFloat(noteMax) } })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Agency.countDocuments({ rating: { $gte: parseFloat(noteMin), $lte: parseFloat(noteMax) } });
+
+    res.status(200).json({
+      results: agencies,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+      noteMin,
+      noteMax
+    });
+  } catch (error) {
+    console.error('Erreur filtre par note:', error);
+    res.status(500).json({ error: 'Erreur serveur', message: error.message });
   }
 };
