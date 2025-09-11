@@ -5,7 +5,9 @@ import {
   listerPlannings,
   mettreAJourPlanning,
   historiqueParCollecteur,
-  supprimerPlanning
+  supprimerPlanning,
+  getPlannings,
+  getCollectorPlannings
 } from '../../controllers/agency/planningController.js';
 
 const router = express.Router();
@@ -38,6 +40,8 @@ const router = express.Router();
  *               - startTime
  *               - endTime
  *               - collectorId
+ *               - agencyId
+ *               - date
  *             properties:
  *               zoneId:
  *                 type: string
@@ -55,6 +59,12 @@ const router = express.Router();
  *               collectorId:
  *                 type: string
  *                 example: "64fa7cf123abc456def78902"
+ *               agencyId:
+ *                 type: string
+ *                 example: "64fa7cf123abc456def78903"
+ *               date:
+ *                 type: string
+ *                 format: date
  *     responses:
  *       201:
  *         description: Planning créé avec succès
@@ -180,5 +190,59 @@ router.get('/historique/:collecteurId', authMiddleware('agency', 'manager', 'col
  *         description: Planning non trouvé
  */
 router.delete('/:id', authMiddleware('agency', 'manager'), supprimerPlanning);
+
+/**
+ * @swagger
+ * /api/zones/plannings/agency/{agencyId}:
+ *   get:
+ *     summary: Récupérer tous les plannings d'une agence
+ *     tags: [Plannings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         description: Liste des plannings de l'agence
+ *       400:
+ *         description: Requête invalide
+ *       404:
+ *         description: Agence non trouvée
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/agency/:agencyId', authMiddleware('agency', 'manager', 'collector'), getPlannings);
+
+/**
+ * @swagger
+ * /api/zones/plannings/collector/{collectorId}:
+ *   get:
+ *     summary: Récupérer tous les plannings d'un collecteur
+ *     tags: [Plannings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collectorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du collecteur
+ *     responses:
+ *       200:
+ *         description: Liste des plannings du collecteur
+ *       400:
+ *         description: Requête invalide
+ *       404:
+ *         description: Collecteur non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/collector/:collectorId', authMiddleware('collector'), getCollectorPlannings);
 
 export default router;

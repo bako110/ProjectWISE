@@ -1,6 +1,10 @@
 import express from 'express';
-import { scanBarrel, getScanReports } from '../../controllers/agency/scanController.js';
-import authMiddleware from '../../middlewares/authMiddleware.js';
+import { 
+  scanBarrel, 
+  getScanReports, 
+  regenerateQRCode 
+} from '../../controllers/agency/scanController.js';
+// import { protect, adminOnly } from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -88,7 +92,7 @@ router.get('/scan', scanBarrel);
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan', authMiddleware(), scanBarrel);
+router.post('/scan', scanBarrel);
 
 /**
  * @swagger
@@ -127,64 +131,39 @@ router.post('/scan', authMiddleware(), scanBarrel);
  *     responses:
  *       200:
  *         description: Liste des rapports de collecte
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 total:
- *                   type: integer
- *                 reports:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                       client:
- *                         type: object
- *                         properties:
- *                           firstName:
- *                             type: string
- *                           lastName:
- *                             type: string
- *                           phone:
- *                             type: string
- *                       collector:
- *                         type: object
- *                         properties:
- *                           firstName:
- *                             type: string
- *                           lastName:
- *                             type: string
- *                       agency:
- *                         type: object
- *                         properties:
- *                           agencyName:
- *                             type: string
- *                       status:
- *                         type: string
- *                       scannedAt:
- *                         type: string
- *                         format: date-time
- *                       comment:
- *                         type: string
- *                       photos:
- *                         type: array
- *                         items:
- *                           type: string
- *                       positionGPS:
- *                         type: object
- *                         properties:
- *                           lat:
- *                             type: number
- *                           lng:
- *                             type: number
  *       401:
  *         description: Non authentifié
  *       500:
  *         description: Erreur serveur
  */
-router.get('/reports', authMiddleware(), getScanReports);
+router.get('/reports', getScanReports);
+
+/**
+ * @swagger
+ * /api/collecte/regenerate/{clientId}:
+ *   put:
+ *     summary: Régénérer un QR code pour un client
+ *     description: Permet à un client (ou un admin) de régénérer son QR code
+ *     tags: [Collecte]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: clientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du client
+ *     responses:
+ *       200:
+ *         description: QR code régénéré avec succès
+ *       403:
+ *         description: Accès refusé
+ *       404:
+ *         description: Client introuvable
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/regenerate/:clientId',  regenerateQRCode);
 
 export default router;

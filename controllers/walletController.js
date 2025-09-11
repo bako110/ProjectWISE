@@ -3,9 +3,9 @@ import Wallet from "../models/Wallet";
 export const createWallet = async (req, res) => {
   try {
     const { userId, balance, kind } = req.body;
-    if (balance == null || balance == undefined) {
-      balance = 0; // Default balance if not provided
-    }
+    // if (balance == null || balance == undefined) {
+    //   balance = 0; // Default balance if not provided
+    // }
 
     if (!userId || typeof balance !== 'number' || !kind) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
@@ -13,8 +13,8 @@ export const createWallet = async (req, res) => {
 
     const wallet = new Wallet({
       userId,
-      balance,
-      kind
+      balance:0,
+      kind:'standard'
     });
 
     await wallet.save();

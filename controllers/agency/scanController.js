@@ -195,3 +195,45 @@ export const getScanReports = async (req, res) => {
     });
   }
 };
+
+
+export const regenerateQRCode = async (req, res) => {
+  try {
+    const { clientId } = req.params; // ou req.user._id si authentifié
+
+    // Vérifie si le client existe
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({
+        message: "Client introuvable",
+        error: "CLIENT_NOT_FOUND"
+      });
+    }
+
+    // Génère un nouveau token unique (option : ajoute timestamp pour invalider l’ancien)
+    const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${client._id}&ts=${Date.now()}`;
+    const qrCodeImage = await QRCode.toDataURL(qrToken);
+
+    // Mets à jour dans la base
+    client.qrToken = qrToken;
+    client.qrCodeImage = qrCodeImage;
+    await client.save();
+
+    // (Optionnel) renvoyer par email
+    if (client.email) {
+      await sendQRCodeEmail(client.email, client.firstName, qrCodeImage);
+    }
+
+    return res.status(200).json({
+      message: "QR code régénéré avec succès",
+      qrToken,
+      qrCodeImage
+    });
+  } catch (error) {
+    console.error("Erreur lors de la régénération du QR code:", error);
+    return res.status(500).json({
+      message: "Erreur serveur lors de la régénération du QR code",
+      error: error.message
+    });
+  }
+};
