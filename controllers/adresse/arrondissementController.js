@@ -1,4 +1,4 @@
-import Arrondissement from "../../models/Adresse/Arrondissement.js";
+import Arrondissementstatistics from "../../models/Adresse/Arrondissement.js";
 import {paginate} from "../../utils/pagination.js";
 
 

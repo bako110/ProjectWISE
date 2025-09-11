@@ -3,14 +3,14 @@ import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
   try {
-    const { zoneId, dayOfWeek, startTime, endTime, collectorId } = req.body;
+    const { zone, dayOfWeek, startTime, endTime, collectorId } = req.body;
 
-    if (!zoneId || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
+    if (!zone || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
 
     const planning = new CollectionSchedule({
-      zoneId,
+      zone,
       dayOfWeek,
       startTime,
       endTime,
@@ -32,15 +32,15 @@ export const creerPlanning = async (req, res) => {
 // ➤ Lister les plannings (avec filtres)
 export const listerPlannings = async (req, res) => {
   try {
-    const { collectorId, zoneId, dayOfWeek } = req.query;
+    const { collectorId, zone, dayOfWeek } = req.query;
     const filtre = {};
 
     if (collectorId) filtre.collectorId = collectorId;
-    if (zoneId) filtre.zoneId = zoneId;
+    if (zone) filtre.zone = zone;
     if (dayOfWeek) filtre.dayOfWeek = parseInt(dayOfWeek);
 
     const plannings = await CollectionSchedule.find(filtre)
-      .populate('zoneId', 'name')
+      .populate('zone', 'name')
       .populate('collectorId', 'firstName lastName phone');
 
     res.json(plannings);

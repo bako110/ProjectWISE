@@ -15,11 +15,12 @@ const collectionScheduleSchema = new mongoose.Schema({
   startTime: { type: String, required: true }, // HH:mm
   endTime: { type: String, required: true },
 
-  collectorId: {
+  collectorId: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
     required: true
-  },
+  }],
+  date: { type: Date, default: Date.now },
 
   isActive: { type: Boolean, default: true }
 
