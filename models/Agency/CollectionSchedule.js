@@ -21,6 +21,11 @@ const collectionScheduleSchema = new mongoose.Schema({
     required: true
   }],
   date: { type: Date, default: Date.now },
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    required: true
+  },
 
   isActive: { type: Boolean, default: true }
 

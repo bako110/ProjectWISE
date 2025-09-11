@@ -49,6 +49,36 @@ export const listerPlannings = async (req, res) => {
   }
 };
 
+// lister les plannings actifs de l'agence de la semaine
+export const getPlannings = async (req, res) => {
+  try {
+    const agencyId = req.params.agencyId;
+    if (!agencyId) {
+      return res.status(400).json({ error: "Agency ID is required" });
+    }
+    const plannings = await CollectionSchedule.find({ isActive: true, agencyId })
+
+    res.status(200).json(plannings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// lister les plannings actifs du collecteur de la semaine
+export const getCollectorPlannings = async (req, res) => {
+  try {
+    const collectorId = req.params.collectorId;
+    if (!collectorId) {
+      return res.status(400).json({ error: "Collector ID is required" });
+    }
+    const plannings = await CollectionSchedule.find({ isActive: true, collectorId })
+
+    res.status(200).json(plannings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  } 
+}
+
 // ➤ Mettre à jour un planning
 export const mettreAJourPlanning = async (req, res) => {
   try {
