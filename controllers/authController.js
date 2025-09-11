@@ -296,7 +296,7 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      expiresIn: 60,
+      expiresIn: 86400,
       user: {
         id: user._id,
         email: user.email,
