@@ -3,6 +3,7 @@ import ScanReport from '../../models/Agency/ScanReport.js';
 import Client from '../../models/clients/Client.js';
 import { sendQRCodeEmail } from '../../utils/qrcodemail.js';
 import QRCode from 'qrcode';
+import User from '../../models/User.js'
 
 /**
  * Contrôleur : scan d’un QR code client (collecte ou problème signalé)
@@ -200,7 +201,7 @@ export const getScanReports = async (req, res) => {
 
 export const regenerateQRCode = async (req, res) => {
   try {
-    const { clientId } = req.params; // ou req.user._id si authentifié
+    const { clientId } = req.params;
 
     // Vérifie si le client existe
     const client = await Client.findById(clientId);
@@ -211,18 +212,19 @@ export const regenerateQRCode = async (req, res) => {
       });
     }
 
-    // Génère un nouveau token unique (option : ajoute timestamp pour invalider l’ancien)
+    // Génère un nouveau token unique
     const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${client._id}&ts=${Date.now()}`;
     const qrCodeImage = await QRCode.toDataURL(qrToken);
 
-    // Mets à jour dans la base
+    // Mets à jour le client
     client.qrToken = qrToken;
     client.qrCodeImage = qrCodeImage;
     await client.save();
 
-    // (Optionnel) renvoyer par email
-    if (client.email) {
-      await sendQRCodeEmail(client.email, client.firstName, qrCodeImage);
+    // Récupérer l'email depuis la table User
+    const user = await User.findById(client.userId);
+    if (user && user.email) {
+      await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
     }
 
     return res.status(200).json({
