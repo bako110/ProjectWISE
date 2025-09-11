@@ -3,18 +3,20 @@ import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
   try {
-    const { zone, dayOfWeek, startTime, endTime, collectorId } = req.body;
+    const { zone, dayOfWeek, startTime, endTime, collectorId, agencyId, date } = req.body;
 
     if (!zone || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
-
+    console.log(req.body);
     const planning = new CollectionSchedule({
       zone,
       dayOfWeek,
       startTime,
       endTime,
-      collectorId
+      collectorId,
+      agencyId,
+      date
     });
 
     await planning.save();

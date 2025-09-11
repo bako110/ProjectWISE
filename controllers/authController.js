@@ -259,7 +259,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { _id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '1m' }
+      { expiresIn: '1440m' }
     );
 
     let profileData = {};
