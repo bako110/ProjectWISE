@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 import ScanReport from '../../models/Agency/ScanReport.js';
 import Client from '../../models/clients/Client.js';
-
-
+import { sendQRCodeEmail } from '../../utils/qrcodemail.js';
 /**
  * Contrôleur : scan d’un QR code client (collecte ou problème signalé)
  * URL : GET ou POST /api/collecte/scan?id=<clientId> ou ?clientId=<clientId>
