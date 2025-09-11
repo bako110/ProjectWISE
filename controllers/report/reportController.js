@@ -125,7 +125,7 @@ export const updateReportStatus = async (req, res) => {
     const { reportId } = req.params;
     const { status } = req.body;
 
-    const allowedStatus = ["pending", "in_progress", "resolved"];
+    const allowedStatus = ["pending", "resolved"];
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({ error: "Statut invalide" });
     }
