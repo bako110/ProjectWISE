@@ -6,6 +6,7 @@ import Employee from '../../models/Agency/Employee.js';
 import Client from '../../models/clients/Client.js';
 import Collection from '../../models/collections/Collection.js';
 import Mairie from '../../models/Mairies/MunicipalManager.js';
+import Report from '../../models/report/report.js'
 
 
 export const registerSuperAdmin = async (req, res) => {
