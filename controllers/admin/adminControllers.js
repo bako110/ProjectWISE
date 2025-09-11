@@ -101,7 +101,7 @@ export const getAllEmployees = async (req, res) => {
 
 export const statistics = async (req, res) => {
   try {
-    // Récupérer les statistiques des admins (inchangées)
+    // Statistiques globales
     const totalAgencies = await Agency.countDocuments();
     const activeAgencies = await Agency.countDocuments({ isActive: true });
     const totalMunicipalities = await Mairie.countDocuments();
@@ -113,15 +113,22 @@ export const statistics = async (req, res) => {
     const totalCollections = await Collection.countDocuments();
     const completeCollections = await Collection.countDocuments({ status: 'completed' });
 
-    // 📌 Signalements par CLIENTS
+    // Signalements par CLIENTS
     const totalClientReports = await Report.countDocuments({ client: { $ne: null } });
     const pendingClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'pending' });
     const resolvedClientReports = await Report.countDocuments({ client: { $ne: null }, status: 'resolved' });
-  
-    // 📌 Signalements par COLLECTEURS
+
+    // Signalements par COLLECTEURS
     const totalCollectorReports = await Report.countDocuments({ collector: { $ne: null } });
     const pendingCollectorReports = await Report.countDocuments({ collector: { $ne: null }, status: 'pending' });
     const resolvedCollectorReports = await Report.countDocuments({ collector: { $ne: null }, status: 'resolved' });
+
+    // 🔹 Comptage des reports par type
+    const reportTypes = ['missed_collection', 'compliance_issue', 'complaint', 'technical_issue'];
+    const reportsByType = {};
+    for (const type of reportTypes) {
+      reportsByType[type] = await Report.countDocuments({ type });
+    }
 
     res.status(200).json({
       totalAgencies,
@@ -133,19 +140,22 @@ export const statistics = async (req, res) => {
       totalCollections,
       completeCollections,
 
-      // ✅ Partie clients
+      // Signalements par CLIENTS
       reportsFromClients: {
         total: totalClientReports,
         pending: pendingClientReports,
         resolved: resolvedClientReports
       },
 
-      // ✅ Partie collecteurs
+      // Signalements par COLLECTEURS
       reportsFromCollectors: {
         total: totalCollectorReports,
         pending: pendingCollectorReports,
         resolved: resolvedCollectorReports
       },
+
+      // 🔹 Comptage par type
+      reportsByType,
 
       message: 'Statistiques récupérées avec succès',
       success: true
@@ -158,4 +168,3 @@ export const statistics = async (req, res) => {
     });
   }
 };
-

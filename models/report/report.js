@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const reportSchema = new mongoose.Schema({
   type: {
     type: String,
+    enum: ['missed_collection', 'compliance_issue', 'complaint', 'technical_issue'],
     required: true
   },
   description: {
