@@ -46,7 +46,19 @@ const authMiddleware = (requiredRole) => {
 
       next();
     } catch (error) {
-      return res.status(403).json({ message: 'Token invalide', error: error.message });
+      // Gestion de l'expiration du token
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          message: 'Session expirée, veuillez vous reconnecter',
+          code: 'TOKEN_EXPIRED'
+        });
+      }
+
+      // Token invalide pour d'autres raisons
+      return res.status(403).json({
+        message: 'Token invalide',
+        error: error.message
+      });
     }
   };
 };
