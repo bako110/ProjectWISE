@@ -259,7 +259,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { _id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '1m' }
     );
 
     let profileData = {};
@@ -296,7 +296,7 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      expiresIn: 86400,
+      expiresIn: 60,
       user: {
         id: user._id,
         email: user.email,
@@ -437,12 +437,12 @@ export const logout = async (req, res) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    
+
     if (!token) {
       return res.status(400).json({ message: 'Aucun token fourni' });
     }
 
-    // Blacklist le token
+    // Blacklist le token pour qu’il ne soit plus utilisable
     addToBlacklist(token);
 
     res.json({ 
@@ -454,7 +454,6 @@ export const logout = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
-
 
 /* ------------------------------- CHANGEPASSWORD ------------------------------- */
 export const changePassword = async (req, res) => {
