@@ -1,5 +1,5 @@
 import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
-import Client from '../../models/Client/Client.js';
+import Client from '../../models/clients/Client.js';
 
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
