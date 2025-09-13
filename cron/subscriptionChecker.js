@@ -4,12 +4,12 @@ import User from '../models/User.js';
 import Wallet from '../models/Wallet.js';
 
 // Tâche cron pour vérifier les abonnements expirés tous les jours à minuit
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('*/1 * * * *', async () => {
     const now = new Date();
     try {
         const expiredSubscriptions = await Subscription.find({ endDate: { $lt: now }, status: 'active' });
         for (const subscription of expiredSubscriptions) {
-            subscription.status = 'expired';
+            subscription.status = 'canceled';
             await subscription.save();
             const user = await User.findById(subscription.userId);
             if (user) {

@@ -1,4 +1,5 @@
 import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
+import Client from '../../models/Client/Client.js';
 
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
@@ -75,7 +76,13 @@ export const getCollectorPlannings = async (req, res) => {
     }
     const plannings = await CollectionSchedule.find({ isActive: true, collectorId })
 
-    res.status(200).json(plannings);
+    const agencyId = plannings[0]?.agencyId;
+
+    const zone = plannings[0]?.zone;
+
+    const userPlannings = await Client.find({ agencyId, "address.neighborhood": zone });
+
+    res.status(200).json({  plannings, userPlannings });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } 
