@@ -80,7 +80,7 @@ export const getCollectorPlannings = async (req, res) => {
 
     const zone = plannings[0]?.zone;
 
-    const userPlannings = await Client.find({ agencyId, "address.neighborhood": zone });
+    const userPlannings = await Client.find({subscribedAgencyId: agencyId, "address.neighborhood": zone });
 
     res.status(200).json({  plannings, userPlannings });
   } catch (error) {
