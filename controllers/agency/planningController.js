@@ -69,23 +69,68 @@ export const getPlannings = async (req, res) => {
 
 // lister les plannings actifs du collecteur de la semaine
 export const getCollectorPlannings = async (req, res) => {
+  // try {
+  //   const collectorId = req.params.collectorId;
+  //   if (!collectorId) {
+  //     return res.status(400).json({ error: "Collector ID is required" });
+  //   }
+  //   const plannings = await CollectionSchedule.find({ isActive: true, collectorId })
+
+  //   const agencyId = plannings[0]?.agencyId;
+
+  //   const zone = plannings[0]?.zone;
+
+  //   const userPlannings = await Client.find({subscribedAgencyId: agencyId, "address.neighborhood": zone });
+
+  //   res.status(200).json({  plannings, userPlannings });
+  // } catch (error) {
+  //   res.status(500).json({ error: error.message });
+  // } 
   try {
-    const collectorId = req.params.collectorId;
-    if (!collectorId) {
-      return res.status(400).json({ error: "Collector ID is required" });
-    }
-    const plannings = await CollectionSchedule.find({ isActive: true, collectorId })
+  const collectorId = req.params.collectorId;
 
-    const agencyId = plannings[0]?.agencyId;
+  if (!collectorId) {
+    return res.status(400).json({ error: "Collector ID is required" });
+  }
 
-    const zone = plannings[0]?.zone;
+  // 1. Récupère tous les plannings actifs pour ce collecteur
+  const plannings = await CollectionSchedule.find({ isActive: true, collectorId });
 
-    const userPlannings = await Client.find({subscribedAgencyId: agencyId, "address.neighborhood": zone });
+  if (plannings.length === 0) {
+    return res.status(404).json({ error: "No plannings found for this collector" });
+  }
 
-    res.status(200).json({  plannings, userPlannings });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  } 
+  // 2. Récupère l'agence (on suppose qu'ils ont tous la même agence)
+  const agencyId = plannings[0].agencyId;
+
+  // 3. Extraire toutes les zones des plannings
+  const zones = plannings.flatMap(planning => planning.zone); // suppose que planning.zone est un array
+  const uniqueZones = [...new Set(zones)]; // élimine les doublons
+
+  // 4. Récupérer les clients dans ces zones et cette agence
+  const clients = await Client.find({
+    subscribedAgencyId: agencyId,
+    "address.neighborhood": { $in: uniqueZones }
+  });
+
+  // 5. Associer les clients à leur planning respectif
+  const planningsWithClients = plannings.map(planning => {
+    const planningZones = planning.zone || [];
+    const relatedClients = clients.filter(client =>
+      planningZones.includes(client.address?.neighborhood)
+    );
+    return {
+      ...planning.toObject(),
+      clients: relatedClients
+    };
+  });
+
+  res.status(200).json({ plannings: planningsWithClients });
+
+} catch (error) {
+  res.status(500).json({ error: error.message });
+}
+
 }
 
 // ➤ Mettre à jour un planning
