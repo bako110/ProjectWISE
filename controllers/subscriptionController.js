@@ -2,17 +2,25 @@ import Subscription from "../models/Subscription.js";
 import Agency from "../models/Agency/Agency.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
+import Client from "../models/clients/Client.js";
 
 export const createSubscription = async (req, res) => {
   try {
-    const { userId, agencyId, plan, startDate, endDate, amount } = req.body;
-    if (!userId || !agencyId || !plan || !amount) {
+    const { userId, agencyId, plan, startDate, endDate, amount, numberMonth } = req.body;
+
+    
+    if (!userId || !agencyId || !plan || !amount || !numberMonth || numberMonth <= 0) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
+
+    const endDateCalculated = new Date(new Date().setMonth(new Date().getMonth() + numberMonth));
+    const totalAmount = amount * numberMonth;
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
+
     const agency = await Agency.findById(agencyId);
     if (!agency) {
       return res.status(404).json({ error: "Agence non trouvée" });
@@ -22,20 +30,29 @@ export const createSubscription = async (req, res) => {
     if (walletSubcritor.balance < 0) {
       return res.status(400).json({ error: "Solde insuffisant dans le wallet" });
     }
-    walletSubcritor.balance -= amount;
+    walletSubcritor.balance -= totalAmount;
     walletSubcritor.save();
 
     const walletAgency = await Wallet.findOne({ userId: agency.userId });
     if (!walletAgency) {
       const newWallet = new Wallet({
         userId: agency.userId,
-        balance: amount,
+        balance: totalAmount,
         kind: 'standard'
       });
       await newWallet.save();
     } else {
-      walletAgency.balance += amount;
+      walletAgency.balance += totalAmount;
       walletAgency.save();
+    }
+
+    const client = await Client.findOne({ userId });
+
+    client.subscribedAgencyId = agencyId;
+
+    if (!agency.clients.includes(client._id)) {
+      agency.clients.push(client._id);
+      await agency.save();
     }
 
     const subscription = new Subscription({
@@ -44,8 +61,8 @@ export const createSubscription = async (req, res) => {
         plan,
         amount,
         startDate: startDate || new Date(),
-        // endDate: "2025-09-11T00:01:00.000Z" || new Date(new Date().setMonth(new Date().getMonth() + 1)),
-        endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
+        endDate: endDateCalculated,
+        // endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
         status: 'active' 
     });
     await subscription.save();

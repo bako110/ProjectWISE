@@ -29,10 +29,10 @@ const clientSchema = new mongoose.Schema({
   lastName:  { type: String, required: true, trim: true },
   phone:     { type: String, required: true, trim: true },
 
-  agencyId: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'Agency'
-  }],
+  // agencyId: [{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref:  'Agency'
+  // }],
 
   address: {
     street:         { type: String, trim: true, required: true },
