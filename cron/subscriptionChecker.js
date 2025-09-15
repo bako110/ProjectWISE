@@ -10,21 +10,28 @@ cron.schedule('*/1 * * * *', async () => {
     const now = new Date();
     try {
         const expiredSubscriptions = await Subscription.find({ endDate: { $lt: now }, status: 'active' });
+        console.log(`Vérification des abonnements expirés à ${now.toISOString()}. Abonnements trouvés: ${expiredSubscriptions.length}`);
         for (const subscription of expiredSubscriptions) {
             subscription.status = 'canceled';
             await subscription.save();
             const user = await User.findById(subscription.userId);
+            // console.log(`Abonnement expiré pour l'utilisateur: ${user ? user.email : 'Utilisateur non trouvé'}`);
+            const client = await Client.findOne({ userId: subscription.userId });
 
             const agency = await Agency.findById(subscription.agencyId);
+            // console.log(agency);
             if (agency) {
-                agency.clients = agency.clients.filter(clientId => clientId.toString() !== subscription.userId.toString());
+                agency.clients = agency.clients.filter(clientId => clientId.toString() !== client._id.toString());
                 await agency.save();
+                // console.log(agency);
             }
-            const client = await Client.findOne({ userId: subscription.userId });
+
+            // console.log(client);
             if (client) {
                 client.subscribedAgencyId = null;
                 // client.subscriptionStatus = 'canceled';
                 await client.save();
+                // console.log(client);
             }
             if (user) {
                 const wallet = await Wallet.findOne({ userId: user._id });

@@ -49,6 +49,7 @@ export const createSubscription = async (req, res) => {
     const client = await Client.findOne({ userId });
 
     client.subscribedAgencyId = agencyId;
+    client.save();
 
     if (!agency.clients.includes(client._id)) {
       agency.clients.push(client._id);
@@ -59,10 +60,10 @@ export const createSubscription = async (req, res) => {
       userId,
       agencyId,
         plan,
-        amount,
+        amount: totalAmount,
         startDate: startDate || new Date(),
-        endDate: endDateCalculated,
-        // endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
+        // endDate: endDateCalculated,
+        endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
         status: 'active' 
     });
     await subscription.save();
