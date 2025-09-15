@@ -51,6 +51,9 @@ const router = express.Router();
  *                 type: string
  *                 format: date-time
  *                 example: "2025-10-11T00:00:00.000Z"
+ *               numberMonth:
+ *                 type: number
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Abonnement créé avec succès
