@@ -62,8 +62,8 @@ export const createSubscription = async (req, res) => {
         plan,
         amount: totalAmount,
         startDate: startDate || new Date(),
-        // endDate: endDateCalculated,
-        endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
+        endDate: endDateCalculated,
+        // endDate:  new Date(new Date().setMinutes(new Date().getMinutes() + 2)),
         status: 'active' 
     });
     await subscription.save();
