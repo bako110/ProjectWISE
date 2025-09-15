@@ -26,6 +26,7 @@ import arrondissementRoute from "./routes/adresse/arrondissementRoute.js";
 import cityRoute from "./routes/adresse/cityRoute.js";
 import walletRoute from "./routes/walletRoute.js";
 import subscriptionRoute from "./routes/subscriptionRoute.js";
+import messageRoute from './routes/messageRoute.js';
 
 import './cron/subscriptionChecker.js';
 
@@ -80,6 +81,7 @@ app.use('/api', arrondissementRoute);
 app.use('/api', cityRoute);
 app.use('/api', walletRoute);
 app.use('/api', subscriptionRoute);
+app.use('/api', messageRoute);
 
 // 404
 app.use((req, res) => {

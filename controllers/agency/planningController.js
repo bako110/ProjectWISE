@@ -121,7 +121,8 @@ export const getCollectorPlannings = async (req, res) => {
     );
     return {
       ...planning.toObject(),
-      clients: relatedClients
+      clients: relatedClients,
+      totalClients: relatedClients.length
     };
   });
 

@@ -6,7 +6,7 @@ import Agency from '../models/Agency/Agency.js';
 import Client from '../models/clients/Client.js';
 
 // Tâche cron pour vérifier les abonnements expirés tous les jours à minuit
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
     const now = new Date();
     try {
         const expiredSubscriptions = await Subscription.find({ endDate: { $lt: now }, status: 'active' });
