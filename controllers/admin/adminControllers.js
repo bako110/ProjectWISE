@@ -6,7 +6,8 @@ import Employee from '../../models/Agency/Employee.js';
 import Client from '../../models/clients/Client.js';
 import Collection from '../../models/collections/Collection.js';
 import Mairie from '../../models/Mairies/MunicipalManager.js';
-import Report from '../../models/report/report.js'
+import Report from '../../models/report/report.js';
+import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 
 
 export const registerSuperAdmin = async (req, res) => {
@@ -110,7 +111,14 @@ export const statistics = async (req, res) => {
     const activeClients = await Client.countDocuments({
       subscriptionHistory: { $elemMatch: { status: 'active' } }
     });
-    const totalCollections = await Collection.countDocuments();
+    let totalCollections = 0;;
+    const plannings = await CollectionSchedule.find({ isActive: true});
+    console.log(plannings);
+    for (const planning of plannings) {
+      const clients = await Client.find({ "address.neighborhood":  planning.zone });
+      totalCollections += clients.length;
+    }
+    // const totalCollections = await Collection.countDocuments();
     const completeCollections = await Collection.countDocuments({ status: 'completed' });
 
     // Signalements par CLIENTS
