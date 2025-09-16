@@ -158,21 +158,19 @@ export const statisticsByCity = async (req, res) => {
 
     const agenciesByCity = await Agency.aggregate([
       { $group: { city: "$address.city" } },
-      { $sum: { count: 1 } },
-      { $addToSet: { cities: "$address.city" } }
+      { $sum: { count: 1 } }
     ]);
 
     const clientsByCity = await Client.aggregate([
       { $group: { city: "$address.city" } },
-      { $sum: { count: 1 } },
-      { $addToSet: { cities: "$address.city" } }
+      { $sum: { count: 1 } }
     ]);
 
     const statistics = agenciesByCity.reduce((acc, curr) => {
-      acc[curr._id] = {
-        city: curr._id,
+      acc[curr.city] = {
+        city: curr.city,
         agencies: curr.count,
-        clients: clientsByCity.find(c => c._id === curr._id)?.count || 0
+        clients: clientsByCity.find(c => c.city === curr.city)?.count || 0
       };
       return acc;
     }, {});
