@@ -27,6 +27,7 @@ import cityRoute from "./routes/adresse/cityRoute.js";
 import walletRoute from "./routes/walletRoute.js";
 import subscriptionRoute from "./routes/subscriptionRoute.js";
 import messageRoute from './routes/messageRoute.js';
+import notificationRoute from './routes/notificationRoute.js';
 
 import './cron/subscriptionChecker.js';
 
@@ -82,6 +83,7 @@ app.use('/api', cityRoute);
 app.use('/api', walletRoute);
 app.use('/api', subscriptionRoute);
 app.use('/api', messageRoute);
+app.use('/api', notificationRoute);
 
 // 404
 app.use((req, res) => {

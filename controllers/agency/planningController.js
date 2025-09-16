@@ -1,5 +1,7 @@
 import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 import Client from '../../models/clients/Client.js';
+import Notification from '../../models/Notification.js';
+import Employee from '../../models/Agency/Employee.js';
 
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
@@ -9,7 +11,13 @@ export const creerPlanning = async (req, res) => {
     if (!zone || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
-    console.log(req.body);
+    const employee = await Employee.findOne({ _id: collectorId, agencyId });
+
+    const message = `Nouveau planning assigné: Jour ${dayOfWeek}, de ${startTime} à ${endTime} dans la zone ${zone.join(', ')}.`;
+    const notification = new Notification({ user: employee.userId, message, type: 'planning' });
+    await notification.save();
+
+
     const planning = new CollectionSchedule({
       zone,
       dayOfWeek,

@@ -3,6 +3,7 @@ import Agency from "../models/Agency/Agency.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
 import Client from "../models/clients/Client.js";
+import Notification from "../models/Notification.js";
 
 export const createSubscription = async (req, res) => {
   try {
@@ -55,6 +56,10 @@ export const createSubscription = async (req, res) => {
       agency.clients.push(client._id);
       await agency.save();
     }
+
+    const message = `Vous avez souscrit au plan ${plan} de l'agence ${agency.name} pour ${numberMonth} mois. Montant total: ${totalAmount}.`;
+    const notification = new Notification({ user: userId, message, type: 'subscription' });
+    await notification.save();
 
     const subscription = new Subscription({
       userId,
