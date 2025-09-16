@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import User from "../../models/User.js";
 import MunicipalManager from "../../models/Mairies/MunicipalManager.js";
+import Agency from '../../models/Agency/Agency.js';
+import Client from '../../models/clients/Client.js';
 
 /* --------------------------- CRÉATION MUNICIPALITÉ PAR ADMIN --------------------------- */
 export const registerMunicipality = async (req, res) => {
@@ -148,3 +150,36 @@ export const getAllMunicipalities = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 }
+
+export const statisticsByCity = async (req, res) => {
+  try {
+    const totalAgency = await Agency.countDocuments();
+    const totalClients = await Client.countDocuments();
+
+    const agenciesByCity = await Agency.aggregate([
+      { $group: { city: "$address.city" } },
+      { $sum: { count: 1 } },
+      { $addToSet: { cities: "$address.city" } }
+    ]);
+
+    const clientsByCity = await Client.aggregate([
+      { $group: { city: "$address.city" } },
+      { $sum: { count: 1 } },
+      { $addToSet: { cities: "$address.city" } }
+    ]);
+
+    const statistics = agenciesByCity.reduce((acc, curr) => {
+      acc[curr._id] = {
+        city: curr._id,
+        agencies: curr.count,
+        clients: clientsByCity.find(c => c._id === curr._id)?.count || 0
+      };
+      return acc;
+    }, {});
+
+    res.status(200).json(statistics);
+  } catch (error) {
+    console.error('Error fetching statistics by city:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

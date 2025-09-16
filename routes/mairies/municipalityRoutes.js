@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerMunicipality,getMunicipality, getAllMunicipalities } from '../../controllers/mairies/municipalityControllers.js';
+import { registerMunicipality,getMunicipality, getAllMunicipalities, statisticsByCity } from '../../controllers/mairies/municipalityControllers.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -113,5 +113,7 @@ router.get('/municipality/:municipalityId', authMiddleware('super_admin'), getMu
  *         description: Erreur serveur
  */
 router.get('/municipality', authMiddleware('super_admin'), getAllMunicipalities);
+
+router.get('/municipality/city', statisticsByCity);
 
 export default router;
