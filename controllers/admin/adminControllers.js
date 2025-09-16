@@ -112,7 +112,16 @@ export const statistics = async (req, res) => {
       subscriptionHistory: { $elemMatch: { status: 'active' } }
     });
     let totalCollections = 0;;
-    const plannings = await CollectionSchedule.find({ isActive: true});
+    // const plannings = await CollectionSchedule.find({ isActive: true, date:  new Date() });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+const plannings = await CollectionSchedule.find({
+  isActive: true,
+  date: { $gte: today, $lt: tomorrow }
+});
     console.log(plannings);
     for (const planning of plannings) {
       const clients = await Client.find({ "address.neighborhood":  planning.zone });
