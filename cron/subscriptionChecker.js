@@ -23,7 +23,7 @@ cron.schedule('0 * * * *', async () => {
             const notification = new Notification({
                 userId: subscription.userId,
                 message: message2Days,
-                type: 'abonnement',
+                type: 'Subscribed',
             });
             await notification.save();
         }
@@ -40,7 +40,7 @@ cron.schedule('0 * * * *', async () => {
             const notification = new Notification({
                 userId: subscription.userId,
                 message: messageExpired,
-                type: 'abonnement',
+                type: 'Subscribed',
             });
             await notification.save();
             // console.log(agency);

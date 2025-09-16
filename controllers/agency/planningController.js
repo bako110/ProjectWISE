@@ -6,21 +6,21 @@ import Employee from '../../models/Agency/Employee.js';
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
   try {
-    const { zone, dayOfWeek, startTime, endTime, collectorId, agencyId, date } = req.body;
+    const { zone, startTime, endTime, collectorId, agencyId, date } = req.body;
 
-    if (!zone || typeof dayOfWeek !== 'number' || !startTime || !endTime || !collectorId) {
+    if (!zone || !startTime || !endTime || !collectorId) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
     const employee = await Employee.findOne({ _id: collectorId, agencyId });
 
-    const message = `Nouveau planning assigné: Jour ${dayOfWeek}, de ${startTime} à ${endTime} dans la zone ${zone.join(', ')}.`;
+    const message = `Nouveau planning assigné: Jour , de ${startTime} à ${endTime} dans la zone ${zone.join(', ')}.`;
     const notification = new Notification({ user: employee.userId, message, type: 'planning' });
     await notification.save();
 
 
     const planning = new CollectionSchedule({
       zone,
-      dayOfWeek,
+      // dayOfWeek,
       startTime,
       endTime,
       collectorId,
@@ -43,12 +43,12 @@ export const creerPlanning = async (req, res) => {
 // ➤ Lister les plannings (avec filtres)
 export const listerPlannings = async (req, res) => {
   try {
-    const { collectorId, zone, dayOfWeek } = req.query;
+    const { collectorId, zone } = req.query;
     const filtre = {};
 
     if (collectorId) filtre.collectorId = collectorId;
     if (zone) filtre.zone = zone;
-    if (dayOfWeek) filtre.dayOfWeek = parseInt(dayOfWeek);
+    // if (dayOfWeek) filtre.dayOfWeek = parseInt(dayOfWeek);
 
     const plannings = await CollectionSchedule.find(filtre)
       .populate('zone', 'name')

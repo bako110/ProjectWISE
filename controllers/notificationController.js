@@ -20,7 +20,7 @@ export const getUserNotifications = async (req, res) => {
 
     try {
         const notifications = await Notification.find({ user: userId });
-        res.status(200).json({ notifications });
+        res.status(200).json(notifications);
     } catch (error) {
         console.error('Error retrieving notifications:', error);
         res.status(500).json({ message: 'Server error', error: error.message });

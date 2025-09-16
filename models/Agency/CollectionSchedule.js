@@ -10,7 +10,7 @@ const collectionScheduleSchema = new mongoose.Schema({
   zone : {
     type: String,
   },
-  dayOfWeek: { type: Number, required: true }, // 0=Sunday, 6=Saturday
+  // dayOfWeek: { type: Number, required: true }, // 0=Sunday, 6=Saturday
 
   startTime: { type: String, required: true }, // HH:mm
   endTime: { type: String, required: true },
