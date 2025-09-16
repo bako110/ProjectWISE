@@ -175,7 +175,7 @@ export const statisticsByCity = async (req, res) => {
       return acc;
     }, {});
 
-    res.status(200).json(statistics);
+    res.status(200).json({statistics, agenciesByCity, clientsByCity, totalAgency, totalClients});
   } catch (error) {
     console.error('Error fetching statistics by city:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
