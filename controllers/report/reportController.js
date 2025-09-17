@@ -157,3 +157,95 @@ export const getAllReports = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+/**
+ * Assigner un employé (collector) à un report (signalement)
+ * Route suggérée : PUT /api/reports/:reportId/assign
+ * Body attendu : { employeeId: "<id>", status?: "in_progress" }
+ */
+export const assignEmployeeToReport = async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const { employeeId, status } = req.body;
+
+    // Validation basic
+    if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).json({ error: 'reportId invalide ou manquant.' });
+    }
+    if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ error: 'employeeId invalide ou manquant.' });
+    }
+
+    // Récupérer le signalement
+    const report = await Report.findById(reportId).populate('agency', 'agencyName');
+    if (!report) return res.status(404).json({ error: 'Signalement introuvable.' });
+
+    // Récupérer l'employé
+    const employee = await Employee.findById(employeeId).populate('agencyId', 'agencyName');
+    if (!employee) return res.status(404).json({ error: 'Employé introuvable.' });
+
+    // Vérifier rôle (optionnel : adapte selon ton champ role)
+    if (employee.role && employee.role !== 'collector') {
+      return res.status(400).json({ error: 'L\'employé sélectionné n\'a pas le rôle de collecteur.' });
+    }
+
+    // Optionnel : vérifier que l'employé appartient à la même agence que le report
+    // Décommente cette vérification si tu veux l'appliquer :
+    /*
+    if (report.agency && employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id)) {
+      return res.status(400).json({ error: 'L\'employé n\'appartient pas à la même agence que le signalement.' });
+    }
+    */
+
+    // Assigner l'employé au report
+    report.collector = employee._id;
+
+    // Si aucun agency défini sur le report, on peut l'initialiser avec l'agence de l'employé
+    if (!report.agency && employee.agencyId) {
+      report.agency = employee.agencyId._id;
+    }
+
+    // Optionnel : changer le statut automatiquement si fourni ou définir un statut par défaut
+    const allowedStatuses = ['pending', 'in_progress', 'resolved'];
+    if (status) {
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Statut invalide.' });
+      }
+      report.status = status;
+    } else {
+      // si on veut marquer automatiquement en cours après assignation
+      if (report.status === 'pending') report.status = 'in_progress';
+    }
+
+    // Enregistrer
+    await report.save();
+
+    // Populer pour la réponse
+    await report.populate([
+      { path: 'client', select: 'firstName lastName phone' },
+      { path: 'collector', select: 'firstName lastName role' },
+      { path: 'agency', select: 'agencyName' }
+    ]);
+
+    // Réponse décorée pour l'app
+    return res.status(200).json({
+      message: `✅ Employé assigné avec succès au signalement.`,
+      report: {
+        id: report._id,
+        type: report.type,
+        status: report.status,
+        client: report.client ? `${report.client.firstName} ${report.client.lastName}` : null,
+        collector: report.collector ? `${report.collector.firstName} ${report.collector.lastName}` : null,
+        agency: report.agency ? report.agency.agencyName : null,
+        description: report.description,
+        updatedAt: report.updatedAt
+      }
+    });
+
+  } catch (err) {
+    console.error('Erreur assignEmployeeToReport:', err);
+    return res.status(500).json({ error: 'Erreur serveur interne.', details: err.message });
+  }
+};

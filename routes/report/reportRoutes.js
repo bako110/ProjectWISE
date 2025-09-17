@@ -5,8 +5,10 @@ import {
   getReportsByClient,
   getReportsByCollector,
   updateReportStatus, 
-  getAllReports
+  getAllReports,
+  assignEmployeeToReport
 } from "../../controllers/report/reportController.js";
+import authMiddleware from "../../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -226,6 +228,72 @@ router.get("/collector/:collectorId", getReportsByCollector);
  *               $ref: '#/components/schemas/Report'
  */
 
+/**
+ * @swagger
+ * /api/reports/{reportId}/assign:
+ *   put:
+ *     summary: Assigner un employé (collecteur) à un signalement
+ *     description: Permet d'assigner un employé collecteur à un signalement existant et de mettre à jour le statut.
+ *     tags: 
+ *       - Reports
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: reportId
+ *         in: path
+ *         required: true
+ *         description: ID du signalement à mettre à jour
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               employeeId:
+ *                 type: string
+ *                 description: ID de l'employé à assigner
+ *                 example: 64c5a7f8e2e8c5e8d3f1a123
+ *               status:
+ *                 type: string
+ *                 description: Nouveau statut du signalement
+ *                 example: in_progress
+ *     responses:
+ *       200:
+ *         description: Employé assigné avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: ✅ Employé assigné avec succès au signalement.
+ *                 report:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 652f1234abcd5678ef901234
+ *                     status:
+ *                       type: string
+ *                       example: in_progress
+ *                     collector:
+ *                       type: string
+ *                       example: Alice Traoré
+ *       400:
+ *         description: Paramètres invalides ou manquants
+ *       401:
+ *         description: Non authentifié
+ *       403:
+ *         description: Non autorisé
+ *       404:
+ *         description: Signalement ou employé introuvable
+ */
+
+router.put('/:reportId/assign', assignEmployeeToReport);
 router.post("/", createReport);
 router.get("/agency/:agencyId", getReportsByAgency);
 router.get("/client/:clientId", getReportsByClient);
