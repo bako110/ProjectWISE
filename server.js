@@ -28,7 +28,6 @@ import walletRoute from "./routes/walletRoute.js";
 import subscriptionRoute from "./routes/subscriptionRoute.js";
 import messageRoute from './routes/messageRoute.js';
 import notificationRoute from './routes/notificationRoute.js';
-
 import './cron/subscriptionChecker.js';
 
 dotenv.config();
@@ -38,8 +37,7 @@ const app = express();
 
 const allowedOrigins = [
   'https://collect-dechets.vercel.app',
-  'http://localhost:4200',
-  'hhtp://localhost:3000'
+  'http://localhost:4200'
 ];
 
 // CORS

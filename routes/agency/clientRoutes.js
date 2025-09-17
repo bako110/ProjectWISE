@@ -66,7 +66,7 @@ const router = express.Router();
  *       404:
  *         description: Agence non trouvée
  */
-router.get('/agency/:agencyId', authMiddleware('agency'), getClientsByAgency);
+router.get('/agency/:agencyId',/* authMiddleware('agency'),*/ getClientsByAgency);
 
 /**
  * @swagger
