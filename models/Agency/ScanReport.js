@@ -45,12 +45,11 @@ const scanReportSchema = new mongoose.Schema({
     default: Date.now
   },
 
-  status: {
-    type: String,
-    enum: ['collected', 'problem'],
-    default: 'collected'
-  },
-
+status: {
+  type: String,
+  enum: ['collected'],
+  required: false
+},
   comment: {
     type: String,
     required: function () {
