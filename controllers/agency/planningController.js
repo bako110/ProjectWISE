@@ -78,33 +78,38 @@ export const listerPlannings = async (req, res) => {
 //   }
 // }
 export const getPlannings = async (req, res) => {
-  try {
-    const agencyId = req.params.agencyId;
-    if (!agencyId) {
-      return res.status(400).json({ error: "Agency ID is required" });
-    }
-
-    // Récupère tous les plannings actifs de l'agence
-    const plannings = await CollectionSchedule.find({ isActive: true, agencyId });
-
-    // Récupère tous les collecteurs liés à ces plannings
-    const collectorIds = plannings.map(p => p.collectorId);
-    const collectors = await Employee.find({ agencyId, _id: { $in: collectorIds } });
-
-    // Associe chaque collecteur à son planning
-    const planningsWithCollector = plannings.map(planning => {
-      const collector = collectors.find(c => c._id.equals(planning.collectorId));
-      return {
-        ...planning.toObject(),
-        collector: collector || null
-      };
-    });
-
-    res.status(200).json({ plannings: planningsWithCollector });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+ try {
+  const agencyId = req.params.agencyId;
+  if (!agencyId) {
+    return res.status(400).json({ error: "Agency ID is required" });
   }
+
+  // Récupère tous les plannings actifs de l'agence
+  const plannings = await CollectionSchedule.find({ isActive: true, agencyId });
+
+  // Récupère tous les collecteurs liés à ces plannings
+  const collectorIds = [...new Set(plannings.flatMap(p => p.collectorId || []))];
+  const collectors = await Employee.find({ agencyId, _id: { $in: collectorIds } });
+
+  // Associe chaque planning à ses collecteurs
+  const planningsWithCollectors = plannings.map(planning => {
+    const planningCollectorIds = planning.collectorId || [];
+    const matchedCollectors = collectors.filter(c =>
+      planningCollectorIds.some(id => c._id.equals(id))
+    );
+
+    return {
+      ...planning.toObject(),
+      collectors: matchedCollectors
+    };
+  });
+
+  res.status(200).json({ plannings: planningsWithCollectors });
+} catch (error) {
+  res.status(500).json({ error: error.message });
 }
+
+};
 
 // lister les plannings actifs du collecteur de la semaine
 export const getCollectorPlannings = async (req, res) => {
