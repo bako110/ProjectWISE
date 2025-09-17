@@ -38,34 +38,141 @@ export const getClientsByAgency = async (req, res) => {
 
     // Vérifier que l'ID est valide
     if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      return res.status(400).json({ message: 'ID d\'agence invalide' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID d\'agence invalide' 
+      });
     }
 
     // 1️⃣ Récupérer l'agence et son tableau "clients"
-    const agency = await Agency.findById(agencyId).select('clients');
+    const agency = await Agency.findById(agencyId).select('clients agencyName');
     if (!agency) {
-      return res.status(404).json({ message: 'Agence non trouvée' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Agence non trouvée' 
+      });
     }
 
     if (!agency.clients || agency.clients.length === 0) {
-      return res.status(200).json({ success: true, count: 0, data: [] });
+      return res.status(200).json({ 
+        success: true, 
+        count: 0, 
+        agencyName: agency.agencyName,
+        data: [] 
+      });
     }
 
-    // 2️⃣ Récupérer tous les clients du tableau "clients"
-    const clients = await Client.find({ _id: { $in: agency.clients } })
-      .populate({ path: 'userId', select: '-password -__v -updatedAt' }) // info utilisateur
-      .lean(); // retourne un objet JS "pur"
+    // 2️⃣ Récupérer TOUS les clients du tableau "clients" (sans filtrage de statut)
+    const clients = await Client.find({ 
+      _id: { $in: agency.clients } 
+    })
+    .populate({ 
+      path: 'userId', 
+      select: 'firstName lastName email phone address createdAt' 
+    })
+    .select('-__v') // Exclure le champ __v
+    .sort({ createdAt: -1 }) // Trier par date de création (plus récent en premier)
+    .lean(); // Retourne un objet JS pur pour de meilleures performances
 
-    // 3️⃣ Retourner le résultat complet
+    // 3️⃣ Optionnel : Ajouter des statistiques
+    const activeClients = clients.filter(client => client.isActive !== false);
+    const inactiveClients = clients.filter(client => client.isActive === false);
+
+    // 4️⃣ Retourner le résultat complet
     return res.status(200).json({
       success: true,
+      agencyId: agencyId,
+      agencyName: agency.agencyName,
       count: clients.length,
+      statistics: {
+        total: clients.length,
+        active: activeClients.length,
+        inactive: inactiveClients.length
+      },
       data: clients
     });
 
   } catch (error) {
-    console.error('Erreur getAllClientsByAgency :', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Erreur getClientsByAgency :', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Erreur interne du serveur',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// 🔄 Version alternative si vous voulez une requête plus directe
+export const getClientsByAgencyDirect = async (req, res) => {
+  try {
+    const { agencyId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID d\'agence invalide' 
+      });
+    }
+
+    // Requête directe avec aggregation pour plus d'efficacité
+    const result = await Agency.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(agencyId) } },
+      {
+        $lookup: {
+          from: 'clients', // nom de la collection clients
+          localField: 'clients',
+          foreignField: '_id',
+          as: 'clientsData',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'users', // nom de la collection users
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'userData',
+                pipeline: [
+                  { $project: { password: 0, __v: 0 } }
+                ]
+              }
+            },
+            { $unwind: { path: '$userData', preserveNullAndEmptyArrays: true } },
+            { $project: { __v: 0 } }
+          ]
+        }
+      },
+      {
+        $project: {
+          agencyName: 1,
+          clients: '$clientsData',
+          totalClients: { $size: '$clientsData' }
+        }
+      }
+    ]);
+
+    if (!result || result.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Agence non trouvée' 
+      });
+    }
+
+    const agencyData = result[0];
+
+    return res.status(200).json({
+      success: true,
+      agencyId: agencyId,
+      agencyName: agencyData.agencyName,
+      count: agencyData.totalClients,
+      data: agencyData.clients
+    });
+
+  } catch (error) {
+    console.error('Erreur getClientsByAgencyDirect :', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Erreur interne du serveur',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
