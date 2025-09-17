@@ -59,10 +59,10 @@ const router = express.Router();
  *               - receiverId
  *               - content
  *             properties:
- *               senderId:
+ *               sender:
  *                 type: string
  *                 example: "64fa7cf123abc456def78901"
- *               receiverId:
+ *               receiver:
  *                 type: string
  *                 example: "64fa7cf123abc456def78902"
  *               content:

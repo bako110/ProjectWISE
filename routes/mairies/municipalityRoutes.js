@@ -114,6 +114,62 @@ router.get('/municipality/:municipalityId', authMiddleware('super_admin'), getMu
  */
 router.get('/municipality', authMiddleware('super_admin'), getAllMunicipalities);
 
+/**
+ * @swagger
+ * /api/auth/municipality/city:
+ *   get:
+ *     summary: Récupère les statistiques par ville
+ *     description: Retourne le nombre total d'agences et de clients, ainsi que leur répartition par ville.
+ *     tags: [Mairies]
+ *     responses:
+ *       200:
+ *         description: Statistiques récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalAgency:
+ *                   type: integer
+ *                   description: Nombre total d'agences
+ *                   example: 120
+ *                 totalClients:
+ *                   type: integer
+ *                   description: Nombre total de clients
+ *                   example: 345
+ *                 statistics:
+ *                   type: array
+ *                   description: Liste des statistiques par ville
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       city:
+ *                         type: string
+ *                         description: Nom de la ville
+ *                         example: Paris
+ *                       agencies:
+ *                         type: integer
+ *                         description: Nombre d'agences dans la ville
+ *                         example: 10
+ *                       clients:
+ *                         type: integer
+ *                         description: Nombre de clients dans la ville
+ *                         example: 25
+ *       500:
+ *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Server error
+ *                 error:
+ *                   type: string
+ *                   example: Detailed error message
+ */
+
 router.get('/city/municipality', statisticsByCity);
 
 export default router;
