@@ -34,39 +34,15 @@ import Agency from '../../models/Agency/Agency.js';
 
 // 🎯 FONCTION SIMPLE ET EFFICACE - Récupère TOUS les clients sans filtrage
 export const getClientsByAgency = async (req, res) => {
-  try {
-    const { agencyId } = req.params;
+ try {
+    // Récupère uniquement les _id des clients de cette agence
+    const clients = await Client.find({ agency: agencyId }).select('_id');
 
-    // Validation de l'ID
-    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      return res.status(400).json({ message: 'ID agence invalide' });
-    }
-
-    // 🔥 RÉCUPÉRER TOUS LES CLIENTS LIÉS À L'AGENCE (TOUS STATUTS)
-    const allClients = await Client.find({
-      $or: [
-        { subscribedAgencyId: agencyId },           // Clients abonnés
-        { agencyId: agencyId },                     // Clients dans agencyId  
-        { 'subscriptionHistory.agencyId': agencyId } // Clients avec historique
-      ]
-    })
-    .populate('userId', 'firstName lastName email phone createdAt')
-    .sort({ createdAt: -1 })
-    .lean();
-
-    // Récupérer le nom de l'agence
-    const agency = await Agency.findById(agencyId, 'agencyName');
-
-    return res.status(200).json({
-      success: true,
-      agencyName: agency?.agencyName || 'Agence',
-      count: allClients.length,
-      data: allClients
-    });
-
+    // Retourne uniquement un tableau d'IDs
+    return clients.map(client => client._id.toString());
   } catch (error) {
-    console.error('Erreur:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Erreur lors de la récupération des clients :', error);
+    throw error;
   }
 };
 /* ---------------------------------------------------------------------- */
