@@ -36,34 +36,33 @@ export const getClientsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
 
-    // Vérifier que l'ID est bien un ObjectId
-    const agId = new mongoose.Types.ObjectId(agencyId);
+    // Vérifier que l'ID est valide
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      return res.status(400).json({ message: 'ID d\'agence invalide' });
+    }
 
     // 1️⃣ Récupérer l'agence et son tableau "clients"
-    const agency = await Agency.findById(agId).select('clients');
+    const agency = await Agency.findById(agencyId).select('clients');
     if (!agency) {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    // 2️⃣ Récupérer tous les clients dont _id figure dans le tableau
+    if (!agency.clients || agency.clients.length === 0) {
+      return res.status(200).json({ success: true, count: 0, data: [] });
+    }
+
+    // 2️⃣ Récupérer tous les clients du tableau "clients"
     const clients = await Client.find({ _id: { $in: agency.clients } })
-      .populate({
-        path: 'userId',
-        select: '-password -__v -updatedAt'
-      })
-      .lean();
+      .populate({ path: 'userId', select: '-password -__v -updatedAt' }) // info utilisateur
+      .lean(); // retourne un objet JS "pur"
 
-    // 3️⃣ Réordonner les clients pour correspondre exactement à l'ordre de agency.clients
-    const fullClients = agency.clients.map(clientId => {
-      const client = clients.find(c => c._id.equals(clientId));
-      return client || null; // null si client non trouvé
-    }).filter(c => c !== null); // enlever les éventuels null
-
+    // 3️⃣ Retourner le résultat complet
     return res.status(200).json({
       success: true,
-      count: fullClients.length,
-      data: fullClients
+      count: clients.length,
+      data: clients
     });
+
   } catch (error) {
     console.error('Erreur getAllClientsByAgency :', error);
     return res.status(500).json({ error: error.message });
