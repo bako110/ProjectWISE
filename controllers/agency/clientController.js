@@ -40,7 +40,7 @@ import Agency from '../../models/Agency/Agency.js';
  * @param {string} agencyId - ID de l'agence
  * @returns {Promise<Array>} - Tableau d'IDs de clients
  */
-export const getClientIdsOfAgency = async (agencyId) => {
+export const getClientsByAgency = async (agencyId) => {
   try {
     const agency = await Agency.findById(agencyId).select('clients');
     if (!agency) throw new Error('Agence non trouvée');
