@@ -33,15 +33,22 @@ import Agency from '../../models/Agency/Agency.js';
 // };
 
 // 🎯 FONCTION SIMPLE ET EFFICACE - Récupère TOUS les clients sans filtrage
-export const getClientsByAgency = async (req, res) => {
- try {
-    // Récupère uniquement les _id des clients de cette agence
-    const clients = await Client.find({ agency: agencyId }).select('_id');
 
-    // Retourne uniquement un tableau d'IDs
-    return clients.map(client => client._id.toString());
+
+/**
+ * Récupère uniquement les IDs des clients liés à une agence
+ * @param {string} agencyId - ID de l'agence
+ * @returns {Promise<Array>} - Tableau d'IDs de clients
+ */
+export const getClientIdsOfAgency = async (agencyId) => {
+  try {
+    const agency = await Agency.findById(agencyId).select('clients');
+    if (!agency) throw new Error('Agence non trouvée');
+
+    // Retourne uniquement les IDs
+    return agency.clients;
   } catch (error) {
-    console.error('Erreur lors de la récupération des clients :', error);
+    console.error('Erreur lors de la récupération des IDs des clients :', error);
     throw error;
   }
 };
