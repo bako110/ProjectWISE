@@ -32,7 +32,8 @@ export const creerPlanning = async (req, res) => {
 
     res.status(201).json({
       message: "Planning créé avec succès",
-      planning
+      ...planning,
+      collector: employee
     });
   } catch (error) {
     console.error("Erreur lors de la création du planning :", error);
