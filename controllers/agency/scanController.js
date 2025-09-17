@@ -31,30 +31,15 @@ export const scanBarrel = async (req, res) => {
       return res.status(404).json({ error: 'Client introuvable.' });
     }
 
-    // ⚠️ GET → juste afficher infos du client décorées pour l'app
+    // ⚠️ GET → juste afficher infos du client
     if (req.method === 'GET' || !status) {
-      const clientName = `${client.firstName} ${client.lastName}`;
-      const collectorName = collectorId ? `${req.user.firstName} ${req.user.lastName}` : 'N/A';
-
-      const messageDecorated = `
-📌 **Infos du client**
-Nom : ${clientName}
-Téléphone : ${client.phone}
-Adresse : ${client.address}
-
-👤 **Collecteur**
-${collectorName}
-
-✅ Cliquez sur "Valider" pour confirmer la collecte.
-      `;
-
       return res.status(200).json({
-        message: messageDecorated,
-        clientId: client._id,
-        action: {
-          label: 'Valider',
-          endpoint: '/api/collecte/scan/validate',
-          method: 'POST'
+        message: 'Infos du client récupérées avec succès.',
+        client: {
+          id: client._id,
+          name: `${client.firstName} ${client.lastName}`,
+          phone: client.phone,
+          address: client.address
         }
       });
     }
@@ -187,10 +172,10 @@ export const regenerateQRCode = async (req, res) => {
     const { clientId } = req.params;
 
     // Vérifie si le client existe
-    const client = await Client.findById(clientId).select('firstName lastName');
+    const client = await Client.findById(clientId);
     if (!client) {
       return res.status(404).json({
-        message: "❌ Client introuvable",
+        message: "Client introuvable",
         error: "CLIENT_NOT_FOUND"
       });
     }
@@ -210,25 +195,13 @@ export const regenerateQRCode = async (req, res) => {
       await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
     }
 
-    // Message décoré prêt pour l'app
-    const messageDecorated = `
-🎉 QR Code régénéré avec succès pour :
-Nom : ${client.firstName} ${client.lastName}
-
-🔗 Lien de scan : ${qrToken}
-
-📷 QR Code (image base64) disponible dans qrCodeImage
-    `;
-
     return res.status(200).json({
-      message: messageDecorated,
-      clientId: client._id,
+      message: "QR code régénéré avec succès",
       qrToken,
       qrCodeImage
     });
-
   } catch (error) {
-    console.error("❌ Erreur lors de la régénération du QR code:", error);
+    console.error("Erreur lors de la régénération du QR code:", error);
     return res.status(500).json({
       message: "Erreur serveur lors de la régénération du QR code",
       error: error.message
