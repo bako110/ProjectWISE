@@ -70,7 +70,9 @@ export const getPlannings = async (req, res) => {
     }
     const plannings = await CollectionSchedule.find({ isActive: true, agencyId })
 
-    res.status(200).json(plannings);
+    const collector = await Employee.find({ agencyId, _id: { $in: plannings.map(p => p.collectorId) } });
+
+    res.status(200).json({  plannings, collector });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
