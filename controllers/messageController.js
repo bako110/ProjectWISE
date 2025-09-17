@@ -127,16 +127,17 @@ export const deleteConversation = async (req, res) => {
 export const getInbox = async (req, res) => {
     const { userId } = req.params;
     try {
-        const sentMessages = await Message.find({ sender: userId });
-        const receivedMessages = await Message.find({ receiver: userId });
-
-        const messages = {
-            sent: sentMessages,
-            received: receivedMessages
-        };
-
+        const messages = await Message.find({$or:[{ receiver: userId} , {sender: userId}]});
         res.status(200).json({ messages });
+        //  const sentMessages = await Message.find({ sender: userId });
+        // const receivedMessages = await Message.find({ receiver: userId });
 
+        // const messages = {
+        //     sent: sentMessages,
+        //     received: receivedMessages
+        // };
+
+        // res.status(200).json({ messages });
     } catch (error) {
         console.error("Erreur lors de la récupération des messages :", error);
         res.status(500).json({ error: "Erreur serveur" });
