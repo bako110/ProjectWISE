@@ -1,74 +1,80 @@
 import mongoose from 'mongoose';
 import ScanReport from '../../models/Agency/ScanReport.js';
 import Client from '../../models/clients/Client.js';
+import Employee from '../../models/Agency/Employee.js';
 import { sendQRCodeEmail } from '../../utils/qrcodemail.js';
 import QRCode from 'qrcode';
 import User from '../../models/User.js'
 
 /**
- * Contrôleur : scan d’un QR code client (collecte ou problème signalé)
- * URL : GET ou POST /api/collecte/scan?id=<clientId> ou ?clientId=<clientId>
+ * Contrôleur : scan d’un QR code client
+ * GET → récupère les infos client
+ * POST → valide la collecte (status 'collected')
  */
-
 export const scanBarrel = async (req, res) => {
   try {
-    // ✅ Récupération de l’ID du client (QR code ou app)
     const clientId = req.query.clientId || req.query.id || req.body.clientId;
-    const status = req.body.status || null; // status fourni uniquement en POST
+    const status = req.body.status || null; // fourni uniquement en POST
 
-    // ✅ Auth facultative
-    const collectorId = req.user?.id || null;
-    const agencyId = req.user?.agencyId || null;
-
-    // 🔍 Vérifier l'ID client
     if (!clientId || !mongoose.Types.ObjectId.isValid(clientId)) {
       return res.status(400).json({ error: 'ClientId invalide ou manquant.' });
     }
 
-    // 🔍 Récupérer le client
     const client = await Client.findById(clientId).select('firstName lastName phone address');
-    if (!client) {
-      return res.status(404).json({ error: 'Client introuvable.' });
-    }
+    if (!client) return res.status(404).json({ error: 'Client introuvable.' });
 
-    // ⚠️ GET → juste afficher infos du client
+    // ----- GET → afficher infos client -----
     if (req.method === 'GET' || !status) {
       return res.status(200).json({
-        message: 'Infos du client récupérées avec succès.',
+        message: '📌 Infos du client récupérées avec succès.',
         client: {
           id: client._id,
           name: `${client.firstName} ${client.lastName}`,
           phone: client.phone,
           address: client.address
-        }
+        },
+        actions: [
+          { label: 'Valider collecte', action: 'POST /api/collecte/scan/validate' }
+        ]
       });
     }
 
-    // 🔍 POST → valider la collecte
+    // ----- POST → valider la collecte -----
     if (status !== 'collected') {
       return res.status(400).json({ error: 'Le statut doit être "collected".' });
     }
 
-    // 📄 Préparer les données du rapport
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Collecteur non authentifié.' });
+    }
+
+    // Récupérer le collecteur et son agence
+    const collector = await Employee.findById(req.user.id).populate('agencyId', 'agencyName');
+    if (!collector) return res.status(404).json({ error: 'Collecteur introuvable.' });
+    if (!collector.agencyId) return res.status(400).json({ error: 'Le collecteur doit appartenir à une agence.' });
+
+    // Préparer le rapport
     const reportData = {
       clientId,
-      collectorId,
-      agencyId,
+      collectorId: collector._id,
+      agencyId: collector.agencyId._id,
       status: 'collected',
       scannedAt: new Date()
     };
 
-    // 💾 Enregistrer
     const scanReport = await new ScanReport(reportData).save();
 
     await scanReport.populate([
       { path: 'clientId', select: 'firstName lastName phone' },
       { path: 'collectorId', select: 'firstName lastName' },
-      { path: 'agencyId', select: 'agencyName' },
+      { path: 'agencyId', select: 'agencyName' }
     ]);
 
     return res.status(201).json({
       message: '✅ Collecte validée avec succès.',
+      collector: `${collector.firstName} ${collector.lastName}`,
+      agency: collector.agencyId.agencyName,
+      client: `${client.firstName} ${client.lastName}`,
       report: scanReport
     });
 
@@ -80,7 +86,6 @@ export const scanBarrel = async (req, res) => {
     });
   }
 };
-
 
 /**
  * Récupérer l'historique des scans d’un collector
