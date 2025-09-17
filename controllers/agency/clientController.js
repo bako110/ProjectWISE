@@ -7,28 +7,68 @@ import Agency from '../../models/Agency/Agency.js';
 /* ---------------------------------------------------------------------- */
 /* 1. Liste des clients présents dans le tableau `clients` de l'agence    */
 /* ---------------------------------------------------------------------- */
+// export const getClientsByAgency = async (req, res) => {
+//   try {
+//     const { agencyId } = req.params;
+//     console.log('Recherche clients via agency.clients pour :', agencyId);
+
+//     // Vérifier que l'ID est bien un ObjectId
+//     const agId = new mongoose.Types.ObjectId(agencyId);
+
+//     // 1️⃣ Récupérer l'agence et son tableau "clients"
+//     const agency = await Agency.findById(agId).select('clients');
+//     if (!agency) {
+//       return res.status(404).json({ message: 'Agence non trouvée' });
+//     }
+
+//     // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
+//     const clients = await Client.find({ _id: { $in: agency.clients } });
+//     console.log(`Nombre de clients trouvés : ${clients.length}`);
+
+//     res.status(200).json(clients);
+//   } catch (error) {
+//     console.error('Erreur getClientsByAgency :', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 export const getClientsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
-    console.log('Recherche clients via agency.clients pour :', agencyId);
 
-    // Vérifier que l'ID est bien un ObjectId
-    const agId = new mongoose.Types.ObjectId(agencyId);
+    // Vérifier que l'ID est bien un ObjectId MongoDB
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      return res.status(400).json({ message: 'ID d’agence invalide' });
+    }
 
     // 1️⃣ Récupérer l'agence et son tableau "clients"
-    const agency = await Agency.findById(agId).select('clients');
+    const agency = await Agency.findById(agencyId).select('clients');
     if (!agency) {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
-    const clients = await Client.find({ _id: { $in: agency.clients } });
-    console.log(`Nombre de clients trouvés : ${clients.length}`);
+    // 2️⃣ Récupérer tous les clients dont l'ID figure dans ce tableau
+    const clients = await Client.find({ _id: { $in: agency.clients } })
+      .populate({
+        path: 'userId',           // récupérer les infos liées à l'utilisateur
+        select: '-password -__v -updatedAt'
+      })
+      .lean();
 
-    res.status(200).json(clients);
+    // 3️⃣ Retourner la liste complète
+    return res.status(200).json({
+      success: true,
+      count: clients.length,
+      data: clients
+    });
+
   } catch (error) {
-    console.error('Erreur getClientsByAgency :', error);
-    res.status(500).json({ error: error.message });
+    console.error('Erreur getAllClientsByAgency :', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la récupération des clients',
+      details: error.message
+    });
   }
 };
 
