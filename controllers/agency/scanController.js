@@ -14,10 +14,7 @@ export const scanBarrel = async (req, res) => {
   try {
     // ✅ Récupération de l’ID du client (QR code ou app)
     const clientId = req.query.clientId || req.query.id || req.body.clientId;
-    const status = req.body.status || null; // si GET, status n'est pas fourni
-    const comment = req.body.comment;
-    const photos = req.body.photos;
-    const positionGPS = req.body.positionGPS;
+    const status = req.body.status || null; // status fourni uniquement en POST
 
     // ✅ Auth facultative
     const collectorId = req.user?.id || null;
@@ -34,63 +31,47 @@ export const scanBarrel = async (req, res) => {
       return res.status(404).json({ error: 'Client introuvable.' });
     }
 
-    // ⚠️ Si GET → juste afficher infos du client
+    // ⚠️ GET → juste afficher infos du client décorées pour l'app
     if (req.method === 'GET' || !status) {
+      const clientName = `${client.firstName} ${client.lastName}`;
+      const collectorName = collectorId ? `${req.user.firstName} ${req.user.lastName}` : 'N/A';
+
+      const messageDecorated = `
+📌 **Infos du client**
+Nom : ${clientName}
+Téléphone : ${client.phone}
+Adresse : ${client.address}
+
+👤 **Collecteur**
+${collectorName}
+
+✅ Cliquez sur "Valider" pour confirmer la collecte.
+      `;
+
       return res.status(200).json({
-        message: 'Infos du client récupérées avec succès.',
-        client: {
-          id: client._id,
-          name: `${client.firstName} ${client.lastName}`,
-          phone: client.phone,
-          address: client.address
+        message: messageDecorated,
+        clientId: client._id,
+        action: {
+          label: 'Valider',
+          endpoint: '/api/collecte/scan/validate',
+          method: 'POST'
         }
       });
     }
 
-    // 🔍 Si POST → valider collecte ou signaler problème
-    if (!['collected', 'problem'].includes(status)) {
-      return res.status(400).json({ error: 'Le statut doit être "collected" ou "problem".' });
-    }
-
-    if (status === 'problem' && (!comment || comment.trim() === '')) {
-      return res.status(400).json({ error: 'Un commentaire est requis pour signaler un problème.' });
-    }
-
-    // 🔍 Valider GPS si fourni
-    if (positionGPS) {
-      const { lat, lng } = positionGPS;
-      if (
-        typeof lat !== 'number' || typeof lng !== 'number' ||
-        lat < -90 || lat > 90 || lng < -180 || lng > 180
-      ) {
-        return res.status(400).json({ error: 'Coordonnées GPS invalides.' });
-      }
+    // 🔍 POST → valider la collecte
+    if (status !== 'collected') {
+      return res.status(400).json({ error: 'Le statut doit être "collected".' });
     }
 
     // 📄 Préparer les données du rapport
     const reportData = {
       clientId,
-      scannedAt: new Date(),
-      status,
+      collectorId,
+      agencyId,
+      status: 'collected',
+      scannedAt: new Date()
     };
-
-    if (collectorId) reportData.collectorId = collectorId;
-    if (agencyId) reportData.agencyId = agencyId;
-
-    if (status === 'problem') {
-      reportData.comment = comment?.trim();
-
-      if (Array.isArray(photos)) {
-        reportData.photos = photos.filter(p => typeof p === 'string' && p.trim() !== '');
-      }
-
-      if (positionGPS) {
-        reportData.positionGPS = {
-          lat: positionGPS.lat,
-          lng: positionGPS.lng,
-        };
-      }
-    }
 
     // 💾 Enregistrer
     const scanReport = await new ScanReport(reportData).save();
@@ -102,9 +83,7 @@ export const scanBarrel = async (req, res) => {
     ]);
 
     return res.status(201).json({
-      message: status === 'collected'
-        ? '✅ Collecte validée avec succès.'
-        : '⚠️ Problème signalé avec succès.',
+      message: '✅ Collecte validée avec succès.',
       report: scanReport
     });
 
@@ -208,10 +187,10 @@ export const regenerateQRCode = async (req, res) => {
     const { clientId } = req.params;
 
     // Vérifie si le client existe
-    const client = await Client.findById(clientId);
+    const client = await Client.findById(clientId).select('firstName lastName');
     if (!client) {
       return res.status(404).json({
-        message: "Client introuvable",
+        message: "❌ Client introuvable",
         error: "CLIENT_NOT_FOUND"
       });
     }
@@ -231,13 +210,25 @@ export const regenerateQRCode = async (req, res) => {
       await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
     }
 
+    // Message décoré prêt pour l'app
+    const messageDecorated = `
+🎉 QR Code régénéré avec succès pour :
+Nom : ${client.firstName} ${client.lastName}
+
+🔗 Lien de scan : ${qrToken}
+
+📷 QR Code (image base64) disponible dans qrCodeImage
+    `;
+
     return res.status(200).json({
-      message: "QR code régénéré avec succès",
+      message: messageDecorated,
+      clientId: client._id,
       qrToken,
       qrCodeImage
     });
+
   } catch (error) {
-    console.error("Erreur lors de la régénération du QR code:", error);
+    console.error("❌ Erreur lors de la régénération du QR code:", error);
     return res.status(500).json({
       message: "Erreur serveur lors de la régénération du QR code",
       error: error.message
