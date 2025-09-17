@@ -14,7 +14,7 @@ export const creerPlanning = async (req, res) => {
     const employee = await Employee.findOne({ _id: collectorId, agencyId });
 
     const message = `Nouveau planning assigné: Jour ${date}, dans la zone ${zone}.`;
-    const notification = new Notification({ user: employee.userId, message, type: 'planning' });
+    const notification = new Notification({ user: employee.userId, message, type: 'Planning' });
     await notification.save();
 
 
