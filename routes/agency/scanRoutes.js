@@ -20,7 +20,9 @@ const router = express.Router();
  * /api/collecte/scan:
  *   get:
  *     summary: Scanner un QR code de collecte (via lien)
- *     description: Permet de valider une collecte automatiquement en scannant un QR code (GET avec `id`)
+ *     description: |
+ *       - Retourne **les infos du client** associé au QR code.
+ *       - Cette route est appelée lorsqu’on **scanne** un QR code (GET avec `id` ou `clientId`).
  *     tags: [Collecte]
  *     parameters:
  *       - in: query
@@ -30,8 +32,8 @@ const router = express.Router();
  *         schema:
  *           type: string
  *     responses:
- *       201:
- *         description: Collecte validée avec succès
+ *       200:
+ *         description: Infos du client récupérées avec succès
  *       400:
  *         description: Paramètre manquant ou invalide
  *       404:
@@ -43,10 +45,12 @@ router.get('/scan', scanBarrel);
 
 /**
  * @swagger
- * /api/collecte/scan:
+ * /api/collecte/scan/validate:
  *   post:
- *     summary: Signaler manuellement une collecte ou un problème
- *     description: Permet à un employé authentifié de signaler une collecte ou un problème.
+ *     summary: Valider une collecte
+ *     description: |
+ *       - Après avoir scanné un QR code (GET), l’utilisateur peut cliquer sur **Valider** dans l’UI.
+ *       - Cette route enregistre uniquement la **collecte validée**.
  *     tags: [Collecte]
  *     security:
  *       - bearerAuth: []
@@ -62,19 +66,6 @@ router.get('/scan', scanBarrel);
  *               clientId:
  *                 type: string
  *                 description: ID MongoDB du client
- *               status:
- *                 type: string
- *                 enum: [collected, problem]
- *                 default: collected
- *                 description: Statut de la collecte
- *               comment:
- *                 type: string
- *                 description: Commentaire si status = "problem"
- *               photos:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Photos en base64 ou URL
  *               positionGPS:
  *                 type: object
  *                 properties:
@@ -84,7 +75,7 @@ router.get('/scan', scanBarrel);
  *                     type: number
  *     responses:
  *       201:
- *         description: Collecte ou problème enregistré
+ *         description: Collecte validée
  *       400:
  *         description: Requête invalide
  *       404:
@@ -92,7 +83,7 @@ router.get('/scan', scanBarrel);
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan', scanBarrel);
+router.post('/scan/validate', scanBarrel);
 
 /**
  * @swagger

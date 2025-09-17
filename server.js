@@ -38,7 +38,8 @@ const app = express();
 
 const allowedOrigins = [
   'https://collect-dechets.vercel.app',
-  'http://localhost:4200'
+  'http://localhost:4200',
+  'hhtp://localhost:3000'
 ];
 
 // CORS

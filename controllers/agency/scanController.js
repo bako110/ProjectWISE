@@ -12,33 +12,48 @@ import User from '../../models/User.js'
 
 export const scanBarrel = async (req, res) => {
   try {
-    // ✅ Accepte GET (QR code) ou POST (app)
+    // ✅ Récupération de l’ID du client (QR code ou app)
     const clientId = req.query.clientId || req.query.id || req.body.clientId;
-    const status = req.body.status || 'collected';
+    const status = req.body.status || null; // si GET, status n'est pas fourni
     const comment = req.body.comment;
     const photos = req.body.photos;
     const positionGPS = req.body.positionGPS;
 
-    // ✅ Auth facultative (QR public vs app privée)
+    // ✅ Auth facultative
     const collectorId = req.user?.id || null;
     const agencyId = req.user?.agencyId || null;
 
-    // 🔍 Valider ID client
+    // 🔍 Vérifier l'ID client
     if (!clientId || !mongoose.Types.ObjectId.isValid(clientId)) {
       return res.status(400).json({ error: 'ClientId invalide ou manquant.' });
     }
 
+    // 🔍 Récupérer le client
+    const client = await Client.findById(clientId).select('firstName lastName phone address');
+    if (!client) {
+      return res.status(404).json({ error: 'Client introuvable.' });
+    }
+
+    // ⚠️ Si GET → juste afficher infos du client
+    if (req.method === 'GET' || !status) {
+      return res.status(200).json({
+        message: 'Infos du client récupérées avec succès.',
+        client: {
+          id: client._id,
+          name: `${client.firstName} ${client.lastName}`,
+          phone: client.phone,
+          address: client.address
+        }
+      });
+    }
+
+    // 🔍 Si POST → valider collecte ou signaler problème
     if (!['collected', 'problem'].includes(status)) {
       return res.status(400).json({ error: 'Le statut doit être "collected" ou "problem".' });
     }
 
     if (status === 'problem' && (!comment || comment.trim() === '')) {
       return res.status(400).json({ error: 'Un commentaire est requis pour signaler un problème.' });
-    }
-
-    const client = await Client.findById(clientId);
-    if (!client) {
-      return res.status(404).json({ error: 'Client introuvable.' });
     }
 
     // 🔍 Valider GPS si fourni
@@ -90,19 +105,7 @@ export const scanBarrel = async (req, res) => {
       message: status === 'collected'
         ? '✅ Collecte validée avec succès.'
         : '⚠️ Problème signalé avec succès.',
-      // report: {
-      //   id: scanReport._id,
-      //   client: scanReport.clientId,
-      //   collector: scanReport.collectorId || null,
-      //   agency: scanReport.agencyId || null,
-      //   status: scanReport.status,
-      //   scannedAt: scanReport.scannedAt,
-      //   ...(status === 'problem' && {
-      //     comment: scanReport.comment,
-      //     photos: scanReport.photos,
-      //     positionGPS: scanReport.positionGPS,
-      //   }),
-      // }
+      report: scanReport
     });
 
   } catch (error) {
@@ -113,6 +116,7 @@ export const scanBarrel = async (req, res) => {
     });
   }
 };
+
 
 /**
  * Récupérer l'historique des scans d’un collector
