@@ -62,17 +62,45 @@ export const listerPlannings = async (req, res) => {
 };
 
 // lister les plannings actifs de l'agence de la semaine
+// export const getPlannings = async (req, res) => {
+//   try {
+//     const agencyId = req.params.agencyId;
+//     if (!agencyId) {
+//       return res.status(400).json({ error: "Agency ID is required" });
+//     }
+//     const plannings = await CollectionSchedule.find({ isActive: true, agencyId })
+
+//     const collector = await Employee.find({ agencyId, _id: { $in: plannings.map(p => p.collectorId) } });
+
+//     res.status(200).json({  plannings, collector });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// }
 export const getPlannings = async (req, res) => {
   try {
     const agencyId = req.params.agencyId;
     if (!agencyId) {
       return res.status(400).json({ error: "Agency ID is required" });
     }
-    const plannings = await CollectionSchedule.find({ isActive: true, agencyId })
 
-    const collector = await Employee.find({ agencyId, _id: { $in: plannings.map(p => p.collectorId) } });
+    // Récupère tous les plannings actifs de l'agence
+    const plannings = await CollectionSchedule.find({ isActive: true, agencyId });
 
-    res.status(200).json({  plannings, collector });
+    // Récupère tous les collecteurs liés à ces plannings
+    const collectorIds = plannings.map(p => p.collectorId);
+    const collectors = await Employee.find({ agencyId, _id: { $in: collectorIds } });
+
+    // Associe chaque collecteur à son planning
+    const planningsWithCollector = plannings.map(planning => {
+      const collector = collectors.find(c => c._id.equals(planning.collectorId));
+      return {
+        ...planning.toObject(),
+        collector: collector || null
+      };
+    });
+
+    res.status(200).json({ plannings: planningsWithCollector });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
