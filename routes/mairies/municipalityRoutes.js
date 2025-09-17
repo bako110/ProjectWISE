@@ -114,6 +114,6 @@ router.get('/municipality/:municipalityId', authMiddleware('super_admin'), getMu
  */
 router.get('/municipality', authMiddleware('super_admin'), getAllMunicipalities);
 
-router.get('/municipality/city', statisticsByCity);
+router.get('/city/municipality', statisticsByCity);
 
 export default router;

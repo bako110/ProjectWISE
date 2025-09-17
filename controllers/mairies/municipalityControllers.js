@@ -153,31 +153,51 @@ export const getAllMunicipalities = async (req, res) => {
 
 export const statisticsByCity = async (req, res) => {
   try {
-    const totalAgency = await Agency.countDocuments();
-    const totalClients = await Client.countDocuments();
+  const totalAgency = await Agency.countDocuments();
+  const totalClients = await Client.countDocuments();
 
-    const agenciesByCity = await Agency.aggregate([
-      { $group: { city: "$address.city" } },
-      { $sum: { count: 1 } }
-    ]);
+  // Agences par ville
+  const agenciesByCity = await Agency.aggregate([
+    {
+      $group: {
+        _id: "$address.city",
+        count: { $sum: 1 }
+      }
+    }
+  ]);
 
-    const clientsByCity = await Client.aggregate([
-      { $group: { city: "$address.city" } },
-      { $sum: { count: 1 } }
-    ]);
+  // Clients par ville
+  const clientsByCity = await Client.aggregate([
+    {
+      $group: {
+        _id: "$address.city",
+        count: { $sum: 1 }
+      }
+    }
+  ]);
 
-    const statistics = agenciesByCity.reduce((acc, curr) => {
-      acc[curr.city] = {
-        city: curr.city,
-        agencies: curr.count,
-        clients: clientsByCity.find(c => c.city === curr.city)?.count || 0
-      };
-      return acc;
-    }, {});
+  // Créer un dictionnaire pour les clients par ville
+  const clientsMap = clientsByCity.reduce((acc, curr) => {
+    acc[curr._id] = curr.count;
+    return acc;
+  }, {});
 
-    res.status(200).json({statistics, agenciesByCity, clientsByCity, totalAgency, totalClients});
-  } catch (error) {
-    console.error('Error fetching statistics by city:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  // Fusionner les deux dans un seul objet par ville
+  const statistics = agenciesByCity.map(agency => ({
+    city: agency._id,
+    agencies: agency.count,
+    clients: clientsMap[agency._id] || 0
+  }));
+
+  res.status(200).json({
+    statistics,
+    totalAgency,
+    totalClients
+  });
+
+} catch (error) {
+  console.error('Error fetching statistics by city:', error);
+  res.status(500).json({ message: 'Server error', error: error.message });
+}
+
 };
