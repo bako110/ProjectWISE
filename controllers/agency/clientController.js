@@ -36,41 +36,40 @@ export const getClientsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
 
-    // Vérifier que l'ID est bien un ObjectId MongoDB
-    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      return res.status(400).json({ message: 'ID d’agence invalide' });
-    }
+    // Vérifier que l'ID est bien un ObjectId
+    const agId = new mongoose.Types.ObjectId(agencyId);
 
     // 1️⃣ Récupérer l'agence et son tableau "clients"
-    const agency = await Agency.findById(agencyId).select('clients');
+    const agency = await Agency.findById(agId).select('clients');
     if (!agency) {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    // 2️⃣ Récupérer tous les clients dont l'ID figure dans ce tableau
+    // 2️⃣ Récupérer tous les clients dont _id figure dans le tableau
     const clients = await Client.find({ _id: { $in: agency.clients } })
       .populate({
-        path: 'userId',           // récupérer les infos liées à l'utilisateur
+        path: 'userId',
         select: '-password -__v -updatedAt'
       })
       .lean();
 
-    // 3️⃣ Retourner la liste complète
+    // 3️⃣ Réordonner les clients pour correspondre exactement à l'ordre de agency.clients
+    const fullClients = agency.clients.map(clientId => {
+      const client = clients.find(c => c._id.equals(clientId));
+      return client || null; // null si client non trouvé
+    }).filter(c => c !== null); // enlever les éventuels null
+
     return res.status(200).json({
       success: true,
-      count: clients.length,
-      data: clients
+      count: fullClients.length,
+      data: fullClients
     });
-
   } catch (error) {
     console.error('Erreur getAllClientsByAgency :', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Erreur serveur lors de la récupération des clients',
-      details: error.message
-    });
+    return res.status(500).json({ error: error.message });
   }
 };
+
 
 /* ---------------------------------------------------------------------- */
 /* 3. Valider la souscription d'un client                                 */
