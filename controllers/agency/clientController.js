@@ -47,8 +47,15 @@ export const getClientsByAgency = async (req, res) => {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    // 2️⃣ Renvoyer directement le tableau d'IDs des clients
-    res.status(200).json(agency.clients);
+    // 2️⃣ Récupérer toutes les infos des clients correspondant aux IDs
+    const clients = await Client.find({ _id: { $in: agency.clients } });
+
+    // 3️⃣ Retourner à la fois le tableau d'IDs et les infos complètes
+    res.status(200).json({
+      count: clients.length,
+      clientIds: agency.clients,
+      clientsInfo: clients
+    });
   } catch (error) {
     console.error('Erreur getClientsByAgency :', error);
     res.status(500).json({ error: error.message });
