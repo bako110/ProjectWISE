@@ -7,51 +7,31 @@ import Agency from '../../models/Agency/Agency.js';
 /* ---------------------------------------------------------------------- */
 /* 1. Liste des clients présents dans le tableau `clients` de l'agence    */
 /* ---------------------------------------------------------------------- */
-// export const getClientsByAgency = async (req, res) => {
-//   try {
-//     const { agencyId } = req.params;
-//     console.log('Recherche clients via agency.clients pour :', agencyId);
-
-//     // Vérifier que l'ID est bien un ObjectId
-//     const agId = new mongoose.Types.ObjectId(agencyId);
-
-//     // 1️⃣ Récupérer l'agence et son tableau "clients"
-//     const agency = await Agency.findById(agId).select('clients');
-//     if (!agency) {
-//       return res.status(404).json({ message: 'Agence non trouvée' });
-//     }
-
-//     // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
-//     const clients = await Client.find({ _id: { $in: agency.clients } });
-//     console.log(`Nombre de clients trouvés : ${clients.length}`);
-
-//     res.status(200).json(clients);
-//   } catch (error) {
-//     console.error('Erreur getClientsByAgency :', error);
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// 🎯 FONCTION SIMPLE ET EFFICACE - Récupère TOUS les clients sans filtrage
-
-
-/**
- * Récupère uniquement les IDs des clients liés à une agence
- * @param {string} agencyId - ID de l'agence
- * @returns {Promise<Array>} - Tableau d'IDs de clients
- */
-export const getClientsByAgency = async (agencyId) => {
+export const getClientsByAgency = async (req, res) => {
   try {
-    const agency = await Agency.findById(agencyId).select('clients');
-    if (!agency) throw new Error('Agence non trouvée');
+    const { agencyId } = req.params;
+    console.log('Recherche clients via agency.clients pour :', agencyId);
 
-    // Retourne uniquement les IDs
-    return agency.clients;
+    // Vérifier que l'ID est bien un ObjectId
+    const agId = new mongoose.Types.ObjectId(agencyId);
+
+    // 1️⃣ Récupérer l'agence et son tableau "clients"
+    const agency = await Agency.findById(agId).select('clients');
+    if (!agency) {
+      return res.status(404).json({ message: 'Agence non trouvée' });
+    }
+
+    // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
+    // const clients = await Client.find({ _id: { $in: agency.clients } });
+    // console.log(`Nombre de clients trouvés : ${clients.length}`);
+
+    res.status(200).json(clients);
   } catch (error) {
-    console.error('Erreur lors de la récupération des IDs des clients :', error);
-    throw error;
+    console.error('Erreur getClientsByAgency :', error);
+    res.status(500).json({ error: error.message });
   }
 };
+
 /* ---------------------------------------------------------------------- */
 /* 3. Valider la souscription d'un client                                 */
 /* ---------------------------------------------------------------------- */
