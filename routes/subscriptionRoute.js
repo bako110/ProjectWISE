@@ -13,7 +13,7 @@ const router = express.Router();
 // Route to create a subscription
 /**
  * @swagger
- * /api/subscriptions:
+ * /api/subscriptions/{tarifId}/{numberMonth}:
  *   post:
  *     summary: Créer un abonnement
  *     tags: [Subscriptions]
@@ -75,8 +75,38 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 
-router.post('/subscriptions', createSubscription);
+router.post('/subscriptions/:tarifId/:numberMonth', createSubscription);
 // Route to get subscriptions by user
+
+/**
+ * @swagger
+ * /api/subscriptions/user/{userId}:
+ *   get:
+ *     summary: Obtenir les abonnements d'un utilisateur
+ *     tags:
+ *       - Subscriptions
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: Liste des abonnements de l'utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Subscription'
+ *       400:
+ *         description: User ID is required
+ *       500:
+ *         description: Erreur interne du serveur
+ */
+
 router.get('/subscriptions/user/:userId', getSubscriptionsByUser);
 // Route to get all subscriptions
 router.get('/subscriptions', getAllSubscriptions);

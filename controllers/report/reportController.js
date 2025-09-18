@@ -2,6 +2,7 @@ import Report from '../../models/report/report.js';
 import Client from '../../models/clients/Client.js';
 import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js';
+import Notification from '../../models/Notification.js';
 import mongoose from 'mongoose';
 
 
@@ -52,6 +53,18 @@ export const createReport = async (req, res) => {
     });
 
     await report.save();
+
+    if (collectorId) {
+      const message = "le collecter "+collector.lastName + " a signalé un problème: " + description;
+      const notification = new Notification({ user: agency.userId, message, type: 'Signalement' });
+      await notification.save();
+    }
+
+    if (clientId) {
+      const message = "le client "+client.lastName + " client a signalé un problème: " + description;
+      const notification = new Notification({ user: agency.userId, message, type: 'Signalement' });
+      await notification.save();
+    }
 
     res.status(201).json({ message: "Signalement créé avec succès ✅", report });
   } catch (error) {
