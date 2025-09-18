@@ -7,32 +7,6 @@ import Agency from '../../models/Agency/Agency.js';
 /* ---------------------------------------------------------------------- */
 /* 1. Liste des clients présents dans le tableau `clients` de l'agence    */
 /* ---------------------------------------------------------------------- */
-// export const getClientsByAgency = async (req, res) => {
-//   try {
-//     const { agencyId } = req.params;
-//     console.log('Recherche clients via agency.clients pour :', agencyId);
-
-//     // Vérifier que l'ID est bien un ObjectId
-//     const agId = new mongoose.Types.ObjectId(agencyId);
-
-//     // 1️⃣ Récupérer l'agence et son tableau "clients"
-//     const agency = await Agency.findById(agId).select('clients');
-//     if (!agency) {
-//       return res.status(404).json({ message: 'Agence non trouvée' });
-//     }
-
-//     // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
-//     // const clients = await Client.find({ _id: { $in: agency.clients } });
-//     // console.log(`Nombre de clients trouvés : ${clients.length}`);
-
-//     res.status(200).json(clients);
-//   } catch (error) {
-//     console.error('Erreur getClientsByAgency :', error);
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-
 export const getClientsByAgency = async (req, res) => {
   try {
     const { agencyId } = req.params;
@@ -47,20 +21,17 @@ export const getClientsByAgency = async (req, res) => {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    // 2️⃣ Récupérer toutes les infos des clients correspondant aux IDs
+    2️⃣ Rechercher les clients dont _id figure dans ce tableau
     const clients = await Client.find({ _id: { $in: agency.clients } });
+    console.log(`Nombre de clients trouvés : ${clients.length}`);
 
-    // 3️⃣ Retourner à la fois le tableau d'IDs et les infos complètes
-    res.status(200).json({
-      count: clients.length,
-      clientIds: agency.clients,
-      user: clients
-    });
+    res.status(200).json(clients);
   } catch (error) {
     console.error('Erreur getClientsByAgency :', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 /* ---------------------------------------------------------------------- */
 /* 3. Valider la souscription d'un client                                 */
 /* ---------------------------------------------------------------------- */
