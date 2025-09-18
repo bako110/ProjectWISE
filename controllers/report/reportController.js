@@ -168,7 +168,7 @@ export const getAllReports = async (req, res) => {
 export const assignEmployeeToReport = async (req, res) => {
   try {
     const { reportId } = req.params;
-    const { employeeId, status } = req.body;
+    const { employeeId } = req.body;
 
     // Validation basic
     if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
@@ -208,16 +208,16 @@ export const assignEmployeeToReport = async (req, res) => {
     }
 
     // Optionnel : changer le statut automatiquement si fourni ou définir un statut par défaut
-    const allowedStatuses = ['pending', 'in_progress', 'resolved'];
-    if (status) {
-      if (!allowedStatuses.includes(status)) {
-        return res.status(400).json({ error: 'Statut invalide.' });
-      }
-      report.status = status;
-    } else {
-      // si on veut marquer automatiquement en cours après assignation
-      if (report.status === 'pending') report.status = 'in_progress';
-    }
+    // const allowedStatuses = ['pending', 'in_progress', 'resolved'];
+    // if (status) {
+    //   if (!allowedStatuses.includes(status)) {
+    //     return res.status(400).json({ error: 'Statut invalide.' });
+    //   }
+    //   report.status = status;
+    // } else {
+    //   // si on veut marquer automatiquement en cours après assignation
+    //   if (report.status === 'pending') report.status = 'in_progress';
+    // }
 
     // Enregistrer
     await report.save();
@@ -235,7 +235,6 @@ export const assignEmployeeToReport = async (req, res) => {
       report: {
         id: report._id,
         type: report.type,
-        status: report.status,
         client: report.client ? `${report.client.firstName} ${report.client.lastName}` : null,
         collector: report.collector ? `${report.collector.firstName} ${report.collector.lastName}` : null,
         agency: report.agency ? report.agency.agencyName : null,
