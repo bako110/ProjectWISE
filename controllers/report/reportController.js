@@ -2,7 +2,7 @@ import Report from '../../models/report/report.js';
 import Client from '../../models/clients/Client.js';
 import Employee from '../../models/Agency/Employee.js';
 import Agency from '../../models/Agency/Agency.js';
-
+import mongoose from 'mongoose';
 /**
  * 📌 Créer un signalement
  * (soit par un client, soit par un collecteur)
