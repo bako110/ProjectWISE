@@ -4,6 +4,11 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import swaggerDocs from './swagger.js';
 
+import { generateDictionary } from './generator.js';
+import fs from 'fs';
+import { exportPDF } from './exportPDF.js';
+
+
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import agencyRoutes from './routes/agency/agencyRoutes.js';
@@ -88,6 +93,21 @@ app.use('/api', notificationRoute);
 app.use((req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
+
+// generation du dic
+app.get('/dictionary/pdf', async (req, res) => {
+  await generateDictionary();
+  exportPDF();
+  res.download('./dictionary.pdf');
+});
+
+
+app.get('/dictionary', async (req, res) => {
+  await generateDictionary();
+  const dictionary = JSON.parse(fs.readFileSync('./dictionary.json', 'utf-8'));
+  res.json(dictionary);
+});
+
 
 // Gestion erreurs
 app.use((err, req, res, next) => {
