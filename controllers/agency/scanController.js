@@ -211,3 +211,28 @@ export const regenerateQRCode = async (req, res) => {
     });
   }
 };
+
+export const getAgencyPercentage = async (req, res) => {
+  try {
+    const { agencyId } = req.params;
+
+    // Total des collectes (toutes agences)
+    const totalCollectes = await ScanReport.countDocuments({ status: 'collected' });
+
+    // Total des collectes pour cette agence
+    const agenceCollectes = await ScanReport.countDocuments({ agencyId, status: 'collected' });
+
+    // Calcul du pourcentage
+    const pourcentage = totalCollectes > 0 ? (agenceCollectes / totalCollectes) * 100 : 0;
+
+    res.json({
+      agencyId,
+      agenceCollectes,
+      totalCollectes,
+      pourcentage: pourcentage.toFixed(2) + '%' // formaté à 2 décimales
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};

@@ -2,7 +2,8 @@ import express from 'express';
 import { 
   scanBarrel, 
   getScanReports, 
-  regenerateQRCode 
+  regenerateQRCode,
+  getAgencyPercentage
 } from '../../controllers/agency/scanController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
 // import { protect, adminOnly } from '../../middlewares/authMiddleware.js';
@@ -157,5 +158,47 @@ router.get('/reports', getScanReports);
  *         description: Erreur serveur
  */
 router.put('/regenerate/:clientId',  regenerateQRCode);
+
+
+/**
+ * @swagger
+ * /api/collecte/percentage/{agencyId}:
+ *   get:
+ *     summary: Calculer le pourcentage des collectes d'une agence sur le total
+ *     description: Retourne le nombre total de collectes et le pourcentage d'une agence donnée.
+ *     tags:
+ *       - ScanReports
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         description: L'ID de l'agence
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Pourcentage des collectes d'une agence
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 agencyId:
+ *                   type: string
+ *                   example: "653c4b9ff20325daaaa12345"
+ *                 agenceCollectes:
+ *                   type: integer
+ *                   example: 50
+ *                 totalCollectes:
+ *                   type: integer
+ *                   example: 200
+ *                 pourcentage:
+ *                   type: string
+ *                   example: "25.00%"
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/percentage/:agencyId', getAgencyPercentage);
+
 
 export default router;

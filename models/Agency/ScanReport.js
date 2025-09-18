@@ -50,14 +50,7 @@ status: {
   enum: ['collected'],
   required: false
 },
-  comment: {
-    type: String,
-    required: function () {
-      return this.status === 'problem';
-    },
-    trim: true
-  },
-
+  
   photos: {
     type: [String],
     validate: {
