@@ -102,6 +102,6 @@ router.get('/agency/:agencyId',/* authMiddleware('agency'),*/ getClientsByAgency
  *       404:
  *         description: Client non trouvé
  */
-router.put('/:clientId/validate', authMiddleware('agency'), validateClientSubscription);
+router.put('/clients/:clientId/validate', authMiddleware('agency'), validateClientSubscription);
 
 export default router;
