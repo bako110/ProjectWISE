@@ -44,12 +44,9 @@ export const scanBarrel = async (req, res) => {
       return res.status(400).json({ error: 'Le statut doit être "collected".' });
     }
 
-    if (!req.user?.id) {
-      return res.status(401).json({ error: 'Collecteur non authentifié.' });
-    }
-
-    // Récupérer le collecteur et son agence
-    const collector = await Employee.findById(req.user.id).populate('agencyId', 'agencyName');
+    // On suppose que le middleware a déjà rempli req.user
+    // ⚡ Chercher le collecteur via userId (JWT donne User._id)
+    const collector = await Employee.findOne({ userId: req.user.id }).populate('agencyId', 'agencyName');
     if (!collector) return res.status(404).json({ error: 'Collecteur introuvable.' });
     if (!collector.agencyId) return res.status(400).json({ error: 'Le collecteur doit appartenir à une agence.' });
 
@@ -86,6 +83,7 @@ export const scanBarrel = async (req, res) => {
     });
   }
 };
+
 
 /**
  * Récupérer l'historique des scans d’un collector

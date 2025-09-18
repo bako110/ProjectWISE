@@ -4,6 +4,7 @@ import {
   getScanReports, 
   regenerateQRCode 
 } from '../../controllers/agency/scanController.js';
+import authMiddleware from '../../middlewares/authMiddleware.js';
 // import { protect, adminOnly } from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -83,7 +84,7 @@ router.get('/scan', scanBarrel);
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan/validate', scanBarrel);
+router.post('/scan/validate', authMiddleware(), scanBarrel);
 
 /**
  * @swagger
