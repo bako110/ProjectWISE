@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto, { randomUUID } from 'crypto';
+import Wallet from '../models/Wallet.js';
 
 import User from '../models/User.js';
 import Client from '../models/clients/Client.js';
@@ -120,6 +121,13 @@ export const register = async (req, res) => {
       role: normalizedRole,
       isActive: true
     });
+
+     const newWallet = new Wallet({
+      userId: createdUser._id,
+      balance: 0,
+      kind: 'standard'
+    });
+    await newWallet.save();
 
     let profileData = {};
 

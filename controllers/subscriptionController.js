@@ -4,18 +4,40 @@ import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
 import Client from "../models/clients/Client.js";
 import Notification from "../models/Notification.js";
+import Tarif from "../models/Tarif.js";
 
 export const createSubscription = async (req, res) => {
   try {
-    const { userId, agencyId, plan, startDate, endDate, amount, numberMonth } = req.body;
+    // const { userId, agencyId, plan, startDate, endDate, amount, numberMonth } = req.body;
 
     
-    if (!userId || !agencyId || !plan || !amount || !numberMonth || numberMonth <= 0) {
+    // if (!userId || !agencyId || !plan || !amount || !numberMonth || numberMonth <= 0) {
+    //   return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
+    // }
+
+    const userId = req.user._id;
+    const tarifId = req.params.tarifId;
+    const numberMonth = parseInt(req.params.numberMonth) || 1;
+
+    const subscribedUser = await Subscription.findOne({ userId, status: 'active' });
+    const startDate = subscribedUser ? subscribedUser.endDate : new Date();
+
+    if (!userId || !tarifId || !numberMonth || numberMonth <= 0) {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
 
     const endDateCalculated = new Date(new Date().setMonth(new Date().getMonth() + numberMonth));
+    // const totalAmount = amount * numberMonth;
+
+    const tarif = await Tarif.findById(tarifId);
+    if (!tarif) {
+      return res.status(404).json({ error: "Tarif non trouvé" });
+    }
+    const agencyId = tarif.agencyId;
+    const amount = tarif.price;
+    const plan = tarif.type;
     const totalAmount = amount * numberMonth;
+
 
     const user = await User.findById(userId);
     if (!user) {
@@ -57,7 +79,11 @@ export const createSubscription = async (req, res) => {
       await agency.save();
     }
 
-    const message = `Vous avez souscrit au plan ${plan} de l'agence ${agency.name} pour ${numberMonth} mois. Montant total: ${totalAmount}.`;
+    const messageUser = `Vous avez souscrit au plan ${plan} de l'agence ${agency.name} pour ${numberMonth} mois. Montant total: ${totalAmount}.`;
+    const messageAgency = `Nouveau client abonné: ${user.firstName} ${user.lastName} au plan ${plan} pour ${numberMonth} mois. Montant total: ${totalAmount}.`;
+
+    const notificationAgency = new Notification({ user: agency.userId, message: messageAgency, type: 'Subscribed' });
+    await notificationAgency.save();
     const notification = new Notification({ user: userId, message, type: 'Subscribed' });
     await notification.save();
 
@@ -86,7 +112,7 @@ export const getSubscriptionsByUser = async (req, res) => {
             return res.status(400).json({ error: "User ID is required" });
         }
         const subscriptions = await Subscription.find({ userId })
-            .populate('agencyId', 'name address phone email')
+            .populate('agencyId', 'agencyName address phone email')
             .populate('userId', 'firstName lastName email');
         res.json(subscriptions);
     } catch (error) {
@@ -98,7 +124,7 @@ export const getSubscriptionsByUser = async (req, res) => {
 export const getAllSubscriptions = async (req, res) => {
     try {
         const subscriptions = await Subscription.find()
-            .populate('agencyId', 'name address phone email')
+            .populate('agencyId', 'agencyName address phone email')
             .populate('userId', 'firstName lastName email');
         res.json(subscriptions);
     } catch (error) {
