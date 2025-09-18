@@ -11,7 +11,7 @@ export async function generateDictionary() {
   const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
   await client.connect();
 
-  const db = client.db('collectordb'); // Nom de ta base
+  const db = client.db('monappli'); // Nom de ta base
 
   const collections = await db.listCollections().toArray();
   const dictionary = [];
