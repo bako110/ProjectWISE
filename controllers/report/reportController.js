@@ -170,7 +170,7 @@ export const assignEmployeeToReport = async (req, res) => {
     const { reportId } = req.params;
     const { employeeId } = req.body;
 
-    // Validation basic
+    // ✅ Validation
     if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
       return res.status(400).json({ error: 'reportId invalide ou manquant.' });
     }
@@ -178,60 +178,44 @@ export const assignEmployeeToReport = async (req, res) => {
       return res.status(400).json({ error: 'employeeId invalide ou manquant.' });
     }
 
-    // Récupérer le signalement
+    // ✅ Charger le signalement
     const report = await Report.findById(reportId).populate('agency', 'agencyName');
     if (!report) return res.status(404).json({ error: 'Signalement introuvable.' });
 
-    // Récupérer l'employé
+    // ✅ Charger l’employé
     const employee = await Employee.findById(employeeId).populate('agencyId', 'agencyName');
     if (!employee) return res.status(404).json({ error: 'Employé introuvable.' });
 
-    // Vérifier rôle (optionnel : adapte selon ton champ role)
+    // ✅ Vérifier rôle si nécessaire
     if (employee.role && employee.role !== 'collector') {
       return res.status(400).json({ error: 'L\'employé sélectionné n\'a pas le rôle de collecteur.' });
     }
 
-    // Optionnel : vérifier que l'employé appartient à la même agence que le report
-    // Décommente cette vérification si tu veux l'appliquer :
-    /*
-    if (report.agency && employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id)) {
-      return res.status(400).json({ error: 'L\'employé n\'appartient pas à la même agence que le signalement.' });
-    }
-    */
+    // ✅ Vérifier agence si besoin
+    // if (report.agency && employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id)) {
+    //   return res.status(400).json({ error: 'L\'employé n\'appartient pas à la même agence que le signalement.' });
+    // }
 
-    // Assigner l'employé au report
+    // ✅ Assigner
     report.collector = employee._id;
 
-    // Si aucun agency défini sur le report, on peut l'initialiser avec l'agence de l'employé
+    // Si pas d’agence définie sur le report → on la prend depuis l’employé
     if (!report.agency && employee.agencyId) {
       report.agency = employee.agencyId._id;
     }
 
-    // Optionnel : changer le statut automatiquement si fourni ou définir un statut par défaut
-    // const allowedStatuses = ['pending', 'in_progress', 'resolved'];
-    // if (status) {
-    //   if (!allowedStatuses.includes(status)) {
-    //     return res.status(400).json({ error: 'Statut invalide.' });
-    //   }
-    //   report.status = status;
-    // } else {
-    //   // si on veut marquer automatiquement en cours après assignation
-    //   if (report.status === 'pending') report.status = 'in_progress';
-    // }
-
-    // Enregistrer
+    // ✅ Enregistrer
     await report.save();
 
-    // Populer pour la réponse
+    // ✅ Populer pour la réponse
     await report.populate([
       { path: 'client', select: 'firstName lastName phone' },
       { path: 'collector', select: 'firstName lastName role' },
       { path: 'agency', select: 'agencyName' }
     ]);
 
-    // Réponse décorée pour l'app
     return res.status(200).json({
-      message: `✅ Employé assigné avec succès au signalement.`,
+      message: '✅ Employé assigné avec succès au signalement.',
       report: {
         id: report._id,
         type: report.type,
