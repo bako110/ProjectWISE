@@ -58,7 +58,7 @@ export const createSubscription = async (req, res) => {
     }
 
     const message = `Vous avez souscrit au plan ${plan} de l'agence ${agency.name} pour ${numberMonth} mois. Montant total: ${totalAmount}.`;
-    const notification = new Notification({ user: userId, message, type: 'subscription' });
+    const notification = new Notification({ user: userId, message, type: 'Subscribed' });
     await notification.save();
 
     const subscription = new Subscription({
