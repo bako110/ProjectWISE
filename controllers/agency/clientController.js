@@ -21,7 +21,7 @@ export const getClientsByAgency = async (req, res) => {
       return res.status(404).json({ message: 'Agence non trouvée' });
     }
 
-    2️⃣ Rechercher les clients dont _id figure dans ce tableau
+    // 2️⃣ Rechercher les clients dont _id figure dans ce tableau
     const clients = await Client.find({ _id: { $in: agency.clients } });
     console.log(`Nombre de clients trouvés : ${clients.length}`);
 
