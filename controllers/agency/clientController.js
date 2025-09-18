@@ -54,7 +54,7 @@ export const getClientsByAgency = async (req, res) => {
     res.status(200).json({
       count: clients.length,
       clientIds: agency.clients,
-      clientsInfo: clients
+      user: clients
     });
   } catch (error) {
     console.error('Erreur getClientsByAgency :', error);
