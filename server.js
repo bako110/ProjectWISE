@@ -8,13 +8,11 @@ import { generateDictionary } from './generator.js';
 import fs from 'fs';
 import { exportPDF } from './exportPDF.js';
 
-
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import agencyRoutes from './routes/agency/agencyRoutes.js';
 import superAdminRoutes from './routes/admin/superAdminRoutes.js';
 import municipalityRoutes from './routes/mairies/municipalityRoutes.js';
-// import zoneRoutes from './routes/agency/zoneRoutes.js';
 import profileRoutes from './routes/profile.js';
 import agenceSearchRoutes from './routes/clients/agencySearchRoutes.js';
 import agencyClientRoutes from './routes/clients/clientRoutes.js';
@@ -47,28 +45,23 @@ const allowedOrigins = [
 
 // CORS
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
 
-// Middleware JSON
 app.use(express.json());
 
 // Swagger
 swaggerDocs(app);
 
-// Routes
+// --- ROUTES API EXISTANTES ---
 app.use('/api/auth', authRoutes);
 app.use('/api/agences', agencyRoutes);
 app.use('/api/auth', superAdminRoutes);
 app.use('/api/auth', municipalityRoutes);
-// app.use('/api/zones', zoneRoutes);
 app.use('/api', profileRoutes);
 app.use('/api/zones/plannings', planningRoutes);
 app.use('/api/agences', agenceSearchRoutes);
@@ -89,27 +82,40 @@ app.use('/api', subscriptionRoute);
 app.use('/api', messageRoute);
 app.use('/api', notificationRoute);
 
-// 404
+// --- ROUTES DICTIONNAIRE ---
+// JSON
+app.get('/dictionary', async (req, res) => {
+  try {
+    await generateDictionary();
+    const dictionary = JSON.parse(fs.readFileSync('./dictionary.json', 'utf-8'));
+    res.json(dictionary);
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur génération dictionnaire', details: err.message });
+  }
+});
+
+// PDF
+app.get('/dictionary/pdf', async (req, res) => {
+  try {
+    await generateDictionary();
+    await exportPDF(); // attendre que le PDF soit créé
+    const filePath = './dictionary.pdf';
+    if (fs.existsSync(filePath)) {
+      res.download(filePath);
+    } else {
+      res.status(500).json({ error: 'PDF non généré' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur génération PDF', details: err.message });
+  }
+});
+
+// --- 404 (après toutes les routes) ---
 app.use((req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
 
-// generation du dic
-app.get('/dictionary/pdf', async (req, res) => {
-  await generateDictionary();
-  exportPDF();
-  res.download('./dictionary.pdf');
-});
-
-
-app.get('/dictionary', async (req, res) => {
-  await generateDictionary();
-  const dictionary = JSON.parse(fs.readFileSync('./dictionary.json', 'utf-8'));
-  res.json(dictionary);
-});
-
-
-// Gestion erreurs
+// --- Middleware erreurs ---
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Erreur serveur', details: err.message });
