@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const reportSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['missed_collection', 'compliance_issue', 'complaint', 'technical_issue'],
+    // enum: ['missed_collection', 'compliance_issue', 'complaint', 'technical_issue'],
     required: true
   },
   description: {
@@ -34,6 +34,16 @@ const reportSchema = new mongoose.Schema({
   date: {
     type: Date,
     default: Date.now
+  },
+  photos: {
+    type: [String],
+    validate: {
+      validator: function (arr) {
+        return arr.every(p => typeof p === 'string');
+      },
+      message: 'Chaque photo doit être une chaîne valide.'
+    },
+    default: []
   },
   status: {
     type: String,
