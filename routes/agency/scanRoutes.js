@@ -162,7 +162,7 @@ router.put('/regenerate/:clientId',  regenerateQRCode);
 
 /**
  * @swagger
- * /api/collecte/{collectorId}historique:
+ * /api/collecte/{collectorId}/historique:
  *   get:
  *     summary: Récupérer l'historique des collectes
  *     tags: [Collecte]

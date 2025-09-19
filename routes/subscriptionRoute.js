@@ -13,7 +13,7 @@ const router = express.Router();
 // Route to create a subscription
 /**
  * @swagger
- * /api/subscriptions/{tarifId}/{numberMonth}:
+ * /api/{userId}/subscriptions/{tarifId}/{numberMonth}:
  *   post:
  *     summary: Créer un abonnement
  *     tags: [Subscriptions]
@@ -75,7 +75,7 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 
-router.post('/subscriptions/:tarifId/:numberMonth', createSubscription);
+router.post('/:userId/subscriptions/:tarifId/:numberMonth', createSubscription);
 // Route to get subscriptions by user
 
 /**
