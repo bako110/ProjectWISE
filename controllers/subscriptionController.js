@@ -15,7 +15,7 @@ export const createSubscription = async (req, res) => {
     //   return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     // }
 
-    const userId = req.user._id;
+    const userId = req.user.id;
     const tarifId = req.params.tarifId;
     const numberMonth = parseInt(req.params.numberMonth) || 1;
 

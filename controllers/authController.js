@@ -485,6 +485,7 @@ export const resetPassword = async (req, res) => {
 /* ------------------------------- LOGOUT ------------------------------- */
 export const logout = async (req, res) => {
   try {
+    console.log(req.user)
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 

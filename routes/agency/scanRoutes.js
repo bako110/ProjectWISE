@@ -3,6 +3,7 @@ import {
   scanBarrel, 
   getScanReports, 
   regenerateQRCode,
+  getScanHistory,
   getAgencyPercentage
 } from '../../controllers/agency/scanController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
@@ -159,6 +160,23 @@ router.get('/reports', getScanReports);
  */
 router.put('/regenerate/:clientId',  regenerateQRCode);
 
+/**
+ * @swagger
+ * /api/collecte/historique:
+ *   get:
+ *     summary: Récupérer l'historique des collectes
+ *     tags: [Collecte]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Historique des collectes
+ *       401:
+ *         description: Non authentifié
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/collecte/historique', getScanHistory);
 
 /**
  * @swagger

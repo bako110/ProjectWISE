@@ -7,6 +7,7 @@ import {
   historiqueParCollecteur,
   supprimerPlanning,
   getPlannings,
+  getStatisques,
   getCollectorPlannings
 } from '../../controllers/agency/planningController.js';
 
@@ -244,5 +245,19 @@ router.get('/agency/:agencyId', authMiddleware('agency', 'manager', 'collector')
  *         description: Erreur serveur
  */
 router.get('/collector/:collectorId', authMiddleware('collector'), getCollectorPlannings);
+
+/**
+ * @swagger
+ * /api/zones/plannings/statistics/collector:
+ *   get:
+ *     summary: Récupérer les statistiques des plannings par collecteur
+ *     tags: [Plannings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques des plannings par collecteur
+ */
+router.get('/statistics/collector', getStatisques);
 
 export default router;

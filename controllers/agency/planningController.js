@@ -2,6 +2,8 @@ import CollectionSchedule from '../../models/Agency/CollectionSchedule.js';
 import Client from '../../models/clients/Client.js';
 import Notification from '../../models/Notification.js';
 import Employee from '../../models/Agency/Employee.js';
+import ScanReport from '../../models/Agency/ScanReport.js';
+import Report from '../../models/report/report.js';
 
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
@@ -175,6 +177,32 @@ export const getCollectorPlannings = async (req, res) => {
 } catch (error) {
   res.status(500).json({ error: error.message });
 }
+
+}
+
+export const getStatisques = async (req, res) => {
+  try {
+    const user = req.user.id;
+
+  const date = new Date(new Date().setHours(0, 0, 0, 0));
+  const plannings = await CollectionSchedule.find({ collectorId: user, date });
+
+  const clients = await Client.find({ subscribedAgencyId: plannings[0]?.agencyId, "address.neighborhood": plannings[0]?.zone });
+
+  const reports = await ScanReport.find({ collectorId: user, createdAt: { $gte: date }, status: 'collected' , agencyId: plannings[0]?.agencyId });
+
+  const incidents = await Report.find({ collector: user, status:'pending'})
+  
+  const totalClients = clients.length;
+
+  const totalReports = reports.length;
+
+  const totalIncidents = incidents.length;
+
+  res.status(200).json({ totalClients, totalReports, totalIncidents });
+  }catch(error){
+    res.status(500).json({ error: error.message });
+  }
 
 }
 
