@@ -182,7 +182,8 @@ export const getCollectorPlannings = async (req, res) => {
 
 export const getStatisques = async (req, res) => {
   try {
-    const user = req.user.id;
+    // const user = req.user.id;
+    const user = req.params.collectorId;
 
   const date = new Date(new Date().setHours(0, 0, 0, 0));
   const plannings = await CollectionSchedule.find({ collectorId: user, date });

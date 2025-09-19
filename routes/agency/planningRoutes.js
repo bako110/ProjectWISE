@@ -248,7 +248,7 @@ router.get('/collector/:collectorId', authMiddleware('collector'), getCollectorP
 
 /**
  * @swagger
- * /api/zones/plannings/statistics/collector:
+ * /api/zones/plannings/statistics/{collectorId}:
  *   get:
  *     summary: Récupérer les statistiques des plannings par collecteur
  *     tags: [Plannings]
@@ -258,6 +258,6 @@ router.get('/collector/:collectorId', authMiddleware('collector'), getCollectorP
  *       200:
  *         description: Statistiques des plannings par collecteur
  */
-router.get('/statistics/collector', getStatisques);
+router.get('/statistics/:collectorId', getStatisques);
 
 export default router;

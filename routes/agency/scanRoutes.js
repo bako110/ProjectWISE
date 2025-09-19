@@ -162,7 +162,7 @@ router.put('/regenerate/:clientId',  regenerateQRCode);
 
 /**
  * @swagger
- * /api/collecte/historique:
+ * /api/collecte/{collectorId}historique:
  *   get:
  *     summary: Récupérer l'historique des collectes
  *     tags: [Collecte]
@@ -176,7 +176,7 @@ router.put('/regenerate/:clientId',  regenerateQRCode);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collecte/historique', getScanHistory);
+router.get('/:collectrId/historique', getScanHistory);
 
 /**
  * @swagger

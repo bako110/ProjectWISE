@@ -90,7 +90,8 @@ export const scanBarrel = async (req, res) => {
  */
 export const getScanHistory = async (req, res) => {
   try {
-    const collectorId = req.user.id;
+    // const collectorId = req.user.id;
+    const collectorId = req.params.collectorId;
     const { page = 1, limit = 20, status, clientId } = req.query;
 
     const query = { collectorId };
