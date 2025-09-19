@@ -13,7 +13,7 @@ import mongoose from 'mongoose';
  */
 export const createReport = async (req, res) => {
   try {
-    const { clientId, collectorId, agencyId, type, description, severity } = req.body;
+    const { clientId, collectorId, agencyId, type, description, severity, photos } = req.body;
 
     if (!agencyId || !description || !type) {
       return res.status(400).json({ error: "Type, agence et description sont obligatoires." });
@@ -49,7 +49,8 @@ export const createReport = async (req, res) => {
       type,
       description,
       severity: severity || "low", // 👈 valeur par défaut
-      status: "pending"
+      status: "pending",
+      photos
     });
 
     await report.save();
