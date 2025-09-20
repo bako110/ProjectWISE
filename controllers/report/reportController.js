@@ -191,7 +191,7 @@ export const assignEmployeeToReport = async (req, res) => {
     if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
       return res.status(400).json({ error: 'reportId invalide ou manquant.' });
     }
-    if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
+    if (!employeeId || !mongoose.Types.ObjectId.isValid(...employeeId)) {
       return res.status(400).json({ error: 'employeeId invalide ou manquant.' });
     }
 

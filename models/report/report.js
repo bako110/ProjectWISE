@@ -16,16 +16,16 @@ const reportSchema = new mongoose.Schema({
     enum: ['critical', 'high', 'medium', 'low'], // valeurs autorisées
     required: false
   },
-  client: {
+  client: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
     required: false // pas obligatoire
-  },
-  collector: {
+  }],
+  collector: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
     required: false // pas obligatoire
-  },
+  }],
   agency: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Agency',
@@ -47,7 +47,7 @@ const reportSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'resolved'],
+    enum: ['pending', 'in_progress','resolved'],
     default: 'pending'
   }
 }, { timestamps: true });
