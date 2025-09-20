@@ -180,48 +180,45 @@ export const getAllReports = async (req, res) => {
 /**
  * Assigner un employé (collector) à un report (signalement)
  * Route suggérée : PUT /api/reports/:reportId/assign
- * Body attendu : { employeeIds: ["<id1>", "<id2>", ...], status?: "in_progress" }
+ * Body attendu : { employeeId: "<id>", status?: "in_progress" }
  */
 export const assignEmployeeToReport = async (req, res) => {
   try {
     const { reportId } = req.params;
-    const { employeeIds } = req.body;
+    const { employeeId } = req.body;
 
     // ✅ Validation
     if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
       return res.status(400).json({ error: 'reportId invalide ou manquant.' });
     }
-    if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.some(id => !mongoose.Types.ObjectId.isValid(id))) {
-      return res.status(400).json({ error: 'employeeIds invalide ou manquant.' });
+    if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
+      return res.status(400).json({ error: 'employeeId invalide ou manquant.' });
     }
 
     // ✅ Charger le signalement
     const report = await Report.findById(reportId).populate('agency', 'agencyName');
     if (!report) return res.status(404).json({ error: 'Signalement introuvable.' });
 
-    // ✅ Charger les employés
-    const employees = await Employee.find({ _id: { $in: employeeIds } }).populate('agencyId', 'agencyName');
-    if (!employees || employees.length === 0) {
-      return res.status(404).json({ error: 'Aucun employé introuvable.' });
-    }
+    // ✅ Charger l’employé
+    const employee = await Employee.findById(employeeId).populate('agencyId', 'agencyName');
+    if (!employee) return res.status(404).json({ error: 'Employé introuvable.' });
 
     // ✅ Vérifier rôle si nécessaire
-    const hasInvalidRole = employees.some(employee => employee.role && employee.role !== 'collector');
-    if (hasInvalidRole) {
-      return res.status(400).json({ error: 'L\'un des employés sélectionné n\'a pas le rôle de collecteur.' });
+    if (employee.role && employee.role !== 'collector') {
+      return res.status(400).json({ error: 'L\'employé sélectionné n\'a pas le rôle de collecteur.' });
     }
 
     // ✅ Vérifier agence si besoin
-    // if (report.agency && employees.some(employee => employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id))) {
-    //   return res.status(400).json({ error: 'L\'un des employés n\'appartient pas à la même agence que le signalement.' });
+    // if (report.agency && employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id)) {
+    //   return res.status(400).json({ error: 'L\'employé n\'appartient pas à la même agence que le signalement.' });
     // }
 
     // ✅ Assigner
-    report.collector = employees.map(employee => employee._id);
+    report.collector = employee._id;
 
-    // Si pas d'agence définie sur le report → on la prend depuis l'employé
-    if (!report.agency && employees[0].agencyId) {
-      report.agency = employees[0].agencyId._id;
+    // Si pas d’agence définie sur le report → on la prend depuis l’employé
+    if (!report.agency && employee.agencyId) {
+      report.agency = employee.agencyId._id;
     }
 
     // ✅ Enregistrer
@@ -235,12 +232,12 @@ export const assignEmployeeToReport = async (req, res) => {
     ]);
 
     return res.status(200).json({
-      message: '✅ Employé(s) assigné(s) avec succès au signalement.',
+      message: '✅ Employé assigné avec succès au signalement.',
       report: {
         id: report._id,
         type: report.type,
         client: report.client ? `${report.client.firstName} ${report.client.lastName}` : null,
-        collector: report.collector ? report.collector.map(collectorId => employees.find(employee => String(employee._id) === collectorId).firstName + ' ' + employees.find(employee => String(employee._id) === collectorId).lastName) : null,
+        collector: report.collector ? `${report.collector.firstName} ${report.collector.lastName}` : null,
         agency: report.agency ? report.agency.agencyName : null,
         description: report.description,
         updatedAt: report.updatedAt
@@ -252,3 +249,74 @@ export const assignEmployeeToReport = async (req, res) => {
     return res.status(500).json({ error: 'Erreur serveur interne.', details: err.message });
   }
 };
+
+// export const assignEmployeeToReport = async (req, res) => {
+//   try {
+//     const { reportId } = req.params;
+//     const { employeeIds } = req.body;
+
+//     // ✅ Validation
+//     if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
+//       return res.status(400).json({ error: 'reportId invalide ou manquant.' });
+//     }
+//     if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.some(id => !mongoose.Types.ObjectId.isValid(id))) {
+//       return res.status(400).json({ error: 'employeeIds invalide ou manquant.' });
+//     }
+
+//     // ✅ Charger le signalement
+//     const report = await Report.findById(reportId).populate('agency', 'agencyName');
+//     if (!report) return res.status(404).json({ error: 'Signalement introuvable.' });
+
+//     // ✅ Charger les employés
+//     const employees = await Employee.find({ _id: { $in: employeeIds } }).populate('agencyId', 'agencyName');
+//     if (!employees || employees.length === 0) {
+//       return res.status(404).json({ error: 'Aucun employé introuvable.' });
+//     }
+
+//     // ✅ Vérifier rôle si nécessaire
+//     const hasInvalidRole = employees.some(employee => employee.role && employee.role !== 'collector');
+//     if (hasInvalidRole) {
+//       return res.status(400).json({ error: 'L\'un des employés sélectionné n\'a pas le rôle de collecteur.' });
+//     }
+
+//     // ✅ Vérifier agence si besoin
+//     // if (report.agency && employees.some(employee => employee.agencyId && String(report.agency._id) !== String(employee.agencyId._id))) {
+//     //   return res.status(400).json({ error: 'L\'un des employés n\'appartient pas à la même agence que le signalement.' });
+//     // }
+
+//     // ✅ Assigner
+//     report.collector = employees.map(employee => employee._id);
+
+//     // Si pas d'agence définie sur le report → on la prend depuis l'employé
+//     if (!report.agency && employees[0].agencyId) {
+//       report.agency = employees[0].agencyId._id;
+//     }
+
+//     // ✅ Enregistrer
+//     await report.save();
+
+//     // ✅ Populer pour la réponse
+//     await report.populate([
+//       { path: 'client', select: 'firstName lastName phone' },
+//       { path: 'collector', select: 'firstName lastName role' },
+//       { path: 'agency', select: 'agencyName' }
+//     ]);
+
+//     return res.status(200).json({
+//       message: '✅ Employé(s) assigné(s) avec succès au signalement.',
+//       report: {
+//         id: report._id,
+//         type: report.type,
+//         client: report.client ? `${report.client.firstName} ${report.client.lastName}` : null,
+//         collector: report.collector ? report.collector.map(collectorId => employees.find(employee => String(employee._id) === collectorId).firstName + ' ' + employees.find(employee => String(employee._id) === collectorId).lastName) : null,
+//         agency: report.agency ? report.agency.agencyName : null,
+//         description: report.description,
+//         updatedAt: report.updatedAt
+//       }
+//     });
+
+//   } catch (err) {
+//     console.error('Erreur assignEmployeeToReport:', err);
+//     return res.status(500).json({ error: 'Erreur serveur interne.', details: err.message });
+//   }
+// };
