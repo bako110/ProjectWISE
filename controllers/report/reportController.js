@@ -217,7 +217,7 @@ export const assignEmployeeToReport = async (req, res) => {
     // }
 
     // ✅ Assigner
-    report.collectors = employees.map(employee => employee._id);
+    report.collector = employees.map(employee => employee._id);
 
     // Si pas d'agence définie sur le report → on la prend depuis l'employé
     if (!report.agency && employees[0].agencyId) {
