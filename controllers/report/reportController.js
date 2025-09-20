@@ -230,7 +230,7 @@ export const assignEmployeeToReport = async (req, res) => {
     // ✅ Populer pour la réponse
     await report.populate([
       { path: 'client', select: 'firstName lastName phone' },
-      { path: 'collectors', select: 'firstName lastName role' },
+      { path: 'collector', select: 'firstName lastName role' },
       { path: 'agency', select: 'agencyName' }
     ]);
 
@@ -240,7 +240,7 @@ export const assignEmployeeToReport = async (req, res) => {
         id: report._id,
         type: report.type,
         client: report.client ? `${report.client.firstName} ${report.client.lastName}` : null,
-        collectors: report.collectors ? report.collectors.map(collectorId => employees.find(employee => String(employee._id) === collectorId).firstName + ' ' + employees.find(employee => String(employee._id) === collectorId).lastName) : null,
+        collector: report.collector ? report.collector.map(collectorId => employees.find(employee => String(employee._id) === collectorId).firstName + ' ' + employees.find(employee => String(employee._id) === collectorId).lastName) : null,
         agency: report.agency ? report.agency.agencyName : null,
         description: report.description,
         updatedAt: report.updatedAt
