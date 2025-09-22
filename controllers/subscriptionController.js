@@ -92,6 +92,7 @@ export const createSubscription = async (req, res) => {
       userId,
       agencyId,
       tarifId,
+      numberMonth,
         plan,
         amount: totalAmount,
         startDate: startDate || new Date(),

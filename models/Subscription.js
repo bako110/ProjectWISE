@@ -9,6 +9,7 @@ const subscriptionSchema = new mongoose.Schema({
   endDate: { type: Date, required: true },
   status: { type: String, enum: ['active', 'inactive', 'canceled'], default: 'active' },
   tarifId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tarif', required: true },
+  numberMonth: { type: Number, required: true },
   // paymentDetails: {
   //   method: { type: String, enum: ['credit_card', 'paypal', 'bank_transfer'], required: true },
     //   transactionId: { type: String, required: true },
