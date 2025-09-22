@@ -85,7 +85,7 @@ export const createSubscription = async (req, res) => {
 
     const notificationAgency = new Notification({ user: agency.userId, message: messageAgency, type: 'Subscribed' });
     await notificationAgency.save();
-    const notification = new Notification({ user: userId, message, type: 'Subscribed' });
+    const notification = new Notification({ user: userId, message: messageUser, type: 'Subscribed' });
     await notification.save();
 
     const subscription = new Subscription({
