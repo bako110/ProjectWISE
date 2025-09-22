@@ -27,14 +27,21 @@ export const createSubscription = async (req, res) => {
       return res.status(400).json({ error: "Champs obligatoires manquants ou invalides" });
     }
 
-    const endDateCalculated = new Date(new Date().setMonth(new Date().getMonth() + numberMonth));
+    const endDateCalculated = subscribedUser ? startDate.setMonth(startDate.getMonth() + numberMonth) : new Date(new Date().setMonth(new Date().getMonth() + numberMonth));
     // const totalAmount = amount * numberMonth;
-
+    const client = await Client.findOne({ userId });
     const tarif = await Tarif.findById(tarifId);
     if (!tarif) {
       return res.status(404).json({ error: "Tarif non trouvé" });
     }
+
     const agencyId = tarif.agencyId;
+
+    if (!client) {
+      return res.status(404).json({ error: "Client non trouvé" });
+    }
+
+    if (client.subscribedAgencyId !== agencyId && subscribedUser) return res.status(400).json({ error: "Vous avez d'autres abonnements en cours avec d'autres agences" });
     const amount = tarif.price;
     const plan = tarif.type;
     const totalAmount = amount * numberMonth;
@@ -70,7 +77,6 @@ export const createSubscription = async (req, res) => {
       walletAgency.save();
     }
 
-    const client = await Client.findOne({ userId });
 
     client.subscribedAgencyId = agencyId;
     client.save();
