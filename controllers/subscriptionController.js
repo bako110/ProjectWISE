@@ -91,6 +91,7 @@ export const createSubscription = async (req, res) => {
     const subscription = new Subscription({
       userId,
       agencyId,
+      tarifId,
         plan,
         amount: totalAmount,
         startDate: startDate || new Date(),
