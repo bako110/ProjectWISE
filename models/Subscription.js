@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const subscriptionSchema = new mongoose.Schema({
   agencyId: {type: mongoose.Schema.Types.ObjectId, ref: 'Agency', required: true},
-  plan: { type: String, enum: ['strandard', 'premium', 'enterprise'], required: true },
+  plan: { type: String, enum: ['standard', 'premium', 'enterprise'], required: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
   startDate: { type: Date, default: Date.now },
