@@ -1,4 +1,4 @@
-import express from 'express';
+// import express from 'express';
 // import {
 //   createZone,
 //   getZonesByAgency,
@@ -304,3 +304,5 @@ router.get('/', getZones);
  *         description: Erreur serveur
  */
 router.patch('/:agencyId', updateZones);
+
+export default router;

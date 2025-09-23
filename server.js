@@ -31,7 +31,7 @@ import walletRoute from "./routes/walletRoute.js";
 import subscriptionRoute from "./routes/subscriptionRoute.js";
 import messageRoute from './routes/messageRoute.js';
 import notificationRoute from './routes/notificationRoute.js';
-import zoneRoute from './routes/zoneRoute.js';
+import zoneRoutes from './routes/agency/zoneRoutes.js';
 import './cron/subscriptionChecker.js';
 
 dotenv.config();
@@ -74,7 +74,7 @@ app.use('/api/collecte', collecteRoutes);
 app.use('/api/payments', payment);
 app.use('/api/services', serviceRoute);
 app.use('/api/reports', reportRoutes);
-app.use('/api/zones', zoneRoute);
+app.use('/api/zones', zoneRoutes);
 app.use('/api', neighborhoodRoutes);
 app.use('/api', sectorRoute);
 app.use('/api', arrondissementRoute);
