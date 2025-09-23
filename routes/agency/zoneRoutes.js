@@ -237,3 +237,70 @@ import express from 'express';
 // router.put('/:id/assign-collectors', authMiddleware('agency', 'manager'), assignCollectorsToZone);
 
 // export default router;
+import express from 'express';
+import { getZones, updateZones } from '../../controllers/agency/zoneController.js';
+
+const router = express.Router();
+
+/**
+ *  @swagger
+ *  tags:
+ *    name: Zones
+ *    description: Gestion des zones
+ */
+
+/**
+ * @swagger
+ * /api/zones:
+ *   get:
+ *     summary: Récupérer toutes les zones
+ *     tags: [Zones]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des zones
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/', getZones);
+
+/**
+ * @swagger
+ * /api/zones/{agencyId}:
+ *   patch:
+ *     summary: Mettre à jour une zone
+ *     tags: [Zones]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence dont on veut mettre à jour les zones
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["Tampouy", "Koulouba"]
+ *               description:
+ *                 type: string
+ *                 example: "Description de la zone"
+ *     responses:
+ *       200:
+ *         description: Zone mise à jour
+ *       404:
+ *         description: Zone non trouvée
+ *       500:
+ *         description: Erreur serveur
+ */
+router.patch('/:agencyId', updateZones);

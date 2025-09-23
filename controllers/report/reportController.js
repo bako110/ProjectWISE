@@ -230,6 +230,10 @@ export const assignEmployeeToReport = async (req, res) => {
       { path: 'collector', select: 'firstName lastName role' },
       { path: 'agency', select: 'agencyName' }
     ]);
+    const message = 'Vous avez été assigné au signalement du client' + report.client.firstName + ' ' + report.client.lastName ;
+    const notification = new Notification({ user: employee._id, message, type: 'Assignment' });
+    await notification.save();
+
 
     return res.status(200).json({
       message: '✅ Employé assigné avec succès au signalement.',

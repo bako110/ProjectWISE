@@ -23,9 +23,9 @@ const employeeSchema = new mongoose.Schema({
     enum: ['manager', 'collector'],
     required: true
   },
-  zones: [{
-    type: String,
-  }],
+  // zones: [{
+  //   type: String,
+  // }],
   
   isActive: { type: Boolean, default: true },
 
