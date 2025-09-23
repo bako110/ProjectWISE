@@ -4,6 +4,8 @@ import Notification from '../../models/Notification.js';
 import Employee from '../../models/Agency/Employee.js';
 import ScanReport from '../../models/Agency/ScanReport.js';
 import Report from '../../models/report/report.js';
+import Subscription from '../../models/Subscription.js';
+import Agency from '../../models/Agency/Agency.js';
 
 // ➤ Créer un planning
 export const creerPlanning = async (req, res) => {
@@ -178,6 +180,59 @@ export const getCollectorPlannings = async (req, res) => {
   res.status(500).json({ error: error.message });
 }
 
+}
+
+export const getClientPlanning = async (req, res) =>{
+  try{
+    const clientId = req.params.clientId;
+    if (!clientId) {
+      return res.status(400).json({ error: "Client ID is required" });
+    }
+
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client not found" });
+    }
+     
+    const plannings = await CollectionSchedule.find({ isActive: true, zone: client.address.neighborhood, agencyId: client.subscribedAgencyId   });
+
+    res.status(200).json({ plannings });
+  }catch (error){
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export const getClientRepport = async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+
+    if (!clientId) {
+      return res.status(400).json({ error: "Client ID is required" });
+    }
+
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client not found" });
+    }
+    const subscribed = await Subscription.findOne({ userId: clientId, status: 'active' });
+    if (!subscribed) {
+      return res.status(404).json({ error: "Subscription not found" });
+    }
+    const reports = await ScanReport.find({
+        $gte: new Date(subscribed.startDate),
+        $lte: new Date(subscribed.endDate),
+        clientId: clientId,
+        agencyId: client.subscribedAgencyId
+  });
+
+    // const reports = await ScanReport.find({ clientId, agencyId: client.subscribedAgencyId });
+
+
+    res.status(200).json({ reports });
+  }catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+  
 }
 
 export const getStatisques = async (req, res) => {

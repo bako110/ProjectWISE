@@ -8,7 +8,9 @@ import {
   supprimerPlanning,
   getPlannings,
   getStatisques,
-  getCollectorPlannings
+  getCollectorPlannings,
+  getClientPlanning,
+  getClientRepport
 } from '../../controllers/agency/planningController.js';
 
 const router = express.Router();
@@ -259,5 +261,101 @@ router.get('/collector/:collectorId', authMiddleware('collector'), getCollectorP
  *         description: Statistiques des plannings par collecteur
  */
 router.get('/statistics/:collectorId', getStatisques);
+
+
+/**
+ * @swagger
+ * /api/zones/plannings/{clientId}:
+ *   get:
+ *     summary: Récupérer le planning de collecte du client
+ *     tags: [Clients]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: clientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du client
+ *     responses:
+ *       200:
+ *         description: Planning récupéré avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 plannings:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       zone:
+ *                         type: string
+ *                       isActive:
+ *                         type: boolean
+ *                       agencyId:
+ *                         type: string
+ *                       # Ajoute d'autres champs ici selon ton modèle
+ *       400:
+ *         description: Client ID manquant
+ *       404:
+ *         description: Client non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+
+router.get('/:clientId', getClientPlanning);
+
+/**
+ * @swagger
+ * /api/zones/plannings/{clientId}/collecte:
+ *   get:
+ *     summary: Récupérer les rapports de collecte d’un client
+ *     tags: [Clients]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: clientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du client
+ *     responses:
+ *       200:
+ *         description: Rapports récupérés avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 reports:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       clientId:
+ *                         type: string
+ *                       agencyId:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       # Ajoute d'autres champs ici selon ton modèle
+ *       400:
+ *         description: Client ID manquant
+ *       404:
+ *         description: Client ou abonnement non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
+
+router.get('/:clientId/collecte', getClientRepport);
 
 export default router;
