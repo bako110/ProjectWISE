@@ -24,8 +24,32 @@ const router = express.Router();
  *     tags: [RechercheAgences]
  *     parameters:
  *       - in: query
- *         name: q
+ *         name: term
  *         required: true
+ *         schema:
+ *           type: string
+ *         description: Terme recherché (nom d’agence, quartier, rue, etc.)
+ *       - in: query
+ *         name: city
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Terme recherché (nom d’agence, quartier, rue, etc.)
+ *       - in: query
+ *         name: sector
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Terme recherché (nom d’agence, quartier, rue, etc.)
+ *       - in: query
+ *         name: rating
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Terme recherché (nom d’agence, quartier, rue, etc.)
+ *       - in: query
+ *         name: neighborhood
+ *         required: false
  *         schema:
  *           type: string
  *         description: Terme recherché (nom d’agence, quartier, rue, etc.)

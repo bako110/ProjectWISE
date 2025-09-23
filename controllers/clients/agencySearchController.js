@@ -11,9 +11,9 @@ const DEFAULT_PAGE = 1;
  */
 export const rechercherAgences = async (req, res) => {
   try {
-    const { q, limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = req.query;
+    const { term, city, sector, neighborhood, rating, limit = DEFAULT_LIMIT, page = DEFAULT_PAGE } = req.query;
     
-    const searchTerm = q ? q.trim() : '';
+    const searchTerm = term ? term.trim() : '';
     const limitNum = parseInt(limit);
     const pageNum = parseInt(page);
     const skip = (pageNum - 1) * limitNum;
@@ -25,34 +25,38 @@ export const rechercherAgences = async (req, res) => {
     if (searchTerm) {
       matchQuery = {
         $or: [
-          { name: new RegExp(searchTerm, 'i') },
-          { 'location.region': new RegExp(searchTerm, 'i') },
-          { 'location.province': new RegExp(searchTerm, 'i') },
-          { 'location.commune': new RegExp(searchTerm, 'i') },
-          { 'location.ville': new RegExp(searchTerm, 'i') },
-          { 'location.quartier': new RegExp(searchTerm, 'i') },
-          { 'location.secteur': new RegExp(searchTerm, 'i') },
-          { 'location.rue': new RegExp(searchTerm, 'i') },
-          { description: new RegExp(searchTerm, 'i') }
+          { agencyName: new RegExp(searchTerm, 'i') },
+          { 'address.city': new RegExp(searchTerm, 'i') },
+          { 'address.sector': new RegExp(searchTerm, 'i') },
+          { 'address.neighborhood': new RegExp(searchTerm, 'i') },
+          // { 'address.ville': new RegExp(searchTerm, 'i') },
+          // { 'address.quartier': new RegExp(searchTerm, 'i') },
+          // { 'address.secteur': new RegExp(searchTerm, 'i') },
+          // { 'address.rue': new RegExp(searchTerm, 'i') },
+          // { description: new RegExp(searchTerm, 'i') }
         ]
       };
     }
+    if (city) {
+      matchQuery['address.city'] = new RegExp(city, 'i');
+    }
+    if (sector) {
+      matchQuery['address.sector'] = new RegExp(sector, 'i');
+    }
+    if (neighborhood) {
+      matchQuery['address.neighborhood'] = new RegExp(neighborhood, 'i');
+    }
+    if (rating) {
+      matchQuery['rating'] = new RegExp(rating, 'i');
+    }
 
-    // Pipeline d'agrégation avec lookup des zones
+
+
+    // Pipeline de recherche
     const pipeline = [
       { $match: matchQuery },
-      {
-        $lookup: {
-          from: 'zones',
-          localField: 'zones',
-          foreignField: '_id',
-          as: 'zoneDetails'
-        }
-      },
-      { $unwind: { path: '$zoneDetails', preserveNullAndEmptyArrays: true } },
-      { $sort: { verified: -1, name: 1 } },
       { $skip: skip },
-      { $limit: limitNum }
+      { $limit: limitNum },
     ];
 
     // Exécution de la recherche
