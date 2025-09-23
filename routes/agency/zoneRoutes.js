@@ -251,7 +251,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/zones:
+ * /api/zones/{agencyId}:
  *   get:
  *     summary: Récupérer toutes les zones
  *     tags: [Zones]
@@ -263,7 +263,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  */
-router.get('/', getZones);
+router.get('/:agencyId', getZones);
 
 /**
  * @swagger
