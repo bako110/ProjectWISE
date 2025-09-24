@@ -237,3 +237,15 @@ export const getAgencyPercentage = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 };
+
+export const getReportByAgency = async (req, res) => {
+  try {
+    const agencyId = req.params.agencyId;
+    const startDate = new Date(new Date().setHours(0, 0, 0, 0));
+    const endDate = new Date(new Date().setHours(23, 59, 59, 999));
+    const collecte = await ScanReport.find({ agencyId, $gte: new Date(startDate), $lte: new Date(endDate) });
+    res.status(200).json(collecte);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

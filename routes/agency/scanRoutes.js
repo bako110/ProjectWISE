@@ -4,6 +4,7 @@ import {
   getScanReports, 
   regenerateQRCode,
   getScanHistory,
+  getReportByAgency,
   getAgencyPercentage
 } from '../../controllers/agency/scanController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
@@ -217,6 +218,30 @@ router.get('/:collectrId/historique', getScanHistory);
  *         description: Erreur serveur
  */
 router.get('/percentage/:agencyId', getAgencyPercentage);
+
+/**
+ * @swagger
+ * /api/collecte/{agencyId}/scan:
+ *   get:
+ *     summary: Récupérer les collectes d’une agence
+ *     tags: [Collecte]
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des collectes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ScanReport'
+ */
+router.get('/:agencyId/scan', getReportByAgency);
 
 
 export default router;
