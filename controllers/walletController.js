@@ -40,6 +40,9 @@ export const addFunds = async (req, res) => {
     if (!wallet) {
       return res.status(404).json({ error: "Wallet not found for this user" });
     }
+    if ( amount <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
     wallet.balance += amount;
     await wallet.save();
     res.status(200).json({message: "Funds added successfully", wallet});
