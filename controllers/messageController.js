@@ -1,5 +1,6 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
+import Agency from "../models/Agency/Agency.js";
 
 
 // Envoyer un message
@@ -20,12 +21,12 @@ export const sendMessage = async (req, res) => {
 
 // Récupérer les messages entre deux utilisateurs
 export const getMessages = async (req, res) => {
-  const { userId1, userId2 } = req.params;
+  const { userId, receiverId } = req.params;
     try {
     const messages = await Message.find({
         $or: [
-        { sender: userId1, receiver: userId2 },
-        { sender: userId2, receiver: userId1 }
+        { sender: userId, receiver: receiverId },
+        { sender: receiverId, receiver: userId }
       ]
     }).sort({ createdAt: 1 });
     res.status(200).json({ messages });
@@ -34,6 +35,61 @@ export const getMessages = async (req, res) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
+
+export const getGroupeName = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] });
+   
+
+    const interlocutorIds = new Set();
+
+    messages.forEach(msg => {
+      if (msg.sender.toString() !== userId.toString()) {
+        interlocutorIds.add(msg.sender.toString());
+      }
+      if (msg.receiver.toString() !== userId.toString()) {
+        interlocutorIds.add(msg.receiver.toString());
+      }
+    });
+
+    const ids = Array.from(interlocutorIds);
+
+    const users = await User.find({ _id: { $in: ids } });
+
+    const results = [];
+
+    for (const user of users) {
+      let details = {
+        userId: user._id,
+        role: user.role
+      };
+
+      if (user.role.toString() === 'client') {
+        const client = await Client.findOne({ user: user._id });
+        if (client) {
+          details.firstName = client.firstName;
+          details.lastName = client.lastName;
+        }
+      } else if (user.role.toString() === 'agency') {
+        const agency = await Agency.findOne({ userId: user._id });
+        if (agency) {
+          details.agencyName = agency.agencyName;
+        }
+      }
+
+      results.push(details);
+    }
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des messages :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+
+    
 
 // Récupérer les conversations d'un utilisateur
 export const getConversations = async (req, res) => {

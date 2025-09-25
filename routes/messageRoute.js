@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendMessage, countUnreadMessages, getInbox, markAsRead, deleteMessage } from '../controllers/messageController.js';
+import { sendMessage, countUnreadMessages, getInbox, markAsRead, deleteMessage, getMessages,getGroupeName } from '../controllers/messageController.js';
 
 const router = express.Router();
 
@@ -187,5 +187,85 @@ router.put('/messages/:messageId/mark-read', markAsRead);
  *         description: Erreur serveur
  */
 router.delete('/messages/:messageId/delete', deleteMessage);
+
+/**
+ * @swagger
+ * /api/messages/{userId}/groupe:
+ *   get:
+ *     summary: Récupérer les utilisateurs avec qui l'utilisateur a échangé des messages
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur connecté
+ *     responses:
+ *       200:
+ *         description: Liste des utilisateurs avec qui l'utilisateur a échangé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   userId:
+ *                     type: string
+ *                     description: ID de l'interlocuteur
+ *                   role:
+ *                     type: string
+ *                     enum: [client, agency]
+ *                   firstName:
+ *                     type: string
+ *                     nullable: true
+ *                   lastName:
+ *                     type: string
+ *                     nullable: true
+ *                   agencyName:
+ *                     type: string
+ *                     nullable: true
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/:userId/groupe', getGroupeName);
+
+
+/**
+ * @swagger
+ * /api/messages/{userId}/inbox/{receiverId}:
+ *   get:
+ *     summary: Récupérer les messages entre deux utilisateurs
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur connecté
+ *       - in: path
+ *         name: receiverId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'autre utilisateur dans la conversation
+ *     responses:
+ *       200:
+ *         description: Liste des messages triés par date croissante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/:userId/inbox/:receiverId', getMessages);
 
 export default router;
