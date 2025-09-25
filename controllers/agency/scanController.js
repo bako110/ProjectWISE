@@ -94,7 +94,7 @@ export const getScanHistory = async (req, res) => {
     const collectorId = req.params.collectorId;
     const { page = 1, limit = 20 } = req.query;
 
-    // const query = { collectorId };
+    const query = { collectorId };
 
     // if (status && ['collected', 'problem'].includes(status)) query.status = status;
     // if (clientId && mongoose.Types.ObjectId.isValid(clientId)) query.clientId = clientId;
@@ -102,14 +102,14 @@ export const getScanHistory = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [scans, total] = await Promise.all([
-      ScanReport.find(collectorId)
+      ScanReport.find(query)
         .populate('clientId', 'firstName lastName phone')
         .populate('collectorId', 'firstName lastName')
         .populate('agencyId', 'agencyName')
         .sort({ scannedAt: -1 })
         .skip(skip)
         .limit(Number(limit)),
-      ScanReport.countDocuments(collectorId)
+      ScanReport.countDocuments(query)
     ]);
 
     res.json({
