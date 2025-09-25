@@ -105,7 +105,7 @@ export const getScanHistory = async (req, res) => {
 
     const [scans, total] = await Promise.all([
       ScanReport.find(query)
-        .populate('clientId', 'firstName lastName phone')
+        .populate('clientId', 'firstName lastName phone address')
         .populate('collectorId', 'firstName lastName')
         .populate('agencyId', 'agencyName')
         .sort({ scannedAt: -1 })
