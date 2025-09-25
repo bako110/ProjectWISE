@@ -94,6 +94,8 @@ export const getScanHistory = async (req, res) => {
     const collectorId = req.params.collectorId;
     const { page = 1, limit = 20 } = req.query;
 
+    if (!collectorId) return res.status(400).json({ error: 'CollectorId manquant.' });
+    
     const query = { collectorId };
 
     // if (status && ['collected', 'problem'].includes(status)) query.status = status;

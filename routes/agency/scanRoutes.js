@@ -177,7 +177,7 @@ router.put('/regenerate/:clientId',  regenerateQRCode);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:collectrId/historique', getScanHistory);
+router.get('/:collectorId/historique', getScanHistory);
 
 /**
  * @swagger
