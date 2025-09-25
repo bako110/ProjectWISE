@@ -122,12 +122,12 @@ export const register = async (req, res) => {
       isActive: true
     });
 
-     const newWallet = new Wallet({
-      userId: createdUser._id,
-      balance: 0,
-      kind: 'standard'
-    });
-    await newWallet.save();
+    //  const newWallet = new Wallet({
+    //   userId: createdUser._id,
+    //   balance: 0,
+    //   kind: 'standard'
+    // });
+    // await newWallet.save();
 
     let profileData = {};
 
