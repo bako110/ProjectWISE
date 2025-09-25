@@ -214,7 +214,7 @@ export const getClientRepport = async (req, res) => {
     if (!client) {
       return res.status(404).json({ error: "Client not found" });
     }
-    const subscribed = await Subscription.findOne({ userId: clientId, status: 'active' });
+    const subscribed = await Subscription.findOne({ userId: client.userId, status: 'active' });
     if (!subscribed) {
       return res.status(404).json({ error: "Subscription not found" });
     }
