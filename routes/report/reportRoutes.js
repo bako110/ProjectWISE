@@ -127,7 +127,7 @@ router.get("/all", getAllReports);
  *                 type: string
  *                 description: Gravité du problème
  *                 enum: [low, medium, high]
- *               wise:
+ *               photos:
  *                 type: string
  *                 format: binary
  *                 description: Fichier image associé au signalement
@@ -151,7 +151,7 @@ router.get("/all", getAllReports);
  *       500:
  *         description: Erreur serveur
  */
-router.post("/",upload.single('wise'), createReport);
+router.post("/",upload.array('photos', 10), createReport);
 
 /**
  * @swagger
@@ -324,7 +324,7 @@ router.get("/collector/:collectorId", getReportsByCollector);
  */
 
 router.put('/:reportId/assign', assignEmployeeToReport);
-router.post("/", upload.single('wise'), createReport);
+router.post("/", upload.array('photos', 10), createReport);
 router.get("/agency/:agencyId", getReportsByAgency);
 router.get("/client/:clientId", getReportsByClient);
 router.get("/collector/:collectorId", getReportsByCollector);
