@@ -152,7 +152,7 @@ export const getScanReports = async (req, res) => {
 
     const reports = await ScanReport.find(filters)
       .populate([
-        { path: 'clientId', select: 'firstName lastName phone' },
+        { path: 'clientId', select: 'firstName lastName phone address' },
         { path: 'collectorId', select: 'firstName lastName' },
         { path: 'agencyId', select: 'agencyName' }
       ])
@@ -251,7 +251,7 @@ export const getReportByAgencyHistorique = async (req, res) => {
     const total = await ScanReport.countDocuments({ agencyId });
 
     const collecte = await ScanReport.find({ agencyId })
-      .populate('clientId', 'firstName lastName phone')
+      .populate('clientId', 'firstName lastName phone address')
       .populate('collectorId', 'firstName lastName')
       .populate('agencyId', 'agencyName')
       .skip(skip)

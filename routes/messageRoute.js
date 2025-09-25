@@ -229,7 +229,7 @@ router.delete('/messages/:messageId/delete', deleteMessage);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:userId/groupe', getGroupeName);
+router.get('/messages/:userId/groupe', getGroupeName);
 
 
 /**
@@ -266,6 +266,6 @@ router.get('/:userId/groupe', getGroupeName);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:userId/inbox/:receiverId', getMessages);
+router.get('/messages/:userId/inbox/:receiverId', getMessages);
 
 export default router;

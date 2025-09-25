@@ -1,6 +1,8 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import Agency from "../models/Agency/Agency.js";
+import Client from "../models/clients/Client.js";
+import mongoose from "mongoose";
 
 
 // Envoyer un message
@@ -39,9 +41,10 @@ export const getMessages = async (req, res) => {
 export const getGroupeName = async (req, res) => {
   const userId = req.params.userId;
   try {
+    console.log(userId);
     const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] });
    
-
+    console.log("messages" + messages);
     const interlocutorIds = new Set();
 
     messages.forEach(msg => {
@@ -54,9 +57,11 @@ export const getGroupeName = async (req, res) => {
     });
 
     const ids = Array.from(interlocutorIds);
+    console.log(ids);
 
     const users = await User.find({ _id: { $in: ids } });
-
+    
+    console.log(users);
     const results = [];
 
     for (const user of users) {
@@ -78,6 +83,7 @@ export const getGroupeName = async (req, res) => {
         }
       }
 
+      console.log(details);
       results.push(details);
     }
 
