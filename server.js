@@ -34,6 +34,7 @@ import notificationRoute from './routes/notificationRoute.js';
 import zoneRoutes from './routes/agency/zoneRoutes.js';
 import upload from './routes/upload.js';
 import './cron/subscriptionChecker.js';
+import './cron/planningChecker.js';
 
 dotenv.config();
 connectDB();

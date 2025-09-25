@@ -59,7 +59,9 @@ export const getGroupeName = async (req, res) => {
     const ids = Array.from(interlocutorIds);
     console.log(ids);
 
+    // const users = await User.find({ _id: { $in: ids } });
     const users = await User.find({ _id: { $in: ids } });
+
     
     console.log(users);
     const results = [];
@@ -71,13 +73,15 @@ export const getGroupeName = async (req, res) => {
       };
 
       if (user.role.toString() === 'client') {
-        const client = await Client.findOne({ user: user._id });
+        const client = await Client.find({ userId: user._id });
+        console.log(client);
         if (client) {
           details.firstName = client.firstName;
           details.lastName = client.lastName;
         }
       } else if (user.role.toString() === 'agency') {
-        const agency = await Agency.findOne({ userId: user._id });
+        const agency = await Agency.find({ userId: user._id });
+        console.log(agency);
         if (agency) {
           details.agencyName = agency.agencyName;
         }
