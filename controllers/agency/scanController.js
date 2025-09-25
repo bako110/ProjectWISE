@@ -92,7 +92,7 @@ export const getScanHistory = async (req, res) => {
   try {
     // const collectorId = req.user.id;
     const collectorId = req.params.collectorId;
-    const { page = 1, limit = 20, status, clientId } = req.query;
+    const { page = 1, limit = 20 } = req.query;
 
     // const query = { collectorId };
 
@@ -109,7 +109,7 @@ export const getScanHistory = async (req, res) => {
         .sort({ scannedAt: -1 })
         .skip(skip)
         .limit(Number(limit)),
-      ScanReport.countDocuments(query)
+      ScanReport.countDocuments(collectorId)
     ]);
 
     res.json({

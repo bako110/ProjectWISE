@@ -219,10 +219,12 @@ export const getClientRepport = async (req, res) => {
       return res.status(404).json({ error: "Subscription not found" });
     }
     const reports = await ScanReport.find({
-        $gte: new Date(subscribed.startDate),
-        $lte: new Date(subscribed.endDate),
         clientId: clientId,
-        agencyId: client.subscribedAgencyId
+        agencyId: client.subscribedAgencyId,
+         createdAt: {
+    $gte: new Date(subscribed.startDate),
+    $lte: new Date(subscribed.endDate)
+  }
   });
 
     // const reports = await ScanReport.find({ clientId, agencyId: client.subscribedAgencyId });
