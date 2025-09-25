@@ -251,6 +251,9 @@ export const getReportByAgencyHistorique = async (req, res) => {
     const total = await ScanReport.countDocuments({ agencyId });
 
     const collecte = await ScanReport.find({ agencyId })
+      .populate('clientId', 'firstName lastName phone')
+      .populate('collectorId', 'firstName lastName')
+      .populate('agencyId', 'agencyName')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 }); 
@@ -282,6 +285,9 @@ export const getReportByAgency = async (req, res) => {
     const total = await ScanReport.countDocuments({ agencyId,createdAt: { $gte: new Date(startDate), $lte: new Date(endDate)} });
 
     const collecte = await ScanReport.find({ agencyId,createdAt: { $gte: new Date(startDate), $lte: new Date(endDate)} })
+      .populate('clientId', 'firstName lastName phone')
+      .populate('collectorId', 'firstName lastName')
+      .populate('agencyId', 'agencyName')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 }); 

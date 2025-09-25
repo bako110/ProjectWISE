@@ -38,7 +38,7 @@ const router = express.Router();
  *           description: ID de l'agence concernée
  *         type:
  *           type: string
- *           description: Type de signalement (ex: panne, retard, incident, autre...)
+ *           description: Type de signalement
  *         description:
  *           type: string
  *           description: Description détaillée du problème signalé
@@ -119,13 +119,13 @@ router.get("/all", getAllReports);
  *                 description: ID de l'agence
  *               type:
  *                 type: string
- *                 description: Type de signalement (ex: panne, retard...)
+ *                 description: Type de signalement
  *               description:
  *                 type: string
  *                 description: Description du problème
  *               severity:
  *                 type: string
- *                 description: Gravité du problème (ex: low, medium, high)
+ *                 description: Gravité du problème
  *                 enum: [low, medium, high]
  *               wise:
  *                 type: string
