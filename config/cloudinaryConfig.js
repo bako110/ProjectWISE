@@ -24,7 +24,7 @@ cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 //   api_key: process.env.CLOUDINARY_API_KEY,
 //   api_secret: process.env.CLOUDINARY_API_SECRET,
-  cloud_name: 'Root',
+  cloud_name: 'dwpvw2fgo',
   api_key: '635337398966686',
   api_secret: '4eC98-s7azl253sNI0kuhRbDq1g'
 });
