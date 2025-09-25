@@ -39,7 +39,7 @@ export const getMessages = async (req, res) => {
 };
 
 export const getGroupeName = async (req, res) => {
-  const userId = req.params.userId;
+  const {userId} = req.params;
   try {
     console.log(userId);
     const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] });
