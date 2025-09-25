@@ -240,13 +240,59 @@ export const getAgencyPercentage = async (req, res) => {
   }
 };
 
+export const getReportByAgencyHistorique = async (req, res) => {
+  try {
+    const agencyId = req.params.agencyId;
+
+    const page = parseInt(req.query.page) || 1;         
+    const limit = parseInt(req.query.limit) || 10;      
+    const skip = (page - 1) * limit;                   
+
+    const total = await ScanReport.countDocuments({ agencyId });
+
+    const collecte = await ScanReport.find({ agencyId })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); 
+
+    res.status(200).json({
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+      data: collecte
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 export const getReportByAgency = async (req, res) => {
   try {
     const agencyId = req.params.agencyId;
+
+    const page = parseInt(req.query.page) || 1;         
+    const limit = parseInt(req.query.limit) || 10;      
+    const skip = (page - 1) * limit;
+
     const startDate = new Date(new Date().setHours(0, 0, 0, 0));
     const endDate = new Date(new Date().setHours(23, 59, 59, 999));
-    const collecte = await ScanReport.find({ agencyId, $gte: new Date(startDate), $lte: new Date(endDate) });
-    res.status(200).json(collecte);
+
+    const total = await ScanReport.countDocuments({ agencyId,createdAt: { $gte: new Date(startDate), $lte: new Date(endDate)} });
+
+    const collecte = await ScanReport.find({ agencyId,createdAt: { $gte: new Date(startDate), $lte: new Date(endDate)} })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); 
+
+    res.status(200).json({
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+      data: collecte
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

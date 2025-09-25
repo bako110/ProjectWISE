@@ -5,6 +5,7 @@ import {
   regenerateQRCode,
   getScanHistory,
   getReportByAgency,
+  getReportByAgencyHistorique,
   getAgencyPercentage
 } from '../../controllers/agency/scanController.js';
 import authMiddleware from '../../middlewares/authMiddleware.js';
@@ -223,25 +224,107 @@ router.get('/percentage/:agencyId', getAgencyPercentage);
  * @swagger
  * /api/collecte/{agencyId}/scan:
  *   get:
- *     summary: Récupérer les collectes d’une agence
+ *     summary: Récupérer les collectes du jour pour une agence
  *     tags: [Collecte]
  *     parameters:
  *       - in: path
  *         name: agencyId
  *         required: true
+ *         description: ID de l'agence
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Numéro de page pour la pagination
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Nombre d'éléments par page
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
- *         description: Liste des collectes
+ *         description: Liste paginée des collectes du jour
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ScanReport'
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: Nombre total de collectes
+ *                 page:
+ *                   type: integer
+ *                 pages:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ScanReport'
+ *       500:
+ *         description: Erreur serveur
  */
 router.get('/:agencyId/scan', getReportByAgency);
+
+/**
+ * @swagger
+ * /api/collecte/agency/{agencyId}/historique:
+ *   get:
+ *     summary: Récupérer l'historique des collectes pour une agence
+ *     tags: [Collecte]
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         description: ID de l'agence
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Numéro de page pour la pagination
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Nombre d'éléments par page
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Liste paginée de l'historique des collectes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: Nombre total de collectes
+ *                 page:
+ *                   type: integer
+ *                 pages:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ScanReport'
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/agency/:agencyId/historique', getReportByAgencyHistorique)
 
 
 export default router;

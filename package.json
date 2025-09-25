@@ -19,6 +19,8 @@
     "jspdf": "^3.0.3",
     "mongodb": "^6.19.0",
     "mongoose": "^7.2.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "public-ip": "^7.0.1",

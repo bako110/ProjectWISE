@@ -1,4 +1,7 @@
 import express from "express";
+import multer from "multer";
+import { storage } from "../../config/cloudinaryConfig.js";
+const upload = multer({ storage });
 import {
   createReport,
   getReportsByAgency,
@@ -121,7 +124,7 @@ router.get("/all", getAllReports);
  *       400:
  *         description: Erreur de validation (client ou collecteur obligatoire, type, description et agency requis)
  */
-router.post("/", createReport);
+router.post("/",upload.single('wise'), createReport);
 
 /**
  * @swagger
@@ -294,7 +297,7 @@ router.get("/collector/:collectorId", getReportsByCollector);
  */
 
 router.put('/:reportId/assign', assignEmployeeToReport);
-router.post("/", createReport);
+router.post("/", upload.single('wise'), createReport);
 router.get("/agency/:agencyId", getReportsByAgency);
 router.get("/client/:clientId", getReportsByClient);
 router.get("/collector/:collectorId", getReportsByCollector);

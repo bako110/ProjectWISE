@@ -32,6 +32,7 @@ import subscriptionRoute from "./routes/subscriptionRoute.js";
 import messageRoute from './routes/messageRoute.js';
 import notificationRoute from './routes/notificationRoute.js';
 import zoneRoutes from './routes/agency/zoneRoutes.js';
+import upload from './routes/upload.js';
 import './cron/subscriptionChecker.js';
 
 dotenv.config();
@@ -83,6 +84,7 @@ app.use('/api', walletRoute);
 app.use('/api', subscriptionRoute);
 app.use('/api', messageRoute);
 app.use('/api', notificationRoute);
+app.use('/api', upload);
 
 // --- ROUTES DICTIONNAIRE ---
 // JSON
