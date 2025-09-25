@@ -21,41 +21,50 @@ const router = express.Router();
  *   schemas:
  *     Report:
  *       type: object
- *       required:
- *         - _id
- *         - agency
- *         - type
- *         - description
- *         - status
- *         - createdAt
  *       properties:
  *         _id:
  *           type: string
  *           description: ID unique du signalement
  *         client:
  *           type: string
- *           description: ID du client (optionnel)
+ *           nullable: true
+ *           description: ID du client ayant fait le signalement (optionnel)
  *         collector:
  *           type: string
- *           description: ID du collecteur (optionnel)
+ *           nullable: true
+ *           description: ID du collecteur ayant fait le signalement (optionnel)
  *         agency:
  *           type: string
- *           description: ID de l'agence
+ *           description: ID de l'agence concernée
  *         type:
  *           type: string
- *           description: Type de signalement
+ *           description: Type de signalement (ex: panne, retard, incident, autre...)
  *         description:
  *           type: string
- *           description: Détails du signalement
+ *           description: Description détaillée du problème signalé
+ *         severity:
+ *           type: string
+ *           enum: [low, medium, high]
+ *           default: low
+ *           description: Niveau de gravité du signalement
  *         status:
  *           type: string
- *           description: Statut du signalement (pending par défaut)
- *           enum: [pending, resolved]
+ *           description: Statut du signalement
+ *           example: pending
+ *         photos:
+ *           type: string
+ *           nullable: true
+ *           description: Chemin du fichier image (uploadé via le champ 'wise')
  *         createdAt:
  *           type: string
  *           format: date-time
  *           description: Date de création du signalement
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date de dernière mise à jour
  */
+
 
 /**
  * @swagger
@@ -86,12 +95,12 @@ router.get("/all", getAllReports);
  * @swagger
  * /api/reports:
  *   post:
- *     summary: Créer un signalement (client ou collecteur)
+ *     summary: Créer un signalement (par un client ou un collecteur)
  *     tags: [Reports]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -101,28 +110,46 @@ router.get("/all", getAllReports);
  *             properties:
  *               clientId:
  *                 type: string
- *                 description: ID du client (optionnel, soit client soit collecteur obligatoire)
+ *                 description: ID du client (obligatoire si collectorId est absent)
  *               collectorId:
  *                 type: string
- *                 description: ID du collecteur (optionnel, soit client soit collecteur obligatoire)
+ *                 description: ID du collecteur (obligatoire si clientId est absent)
  *               agencyId:
  *                 type: string
  *                 description: ID de l'agence
  *               type:
  *                 type: string
- *                 description: Type de signalement
+ *                 description: Type de signalement (ex: panne, retard...)
  *               description:
  *                 type: string
- *                 description: Description détaillée
+ *                 description: Description du problème
+ *               severity:
+ *                 type: string
+ *                 description: Gravité du problème (ex: low, medium, high)
+ *                 enum: [low, medium, high]
+ *               wise:
+ *                 type: string
+ *                 format: binary
+ *                 description: Fichier image associé au signalement
  *     responses:
  *       201:
  *         description: Signalement créé avec succès
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Report'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Signalement créé avec succès ✅
+ *                 report:
+ *                   $ref: '#/components/schemas/Report'
  *       400:
- *         description: Erreur de validation (client ou collecteur obligatoire, type, description et agency requis)
+ *         description: Erreur de validation (client ou collecteur requis, champs obligatoires manquants)
+ *       404:
+ *         description: Ressource introuvable (client, collecteur ou agence non trouvés)
+ *       500:
+ *         description: Erreur serveur
  */
 router.post("/",upload.single('wise'), createReport);
 
