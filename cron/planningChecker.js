@@ -40,7 +40,7 @@ cron.schedule('*/15 * * * *', async () => {
         if (allScanned) {
           planning.isActive = false;
           await planning.save();
-          const agency = await Agency.findById(agencyId);
+          const agency = await Agency.findById(planning.agencyId);
           if (agency) {
             const notification = new Notification({
               userId: agency.userId,
