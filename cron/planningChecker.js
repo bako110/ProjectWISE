@@ -3,13 +3,15 @@ import cron from 'node-cron';
 import CollectionSchedule from '../models/Agency/CollectionSchedule.js';
 import Client from '../models/clients/Client.js';
 import ScanReport from '../models/Agency/ScanReport.js';
-
+import Notification from '../models/Notification.js';
+import Agency from '../models/Agency/Agency.js';
 
 cron.schedule('*/15 * * * *', async () => {
     console.log('[CRON] Vérification des plannings à désactiver...');
-
+    const startDate = new Date(new Date().setHours(0, 0, 0, 0));
+    const endDate = new Date(new Date().setHours(23, 59, 59, 999));
     try {
-      const plannings = await CollectionSchedule.find({ isActive: true });
+      const plannings = await CollectionSchedule.find({ isActive: true, createdAt: { $gte: startDate, $lt: endDate } });
 
       for (const planning of plannings) {
         const agencyId = planning.agencyId;
@@ -38,6 +40,15 @@ cron.schedule('*/15 * * * *', async () => {
         if (allScanned) {
           planning.isActive = false;
           await planning.save();
+          const agency = await Agency.findById(agencyId);
+          if (agency) {
+            const notification = new Notification({
+              userId: agency.userId,
+              message: 'La collecte de la zone ' + planning.zone + ' est terminée.',
+              type: 'Planning',
+            });
+            await notification.save();
+          }
           console.log(`✅ Planning désactivé automatiquement : ${planning._id}`);
         } else {
           console.log(`⏳ Planning encore actif : ${planning._id}`);
