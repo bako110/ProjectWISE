@@ -41,19 +41,25 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  'https://collect-dechets.vercel.app',
-  'http://localhost:4200'
-];
+// const allowedOrigins = [
+//   'https://collect-dechets.vercel.app',
+//   'http://localhost:4200'
+// ];
 
 // CORS
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+//     else callback(new Error('Not allowed by CORS'));
+//   },
+//   credentials: true
+// }));
+// CORS illimité
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-    else callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true
+  origin: '*',           // autorise toutes les origines
+  credentials: true,     // si tu veux aussi envoyer cookies/headers spéciaux
 }));
+
 
 app.use(express.json());
 
