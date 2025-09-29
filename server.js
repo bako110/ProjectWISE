@@ -54,6 +54,8 @@ const app = express();
 //   },
 //   credentials: true
 // }));
+
+
 // CORS illimité
 app.use(cors({
   origin: '*',           // autorise toutes les origines
