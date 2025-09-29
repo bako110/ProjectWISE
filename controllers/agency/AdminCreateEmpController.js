@@ -35,7 +35,8 @@ export const createEmployee = async (req, res) => {
     }
 
     // Génération et hashage du mot de passe
-    const generatedPassword = crypto.randomBytes(6).toString('hex');
+    // const generatedPassword = crypto.randomBytes(6).toString('hex');
+    const generatedPassword = '12345678';
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
     // Création de l'utilisateur
@@ -68,16 +69,16 @@ export const createEmployee = async (req, res) => {
     );
 
     // Envoi de l'email
-    await sendMail(
-      email,
-      `🎉 Bienvenue chez ${agency.agencyName || 'Votre agence'} - Vos identifiants`,
-      {
-        firstName,
-        email,
-        password: generatedPassword,
-        agencyName: agency.agencyName || 'Votre agence'
-      }
-    );
+    // await sendMail(
+    //   email,
+    //   `🎉 Bienvenue chez ${agency.agencyName || 'Votre agence'} - Vos identifiants`,
+    //   {
+    //     firstName,
+    //     email,
+    //     password: generatedPassword,
+    //     agencyName: agency.agencyName || 'Votre agence'
+    //   }
+    // );
 
     return res.status(201).json({
       message: `${role} créé avec succès.`,

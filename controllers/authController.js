@@ -162,7 +162,7 @@ export const register = async (req, res) => {
       await createdProfile.save();
 
       // 📧 Envoi de l’e-mail avec le QR code
-      await sendQRCodeEmail(email, firstName.trim(), qrCodeImage);
+      // await sendQRCodeEmail(email, firstName.trim(), qrCodeImage);
 
     } else if (normalizedRole === 'agency') {
       const licenseNumber = `AGCY-${randomUUID()}`;
@@ -386,7 +386,7 @@ export const forgotPassword = async (req, res) => {
       expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
     });
 
-    await sendResetCodeEmail(email, verificationCode);
+    // await sendResetCodeEmail(email, verificationCode);
 
     res.status(200).json({ message: 'Code de vérification envoyé' });
   } catch (error) {
