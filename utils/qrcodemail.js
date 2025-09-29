@@ -1,25 +1,15 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
-dotenv.config(); // Charge les variables d'environnement
-
-// Création du transporteur SMTP
+/**
+ * ⚡ Configuration SMTP directement dans le code
+ */
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour 587
+  host: 'smtp.gmail.com',          // SMTP Gmail
+  port: 587,                       // Port TLS
+  secure: false,                   // false pour TLS
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  }
-});
-
-// 🔎 Vérifier la connexion SMTP au démarrage
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('❌ Erreur SMTP :', error);
-  } else {
-    console.log('✅ Connexion SMTP OK');
+    user: 'bakorobert2000@gmail.com',        // ton email SMTP
+    pass: 'wlqe palv yoxv egbh'             // ton mot de passe SMTP
   }
 });
 
@@ -34,13 +24,13 @@ export async function sendQRCodeEmail(to, firstName, base64QRCode) {
     throw new Error('Le QR code est vide ou indéfini.');
   }
 
-  // Nettoyage : si l'image contient le préfixe `data:image/...`, on l'enlève
+  // 🔍 Nettoyage : si l'image contient le préfixe `data:image/...`, on l'enlève
   const cleanedBase64 = base64QRCode.includes('base64,')
     ? base64QRCode.split('base64,')[1]
     : base64QRCode;
 
   const mailOptions = {
-    from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM_ADDRESS}>`,
+    from: `"Application de collecte de déchets" <bakorobert2001@gmail.com>`,
     to,
     subject: "Votre QR code d'accès",
     html: `
@@ -59,28 +49,13 @@ export async function sendQRCodeEmail(to, firstName, base64QRCode) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email envoyé à ${to}`);
-  } catch (err) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email :', err);
-    throw err;
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email envoyé à ${to} (ID: ${info.messageId})`);
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de l\'email :', error);
+    throw error;
   }
 }
 
-// --- TEST AUTOMATIQUE (facultatif) ---
-// Décommente pour tester automatiquement au démarrage
-/*
-(async () => {
-  try {
-    await transporter.sendMail({
-      from: `"Test" <${process.env.MAIL_FROM_ADDRESS}>`,
-      to: 'tonautreadresse@gmail.com', // ton email pour recevoir le test
-      subject: 'Test Render SMTP',
-      text: 'Ceci est un mail test depuis Render'
-    });
-    console.log('✅ Mail test envoyé !');
-  } catch (err) {
-    console.error('❌ Erreur lors de l\'envoi du mail test :', err);
-  }
-})();
-*/
+// Exemples d'utilisation
+// sendQRCodeEmail('destinataire@example.com', 'Robert', 'data:image/png;base64,iVBORw0KGgoAAAANS...');

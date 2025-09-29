@@ -1,23 +1,27 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-// Transporteur global unique configuré avec SMTP .env
+/**
+ * ⚡ Configuration SMTP directement dans le code
+ */
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT, 10),
-  secure: process.env.SMTP_SECURE === 'true',
+  host: 'smtp.gmail.com',          // SMTP Gmail
+  port: 587,                       // Port TLS
+  secure: false,                   // false pour TLS
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
+    user: 'bakorobert2000@gmail.com',        // ton email SMTP
+    pass: 'wlqe palv yoxv egbh'             // ton mot de passe SMTP
+  }
 });
 
+/**
+ * Envoie un email de réinitialisation avec un code de vérification
+ * @param {string} email Email destinataire
+ * @param {string} verificationCode Code de vérification
+ */
 export const sendResetCodeEmail = async (email, verificationCode) => {
   try {
     await transporter.sendMail({
-      from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM_ADDRESS}>`,
+      from: `"Application de collecte de déchets" <bakorobert2001@gmail.com>`,
       to: email,
       subject: '🔐 Réinitialisation de mot de passe – Code de vérification',
       html: `
@@ -26,7 +30,7 @@ export const sendResetCodeEmail = async (email, verificationCode) => {
             <h2 style="color: #2c3e50; text-align: center;">🔐 Réinitialisation de mot de passe</h2>
             <p style="font-size: 16px; color: #34495e;">Bonjour,</p>
             <p style="font-size: 16px; color: #34495e;">
-              Vous avez demandé à réinitialiser votre mot de passe sur l' <strong>${process.env.MAIL_FROM_NAME}</strong>.
+              Vous avez demandé à réinitialiser votre mot de passe sur l' <strong>Application de collecte de déchets</strong>.
               Voici votre code de vérification :
             </p>
             <div style="text-align: center; margin: 30px 0;">
@@ -42,18 +46,25 @@ export const sendResetCodeEmail = async (email, verificationCode) => {
             </p>
             <hr style="margin: 30px 0;">
             <p style="font-size: 14px; color: #95a5a6; text-align: center;">
-              © ${new Date().getFullYear()} ${process.env.MAIL_FROM_NAME}. Tous droits réservés.
+              © ${new Date().getFullYear()} Application de collecte de déchets. Tous droits réservés.
             </p>
           </div>
         </div>
       `,
     });
+    console.log(`✅ Email de réinitialisation envoyé à ${email}`);
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email :", error);
+    console.error("❌ Erreur lors de l'envoi de l'email :", error);
     throw new Error("Échec de l'envoi de l'email de réinitialisation");
   }
 };
 
+/**
+ * Envoie un email de bienvenue avec identifiants de connexion
+ * @param {string} to Email destinataire
+ * @param {string} subject Sujet de l'email
+ * @param {Object} param2 Données { firstName, email, password, agencyName }
+ */
 export const sendMail = async (to, subject, { firstName, email, password, agencyName }) => {
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 30px;">
@@ -74,11 +85,16 @@ export const sendMail = async (to, subject, { firstName, email, password, agency
     </div>
   `;
 
-  await transporter.sendMail({
-    from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM_ADDRESS}>`,
-    to,
-    subject,
-    html: htmlContent
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Application de collecte de déchets" <bakorobert2001@gmail.com>`,
+      to,
+      subject,
+      html: htmlContent
+    });
+    console.log(`✅ Email de bienvenue envoyé à ${to}`);
+  } catch (error) {
+    console.error("❌ Erreur lors de l'envoi de l'email :", error);
+    throw new Error("Échec de l'envoi de l'email de bienvenue");
+  }
 };
-
