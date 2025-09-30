@@ -7,7 +7,7 @@ import Client from '../models/clients/Client.js';
 import Notification from '../models/Notification.js';
 
 // Tâche cron pour vérifier les abonnements expirés tous les jours à minuit
-cron.schedule('0 * * * *', async () => {
+cron.schedule('*/1 * * * *', async () => {
     const now = new Date();
     const message2Days = `Votre abonnement expire dans 2 jours. Veuillez le renouveler pour continuer à bénéficier de nos services.`;
     const messageExpired = `Votre abonnement est expiré. Veuillez le renouveler pour continuer à bénéficier de nos services.`;
