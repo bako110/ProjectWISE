@@ -7,15 +7,14 @@ import Client from '../models/clients/Client.js';
 import Notification from '../models/Notification.js';
 
 // Tâche cron pour vérifier les abonnements expirés tous les jours à minuit
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
     const now = new Date();
     const message2Days = `Votre abonnement expire dans 2 jours. Veuillez le renouveler pour continuer à bénéficier de nos services.`;
     const messageExpired = `Votre abonnement est expiré. Veuillez le renouveler pour continuer à bénéficier de nos services.`;
     // console.log(`Vérification des abonnements expirés à ${now.toISOString()}`);
     // console.log(`Date actuelle : ${now}`);
     try {
-        // const expiredSubscriptions = await Subscription.find({ endDate: { $lt: now }, status: 'active' });
-        const expiredSubscriptions = await Subscription.find({ endDate: {$gte: new Date(now.setHours(0, 0, 0, 0)), $lt: new Date(now.setHours(23, 59, 59, 999)) }, status: 'active' });
+        const expiredSubscriptions = await Subscription.find({ endDate: { $lt: now }, status: 'active' });
         const expiringSoonSubscriptions = await Subscription.find({ endDate: { $gte: now, $lt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000) }, status: 'active' });
 
         for (const subscription of expiringSoonSubscriptions) {

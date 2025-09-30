@@ -6,7 +6,7 @@ import ScanReport from '../models/Agency/ScanReport.js';
 import Notification from '../models/Notification.js';
 import Agency from '../models/Agency/Agency.js';
 
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/15 * * * *', async () => {
     console.log('[CRON] Vérification des plannings à désactiver...');
     const startDate = new Date(new Date().setHours(0, 0, 0, 0));
     const endDate = new Date(new Date().setHours(23, 59, 59, 999));
