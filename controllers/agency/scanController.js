@@ -197,10 +197,10 @@ export const regenerateQRCode = async (req, res) => {
     await client.save();
 
     // Récupérer l'email depuis la table User
-    const user = await User.findById(client.userId);
-    if (user && user.email) {
-      await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
-    }
+    // const user = await User.findById(client.userId);
+    // if (user && user.email) {
+    //   await sendQRCodeEmail(user.email, client.firstName, qrCodeImage);
+    // }
 
     return res.status(200).json({
       message: "QR code régénéré avec succès",
