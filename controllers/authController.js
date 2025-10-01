@@ -154,7 +154,8 @@ export const register = async (req, res) => {
 
       // 🔗 Génération de l’URL et image QR
       // const qrToken = `http://localhost:3000/api/collecte/scan?id=${createdProfile._id}`;
-      const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdProfile._id}`;
+      // const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${createdProfile._id}`;
+      const qrToken = createdProfile._id;
       const qrCodeImage = await QRCode.toDataURL(qrToken);
 
       createdProfile.qrToken = qrToken;
