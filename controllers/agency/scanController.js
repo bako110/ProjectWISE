@@ -188,7 +188,7 @@ export const regenerateQRCode = async (req, res) => {
 
     // Génère un nouveau token unique
     // const qrToken = `https://projectwise.onrender.com/api/collecte/scan?id=${client._id}&ts=${Date.now()}`;
-    const qrToken = client._id;
+    const qrToken = client._id.toString();
     const qrCodeImage = await QRCode.toDataURL(qrToken);
 
     // Mets à jour le client
