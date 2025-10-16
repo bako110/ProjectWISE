@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     enum: ['client', 'collector', 'agency', 'manager', 'municipality', 'super_admin'],
     default: 'client',
   },
-  telephone: { type: String, trim: true },
+  phone: { type: String, trim: true },
   address:   { type: String, trim: true },
   status: {
     type: String,
