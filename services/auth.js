@@ -1,5 +1,5 @@
 // ========================================
-// services/authService.js
+// services/authService.js - VERSION AVEC MANAGER AUTO
 // ========================================
 const User = require('../models/users');
 const Client = require('../models/client');
@@ -32,8 +32,8 @@ class RegistrationService {
       // 4️⃣ Vérifier les dépendances des autres tables AVANT création
       await this.validateDependencies(validatedData, role);
 
-      // 5️⃣ Créer les données de rôle d'abord, puis l'utilisateur
-      const result = await this.createRoleDataFirst(validatedData, role);
+      // 5️⃣ Créer l'utilisateur d'abord, puis les données de rôle
+      const result = await this.createUserFirst(validatedData, role);
 
       return result;
 
@@ -58,7 +58,7 @@ class RegistrationService {
     }
 
     // Priorité 2: Détection par champs spécifiques (plus stricte)
-    if ((data.agencyName || data.name) && data.zoneActivite && data.clientId && data.collectorId) {
+    if (data.name || data.agencyDescription) {
       return 'agency';
     }
     
@@ -87,23 +87,30 @@ class RegistrationService {
    */
   validateAndExtractData(data, role) {
     // Champs communs obligatoires pour tous les rôles
-    const commonFields = ['firstname', 'lastname', 'email', 'password', 'phone'];
+    const commonFields = ['firstName', 'lastName', 'email', 'password', 'phone', 'acceptTerms'];
     const missing = commonFields.filter(field => !data[field]);
     
     if (missing.length > 0) {
       throw new Error(`Champs obligatoires manquants: ${missing.join(', ')}`);
     }
 
+    // Vérifier que acceptTerms est true
+    if (data.acceptTerms !== true) {
+      throw new Error('Vous devez accepter les conditions d\'utilisation');
+    }
+
     // Structure de base
     const validated = {
       // Données utilisateur
-      firstname: data.firstname.trim(),
-      lastname: data.lastname.trim(),
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
       email: data.email.toLowerCase().trim(),
       password: data.password,
       phone: data.phone.trim(),
       address: data.address || {},
       role: role,
+      acceptTerms: data.acceptTerms,
+      receiveOffers: data.receiveOffers || false,
       
       // Données spécifiques au rôle
       roleSpecificData: {}
@@ -112,21 +119,18 @@ class RegistrationService {
     // Validation spécifique selon le rôle
     switch (role) {
       case 'client':
-        // Aucune donnée supplémentaire requise
+        validated.roleSpecificData = {};
         break;
 
       case 'agency':
-        if (!data.clientId || !data.collectorId) {
-          throw new Error('Une agence nécessite clientId et collectorId');
+        if (!data.name) {
+          throw new Error('Une agence nécessite un nom (name)');
         }
         validated.roleSpecificData = {
-          name: data.name || data.agencyName,
-          agencyName: data.agencyName || data.name,
+          name: data.name.trim(),
           agencyDescription: data.agencyDescription || '',
-          zoneActivite: data.zoneActivite,
-          slogan: data.slogan || '',
-          clientId: data.clientId,
-          collectorId: data.collectorId
+          zoneActivite: data.zoneActivite || '',
+          slogan: data.slogan || ''
         };
         break;
 
@@ -182,16 +186,12 @@ class RegistrationService {
   async validateDependencies(validatedData, role) {
     switch (role) {
       case 'agency':
-        // Vérifier que le client existe
-        const clientExists = await Client.findById(validatedData.roleSpecificData.clientId);
-        if (!clientExists) {
-          throw new Error('Le client spécifié n\'existe pas');
-        }
-        
-        // Vérifier que le collecteur existe
-        const collectorExists = await Collector.findById(validatedData.roleSpecificData.collectorId);
-        if (!collectorExists) {
-          throw new Error('Le collecteur spécifié n\'existe pas');
+        // Vérifier si une agence avec le même nom existe déjà
+        const existingAgency = await Agency.findOne({ 
+          name: validatedData.roleSpecificData.name 
+        });
+        if (existingAgency) {
+          throw new Error('Une agence avec ce nom existe déjà');
         }
         break;
 
@@ -217,22 +217,43 @@ class RegistrationService {
   }
 
   /**
-   * 🏗️ Crée les données de rôle d'abord, puis l'utilisateur
+   * 🏗️ Crée l'utilisateur d'abord, puis les données de rôle
    */
-  async createRoleDataFirst(validatedData, role) {
-    let roleData;
+  async createUserFirst(validatedData, role) {
     let newUser;
+    let roleData;
+    let ownerManager; // Pour stocker le manager propriétaire
 
     try {
-      // 1️⃣ Créer les données de rôle spécifique d'abord
+      // 1️⃣ Créer l'utilisateur d'abord
+      const userData = {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email,
+        password: validatedData.password,
+        phone: validatedData.phone,
+        address: validatedData.address,
+        role: role,
+        status: 'active',
+        acceptTerms: validatedData.acceptTerms,
+        receiveOffers: validatedData.receiveOffers,
+      };
+
+      // Ajouter le nom pour les agences (optionnel, pour référence rapide)
+      if (role === 'agency' && validatedData.roleSpecificData.name) {
+        userData.agencyName = validatedData.roleSpecificData.name;
+      }
+
+      newUser = await User.create(userData);
+
+      // 2️⃣ Maintenant créer les données de rôle spécifique
       switch (role) {
         case 'client':
-          // Générer le token QR Code
           const qrToken = this.generateQRToken();
-          // Générer l'image QR Code
           const qrCodeImage = await QRCode.toDataURL(qrToken);
           
           roleData = await Client.create({
+            userId: newUser._id,
             qrCode: qrToken,
             qrCodeImage: qrCodeImage,
             status: 'active'
@@ -240,21 +261,41 @@ class RegistrationService {
           break;
 
         case 'agency':
+          // CRÉATION DE L'AGENCE SEULEMENT
           roleData = await Agency.create({
+            userId: newUser._id,
             name: validatedData.roleSpecificData.name,
             agencyDescription: validatedData.roleSpecificData.agencyDescription,
             zoneActivite: validatedData.roleSpecificData.zoneActivite,
             slogan: validatedData.roleSpecificData.slogan,
-            client: validatedData.roleSpecificData.clientId,
-            collector: validatedData.roleSpecificData.collectorId,
             gestionnaires: [],
             documents: [],
             status: 'active'
           });
+
+          // CRÉATION AUTOMATIQUE DU MANAGER PROPRIÉTAIRE
+          ownerManager = await Manager.create({
+            userId: newUser._id,
+            agencyId: roleData._id,
+            nbManager: 1,
+            activity: validatedData.roleSpecificData.zoneActivite || 'Gestion générale',
+            isOwner: true, // ← PROPRIÉTAIRE PAR DÉFAUT
+            status: 'active'
+          });
+
+          // METTRE À JOUR L'AGENCE AVEC LA RÉFÉRENCE DU MANAGER PROPRIÉTAIRE
+          await Agency.findByIdAndUpdate(
+            roleData._id,
+            { 
+              $push: { gestionnaires: ownerManager._id },
+              $set: { ownerManagerId: ownerManager._id } // Optionnel: stocker l'ID du propriétaire
+            }
+          );
           break;
 
         case 'collector':
           roleData = await Collector.create({
+            userId: newUser._id,
             agencyId: validatedData.roleSpecificData.agencyId,
             planning: validatedData.roleSpecificData.planning,
             collection: validatedData.roleSpecificData.collection,
@@ -264,15 +305,24 @@ class RegistrationService {
 
         case 'manager':
           roleData = await Manager.create({
+            userId: newUser._id,
             agencyId: validatedData.roleSpecificData.agencyId,
             nbManager: validatedData.roleSpecificData.nbManager,
             activity: validatedData.roleSpecificData.activity,
+            isOwner: false, // ← Pas propriétaire par défaut
             status: 'active'
           });
+
+          // Ajouter le manager à la liste des gestionnaires de l'agence
+          await Agency.findByIdAndUpdate(
+            validatedData.roleSpecificData.agencyId,
+            { $push: { gestionnaires: roleData._id } }
+          );
           break;
 
         case 'municipality':
           roleData = await MunicipalityManager.create({
+            userId: newUser._id,
             municipalityCode: validatedData.roleSpecificData.municipalityCode,
             region: validatedData.roleSpecificData.region,
             status: 'active'
@@ -281,6 +331,7 @@ class RegistrationService {
 
         case 'super_admin':
           roleData = await Admin.create({
+            userId: newUser._id,
             adminLevel: validatedData.roleSpecificData.adminLevel,
             permissions: validatedData.roleSpecificData.permissions,
             status: 'active'
@@ -291,45 +342,33 @@ class RegistrationService {
           throw new Error(`Rôle non supporté: ${role}`);
       }
 
-      // 2️⃣ Maintenant créer l'utilisateur avec la référence vers les données de rôle
-      const userData = {
-        firstname: validatedData.firstname,
-        lastname: validatedData.lastname,
-        email: validatedData.email,
-        password: validatedData.password,
-        phone: validatedData.phone,
-        address: validatedData.address,
-        role: role,
-        status: 'active',
-        // Référence vers les données de rôle
-        roleRef: roleData._id
-      };
-
-      // Ajouter les champs spéciaux pour agency
-      if (role === 'agency' && validatedData.roleSpecificData.agencyName) {
-        userData.agencyName = validatedData.roleSpecificData.agencyName;
-      }
-
-      newUser = await User.create(userData);
-
-      // 3️⃣ Mettre à jour les données de rôle avec l'ID utilisateur
-      roleData.userId = newUser._id;
-      await roleData.save();
+      // 3️⃣ Mettre à jour l'utilisateur avec la référence vers les données de rôle
+      newUser.roleRef = roleData._id;
+      await newUser.save();
 
       return {
         user: newUser,
         roleData: roleData,
+        ownerManager: ownerManager, // Retourner aussi le manager propriétaire si créé
         role: role
       };
 
     } catch (error) {
-      // En cas d'erreur, nettoyer les données créées
+      // 🧹 NETTOYAGE AUTOMATIQUE
+      if (newUser && newUser._id) {
+        console.log(`🧹 Nettoyage automatique: suppression de l'utilisateur ${newUser._id} suite à l'échec de création des données de rôle`);
+        await User.findByIdAndDelete(newUser._id);
+      }
+      
       if (roleData && roleData._id) {
         await this.cleanupRoleData(role, roleData._id);
       }
-      if (newUser && newUser._id) {
-        await User.findByIdAndDelete(newUser._id);
+      
+      // Nettoyer aussi le manager propriétaire si créé
+      if (ownerManager && ownerManager._id) {
+        await Manager.findByIdAndDelete(ownerManager._id);
       }
+      
       throw error;
     }
   }
@@ -359,8 +398,9 @@ class RegistrationService {
           await Admin.findByIdAndDelete(roleId);
           break;
       }
+      console.log(`✅ Données de rôle ${role} (${roleId}) nettoyées avec succès`);
     } catch (cleanupError) {
-      console.error('Erreur lors du nettoyage:', cleanupError);
+      console.error('❌ Erreur lors du nettoyage des données de rôle:', cleanupError);
     }
   }
 

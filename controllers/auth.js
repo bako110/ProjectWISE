@@ -15,12 +15,15 @@ exports.register = async (req, res) => {
     const responseData = {
       userId: result.user._id,
       roleId: result.roleData._id,
-      firstname: result.user.firstname,
-      lastname: result.user.lastname,
+      firstName: result.user.firstName,
+      lastName: result.user.lastName,
       email: result.user.email,
       phone: result.user.phone,
       role: result.role,
-      status: result.user.status
+      status: result.user.status,
+      acceptTerms: result.user.acceptTerms,
+      receiveOffers: result.user.receiveOffers,
+      address: result.user.address
     };
 
     // Ajouter les données spécifiques selon le rôle
@@ -30,12 +33,10 @@ exports.register = async (req, res) => {
         responseData.qrCodeImage = result.roleData.qrCodeImage;
         break;
 
-      case 'agency':
-        responseData.agencyName = result.roleData.name;
+      case 'agence':
+        responseData.agencyName = result.roleData.agencyName;
+        responseData.agencyDescription = result.roleData.agencyDescription;
         responseData.agencyId = result.roleData._id;
-        responseData.zoneActivite = result.roleData.zoneActivite;
-        responseData.clientId = result.roleData.client;
-        responseData.collectorId = result.roleData.collector;
         break;
 
       case 'collector':
@@ -77,7 +78,8 @@ exports.register = async (req, res) => {
     if (error.message.includes('manquants') || 
         error.message.includes('requis') ||
         error.message.includes('invalide') ||
-        error.message.includes('déterminer')) {
+        error.message.includes('déterminer') ||
+        error.message.includes('conditions d\'utilisation')) {
       statusCode = 400; // Bad Request
     } else if (error.message.includes('déjà utilisé') || 
                error.message.includes('existe pas')) {

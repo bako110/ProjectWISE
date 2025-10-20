@@ -5,7 +5,6 @@ const collectorSchema = new mongoose.Schema({
   agencyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Agence', // Nom du modèle de l'agence
-    required: true,
   },
 
   // 🔗 Référence à l'utilisateur correspondant

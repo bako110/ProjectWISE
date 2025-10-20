@@ -7,6 +7,8 @@ const agenceSchema = new mongoose.Schema({
     trim: true 
   },
 
+  agencyDescription: { type: String, default: '', trim: true },
+
   zoneActivite: { 
     type: String, 
     default: '', 
@@ -17,21 +19,18 @@ const agenceSchema = new mongoose.Schema({
   client: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
-    required: true,
   },
 
   // 🔗 Référence vers le collecteur principal
   collector: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // ou 'Collector' si tu as un modèle spécifique
-    required: true,
+    ref: 'Collector', // ou 'Collector' si tu as un modèle spécifique
   },
 
   // 🔗 Référence vers l'utilisateur propriétaire/admin de l'agence
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
   },
 
   slogan: { 

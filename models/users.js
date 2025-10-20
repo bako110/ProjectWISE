@@ -3,36 +3,38 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-  firstname: { type: String, required: true, trim: true },
-  lastname:  { type: String, required: true, trim: true },
+  firstName: { type: String, required: true, trim: true },
+  lastName:  { type: String, required: true, trim: true },
   email:     { type: String, required: true, unique: true, lowercase: true, trim: true },
   password:  { type: String, required: true },
   role: {
     type: String,
     enum: ['client', 'collector', 'agency', 'manager', 'municipality', 'super_admin'],
-    default: 'client',
   },
-    agencyName: { type: String, required: true, trim: true },
-
-  agencyDescription: { type: String, default: '', trim: true },
-
   phone: { type: String, required: true, trim: true },
   address: {
     street: { type: String, trim: true },
     arrondissement: { type: String, trim: true },
     sector: { type: String, trim: true },
+    doorNumber:     { type: String, trim: true },
+    doorColor:      { type: String, trim: true },
     neighborhood: { type: String, trim: true },
     city: { type: String, trim: true },
     postalCode: { type: String, trim: true },
     latitude: { type: Number },
     longitude: { type: Number }
   },
+
   
   status: {
     type: String,
     enum: ['active', 'inactive', 'deleted'],
     default: 'active',
   },
+
+  acceptTerms:   { type: Boolean, required: true },
+  receiveOffers: { type: Boolean, default: false },
+
   createdate: { type: Date, default: Date.now },
   updatedate: { type: Date, default: Date.now },
   deletedate: { type: Date },

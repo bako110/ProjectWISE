@@ -1,3 +1,4 @@
+// models/manager.js - VERSION AVEC isOwner
 const mongoose = require('mongoose');
 
 const managerSchema = new mongoose.Schema({
@@ -5,7 +6,6 @@ const managerSchema = new mongoose.Schema({
   agencyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Agence', // Nom du modèle d'agence
-    required: true,
   },
 
   // 🔗 Référence à l'utilisateur correspondant
@@ -22,11 +22,17 @@ const managerSchema = new mongoose.Schema({
     min: 1,
   },
 
-  // Activité ou zone d’action du manager
+  // Activité ou zone d'action du manager
   activity: {
     type: String,
     trim: true,
     default: '',
+  },
+
+  // 🔥 NOUVEAU CHAMP : Indique si c'est le propriétaire de l'agence
+  isOwner: {
+    type: Boolean,
+    default: true, // Par défaut, ce n'est pas le propriétaire
   },
 
   // Statut du manager
