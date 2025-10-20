@@ -1,3 +1,8 @@
+const express = require('express');
+const { register } = require('../controllers/auth');
+
+const router = express.Router();
+
 /**
  * @swagger
  * components:
@@ -136,6 +141,8 @@
  *       allOf:
  *         - $ref: '#/components/schemas/UserRegistration'
  *         - type: object
+ *           required:
+ *             - municipalityCode
  *           properties:
  *             role:
  *               type: string
@@ -167,7 +174,7 @@
  *                 type: string
  *               example: ["users:read", "users:write"]
  * 
- *     RegistrationResponse:
+ *     RegistrationSuccessResponse:
  *       type: object
  *       properties:
  *         success:
@@ -175,29 +182,54 @@
  *           example: true
  *         message:
  *           type: string
- *           example: "Utilisateur créé avec succès"
+ *           example: "Inscription client réussie"
  *         data:
  *           type: object
  *           properties:
- *             user:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 firstname:
- *                   type: string
- *                 lastname:
- *                   type: string
- *                 email:
- *                   type: string
- *                 role:
- *                   type: string
- *                 status:
- *                   type: string
- *             roleData:
- *               type: object
+ *             userId:
+ *               type: string
+ *               example: "507f1f77bcf86cd799439011"
+ *             roleId:
+ *               type: string
+ *               example: "507f1f77bcf86cd799439012"
+ *             firstname:
+ *               type: string
+ *               example: "John"
+ *             lastname:
+ *               type: string
+ *               example: "Doe"
+ *             email:
+ *               type: string
+ *               example: "john.doe@example.com"
+ *             phone:
+ *               type: string
+ *               example: "+33123456789"
  *             role:
  *               type: string
+ *               example: "client"
+ *             status:
+ *               type: string
+ *               example: "active"
+ *             # Champs spécifiques selon le rôle
+ *             qrCode:
+ *               type: string
+ *               example: "CLIENT-1640995200000-abc123def"
+ *             qrCodeImage:
+ *               type: string
+ *               format: byte
+ *               example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA..."
+ *             agencyName:
+ *               type: string
+ *               example: "Éco Collecte Paris"
+ *             agencyId:
+ *               type: string
+ *               example: "507f1f77bcf86cd799439013"
+ *             municipalityCode:
+ *               type: string
+ *               example: "75056"
+ *             adminLevel:
+ *               type: string
+ *               example: "super"
  * 
  *     ErrorResponse:
  *       type: object
@@ -209,6 +241,9 @@
  *           type: string
  *         error:
  *           type: string
+ *         timestamp:
+ *           type: string
+ *           format: date-time
  * 
  *   securitySchemes:
  *     bearerAuth:
@@ -230,17 +265,15 @@
  *   post:
  *     summary: Inscription d'un nouvel utilisateur
  *     description: |
- *       Point d'entrée unique pour l'inscription de tous les types d'utilisateurs.
- *       Le système détecte automatiquement le rôle ou vous pouvez le spécifier explicitement.
+ *       🎯 **POINT D'ENTRÉE UNIQUE** - Inscription avec validation stricte
+ *       
+ *       **Règles de validation :**
+ *       - Tous les rôles doivent être explicitement définis
+ *       - Aucun rôle par défaut (plus de "client" automatique)
+ *       - Vérification des dépendances entre tables
+ *       - QR Code généré uniquement pour les clients
  *       
  *       **Rôles supportés :** client, agency, collector, manager, municipality, super_admin
- *       
- *       **Détection automatique :**
- *       - agency → agencyName, name, zoneActivite
- *       - collector → agencyId + planning/collection
- *       - manager → agencyId + nbManager/activity
- *       - municipality → isMunicipality, municipalityCode
- *       - super_admin → isSuperAdmin, adminLevel
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -256,7 +289,7 @@
  *               - $ref: '#/components/schemas/AdminRegistration'
  *           examples:
  *             client:
- *               summary: Inscription Client
+ *               summary: Inscription Client (avec QR Code)
  *               value:
  *                 firstname: "Alice"
  *                 lastname: "Martin"
@@ -291,33 +324,85 @@
  *                 agencyId: "507f1f77bcf86cd799439013"
  *                 planning: "Lun-Ven 6h-14h"
  *                 collection: "Ordures ménagères"
+ *             manager:
+ *               summary: Inscription Manager
+ *               value:
+ *                 firstname: "Sophie"
+ *                 lastname: "Moreau"
+ *                 email: "sophie.moreau@ecocollecte.fr"
+ *                 password: "password123"
+ *                 phone: "+33123456792"
+ *                 role: "manager"
+ *                 agencyId: "507f1f77bcf86cd799439013"
+ *                 nbManager: 2
+ *                 activity: "Supervision des collectes"
+ *             municipality:
+ *               summary: Inscription Municipalité
+ *               value:
+ *                 firstname: "Thomas"
+ *                 lastname: "Bernard"
+ *                 email: "thomas.bernard@mairie-paris.fr"
+ *                 password: "password123"
+ *                 phone: "+33123456793"
+ *                 role: "municipality"
+ *                 municipalityCode: "75056"
+ *                 region: "Île-de-France"
+ *             super_admin:
+ *               summary: Inscription Super Admin
+ *               value:
+ *                 firstname: "Admin"
+ *                 lastname: "System"
+ *                 email: "admin@system.fr"
+ *                 password: "password123"
+ *                 phone: "+33123456794"
+ *                 role: "super_admin"
+ *                 adminLevel: "super"
+ *                 permissions: ["users:read", "users:write", "system:admin"]
  *     responses:
  *       201:
  *         description: Utilisateur créé avec succès
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/RegistrationResponse'
+ *               $ref: '#/components/schemas/RegistrationSuccessResponse'
  *             examples:
- *               success:
+ *               client_success:
+ *                 summary: Réponse pour un client
  *                 value:
  *                   success: true
- *                   message: "Utilisateur créé avec succès"
+ *                   message: "Inscription client réussie"
  *                   data:
- *                     user:
- *                       _id: "507f1f77bcf86cd799439014"
- *                       firstname: "John"
- *                       lastname: "Doe"
- *                       email: "john.doe@example.com"
- *                       role: "client"
- *                       status: "active"
- *                     roleData:
- *                       _id: "507f1f77bcf86cd799439015"
- *                       userId: "507f1f77bcf86cd799439014"
- *                       status: "active"
+ *                     userId: "507f1f77bcf86cd799439011"
+ *                     roleId: "507f1f77bcf86cd799439012"
+ *                     firstname: "Alice"
+ *                     lastname: "Martin"
+ *                     email: "alice.martin@example.com"
+ *                     phone: "+33123456789"
  *                     role: "client"
+ *                     status: "active"
+ *                     qrCode: "CLIENT-1640995200000-abc123def"
+ *                     qrCodeImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA..."
+ *               agency_success:
+ *                 summary: Réponse pour une agence
+ *                 value:
+ *                   success: true
+ *                   message: "Inscription agency réussie"
+ *                   data:
+ *                     userId: "507f1f77bcf86cd799439013"
+ *                     roleId: "507f1f77bcf86cd799439014"
+ *                     firstname: "Pierre"
+ *                     lastname: "Durand"
+ *                     email: "pierre@agence-eco.fr"
+ *                     phone: "+33123456790"
+ *                     role: "agency"
+ *                     status: "active"
+ *                     agencyName: "Éco Collecte Paris"
+ *                     agencyId: "507f1f77bcf86cd799439014"
+ *                     zoneActivite: "Paris intra-muros"
+ *                     clientId: "507f1f77bcf86cd799439011"
+ *                     collectorId: "507f1f77bcf86cd799439012"
  *       400:
- *         description: Données invalides ou email déjà utilisé
+ *         description: Données invalides ou manquantes
  *         content:
  *           application/json:
  *             schema:
@@ -327,16 +412,62 @@
  *                 value:
  *                   success: false
  *                   message: "Champs obligatoires manquants: firstname, email"
- *                   error: "Validation Error"
- *               email_exists:
+ *                   error: "Champs obligatoires manquants: firstname, email"
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
+ *               invalid_role:
  *                 value:
  *                   success: false
- *                   message: "Cet email est déjà utilisé"
- *                   error: "Duplicate Email"
- *       500:
- *         description: Erreur serveur
+ *                   message: "Impossible de déterminer le rôle. Veuillez spécifier un rôle valide ou fournir les champs nécessaires."
+ *                   error: "Impossible de déterminer le rôle. Veuillez spécifier un rôle valide ou fournir les champs nécessaires."
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
+ *       409:
+ *         description: Conflit (email déjà utilisé ou dépendances manquantes)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               email_exists:
+ *                 value:
+ *                   success: false
+ *                   message: "Cet email est déjà utilisé"
+ *                   error: "Cet email est déjà utilisé"
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
+ *               dependency_missing:
+ *                 value:
+ *                   success: false
+ *                   message: "L'agence spécifiée n'existe pas"
+ *                   error: "L'agence spécifiée n'existe pas"
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
+ *       422:
+ *         description: Rôle non supporté ou données non traitables
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               unsupported_role:
+ *                 value:
+ *                   success: false
+ *                   message: "Rôle non supporté: invalid_role"
+ *                   error: "Rôle non supporté: invalid_role"
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
+ *       500:
+ *         description: Erreur serveur interne
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               server_error:
+ *                 value:
+ *                   success: false
+ *                   message: "Erreur interne du serveur"
+ *                   error: "Erreur interne du serveur"
+ *                   timestamp: "2024-01-01T12:00:00.000Z"
  */
+
+// POST /api/auth/register
+router.post('/register', register);
+
+module.exports = router;

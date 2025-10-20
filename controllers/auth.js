@@ -1,7 +1,7 @@
 // ========================================
 // controllers/authController.js
 // ========================================
-const registrationService = require('../services/authService');
+const registrationService = require('../services/auth');
 
 /**
  * 🎯 CONTRÔLEUR UNIQUE - Gère toutes les inscriptions
