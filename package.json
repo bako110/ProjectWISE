@@ -1,7 +1,6 @@
 {
   "name": "waste-collection-backend",
   "version": "1.0.0",
-  "type": "module",
   "description": "Backend app for waste collection system",
   "main": "server.js",
   "scripts": {
@@ -9,6 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

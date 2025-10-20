@@ -1,5 +1,5 @@
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const options = {
   definition: {
@@ -9,10 +9,10 @@ const options = {
       version: '1.0.0',
       description: 'Documentation de toutes les routes du backend',
     },
-  servers: [
-  { url: 'http://localhost:3000' },
-  { url: 'https://projectwise.onrender.com/' }
-],
+    servers: [
+      { url: 'http://localhost:3000' },
+      { url: 'https://projectwise.onrender.com/' }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -29,7 +29,7 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
-export default (app) => {
+module.exports = (app) => {
   // UI Swagger
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -37,5 +37,5 @@ export default (app) => {
   app.get('/api-docs.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
-  }); 
+  });
 };

@@ -12,8 +12,22 @@ const userSchema = new mongoose.Schema({
     enum: ['client', 'collector', 'agency', 'manager', 'municipality', 'super_admin'],
     default: 'client',
   },
-  phone: { type: String, trim: true },
-  address:   { type: String, trim: true },
+    agencyName: { type: String, required: true, trim: true },
+
+  agencyDescription: { type: String, default: '', trim: true },
+
+  phone: { type: String, required: true, trim: true },
+  address: {
+    street: { type: String, trim: true },
+    arrondissement: { type: String, trim: true },
+    sector: { type: String, trim: true },
+    neighborhood: { type: String, trim: true },
+    city: { type: String, trim: true },
+    postalCode: { type: String, trim: true },
+    latitude: { type: Number },
+    longitude: { type: Number }
+  },
+  
   status: {
     type: String,
     enum: ['active', 'inactive', 'deleted'],
