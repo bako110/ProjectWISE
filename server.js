@@ -1,9 +1,10 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const logger = require('./utils/logger.js');
 const cors = require('cors');
 const connectDB = require('./config/db.js');
 const swaggerDocs = require('./swagger.js');
-const authRoutes = require('./routes/authRoutes.js'); // require au lieu d'import
+const authRoute = require('./routes/auth.route.js'); // require au lieu d'import
 
 dotenv.config();
 connectDB();
@@ -18,7 +19,8 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
+app.use('/api', authRoute);
 
 // Swagger
 swaggerDocs(app);
@@ -37,5 +39,6 @@ app.use((err, req, res, next) => {
 // Lancement du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur le port ${PORT}`);
+  logger.info(`✅ Serveur lancé sur le port ${PORT}`);
+  // console.log(`✅ Serveur lancé sur le port ${PORT}`);
 });

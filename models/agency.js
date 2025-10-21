@@ -9,29 +9,22 @@ const agenceSchema = new mongoose.Schema({
 
   agencyDescription: { type: String, default: '', trim: true },
 
-  zoneActivite: { 
+  zoneActivite: [{ 
     type: String, 
     default: '', 
     trim: true 
-  },
+  }],
 
-  // 🔗 Référence vers le client principal
   client: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
-  },
-
-  // 🔗 Référence vers le collecteur principal
-  collector: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Collector', // ou 'Collector' si tu as un modèle spécifique
-  },
-
-  // 🔗 Référence vers l'utilisateur propriétaire/admin de l'agence
-  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+
+  collector: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // ou 'Collector' si tu as un modèle spécifique
+  },
+
 
   slogan: { 
     type: String, 
@@ -39,27 +32,38 @@ const agenceSchema = new mongoose.Schema({
     trim: true 
   },
 
-  // 🔗 Référence aux gestionnaires (managers)
   gestionnaires: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Manager',
+    ref: 'User',
   }],
 
-  // Documents liés à l'agence
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+
   documents: [{
     type: String, // URL ou chemin vers le document
   }],
 
-  // Statut de l’agence
   status: {
     type: String,
     enum: ['active', 'inactive', 'deleted'],
     default: 'active'
   },
 
-  // Dates
-  createdate: { type: Date, default: Date.now },
-  updatedate: { type: Date, default: Date.now },
+  location: {
+    type: {
+      type: String,
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      default: [0, 0]
+    }
+  },
+
+  
   deletedate: { type: Date },
 }, {
   timestamps: true, // ajoute automatiquement createdAt et updatedAt
