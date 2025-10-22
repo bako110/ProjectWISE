@@ -1,5 +1,5 @@
 const User = require('../models/User.js');
-const Agency = require('../models/Agency.js');
+const Agency = require('../models/agency.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
