@@ -38,10 +38,17 @@ const getUserById = async (userId) => {
 }
 
 
-const getUsers= async () => {
-    const users = await User.find();
-    return users;
-}
+const getUsers = async (filtre = {}, pagination = {}) => {
+    const users = await User.find(filtre)
+        .skip(pagination.skip || 0)
+        .limit(pagination.limit || 10);
+
+    const total = await User.countDocuments(filtre);
+
+    return { users, total };
+};
+
+
 
 const updateUser = async (userId, updateData) => {
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });

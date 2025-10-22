@@ -57,6 +57,9 @@ exports.login = async (req, res) => {
 
 exports.getUser = async (req, res) => {
     try {
+        if(!req.params.id) {
+            throw new Error('L\'identifiant de l\'utilisateur est requis');
+        }
         const user = await getUserById(req.params.id);
         res.status(200).json(user);
     } catch (error) {
@@ -66,8 +69,39 @@ exports.getUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await getUsers();
-        res.status(200).json(users);
+        const {term, role, agencyId, neighborhood} = req.query;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.max(1, parseInt(req.query.limit) || 10);
+        const filtre = {};
+        if(term) {
+            filtre.$or = [
+                { firstName: { $regex: term, $options: 'i' } },
+                { lastName: { $regex: term, $options: 'i' } },
+                { email: { $regex: term, $options: 'i' } },
+                { phone: { $regex: term, $options: 'i' } }
+            ];
+        }
+        if(role) {
+            filtre.role = role;
+        }
+        if(agencyId) {
+            filtre.agencyId = agencyId;
+        }
+        if(neighborhood) {
+            filtre.neighborhood = neighborhood;
+        }
+        const pagination = {
+            skip: (page - 1) * limit,
+            limit: limit
+        };
+        const { users, total } = await getUsers(filtre, pagination);
+        res.status(200).json({
+            data: users,
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
