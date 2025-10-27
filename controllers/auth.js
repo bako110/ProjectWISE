@@ -35,7 +35,7 @@ exports.register = async (req, res) => {
                 break;
         }
         const user = await registerUser(data);
-        res.status(201).json(user);
+        res.status(201).json({user});
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -49,7 +49,7 @@ exports.login = async (req, res) => {
         }
         const user = await loginUser(login, password);
         const token = await genererateToken(user);
-        res.status(200).json(token, user);
+        res.status(200).json({token, user});
     } catch (error) {
         res.status(401).json({ error: error.message });
     }
@@ -61,7 +61,7 @@ exports.getUser = async (req, res) => {
             throw new Error('L\'identifiant de l\'utilisateur est requis');
         }
         const user = await getUserById(req.params.id);
-        res.status(200).json(user);
+        res.status(200).json({user});
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -110,7 +110,7 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUserById = async (req, res) => {
     try {
         const updatedUser = await updateUser(req.params.id, req.body);
-        res.status(200).json(updatedUser);
+        res.status(200).json({updatedUser});
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
@@ -119,7 +119,7 @@ exports.updateUserById = async (req, res) => {
 exports.deleteUserById = async (req, res) => {
     try {
         const deletedUser = await deleteUser(req.params.id);
-        res.status(200).json(deletedUser);
+        res.status(200).json({deletedUser});
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
