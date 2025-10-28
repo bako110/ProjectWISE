@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { genererateToken, registerUser, createAgency, loginUser, getUserById, getUsers, updateUser, deleteUser, getUserByRole, getUsersByAgency, requestPasswordReset, resetPasswordWithCode, verifyResetCode } = require('../services/auth.js');
 const { sendPasswordResetConfirmation, sendWelcomeEmail } = require('../utils/sendResetCodeMail.js');
 const logger = require('./../utils/logger');
