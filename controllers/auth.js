@@ -278,7 +278,8 @@ exports.verifyResetCode = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        const { password, sessionToken } = req.body;
+        const { password } = req.body;
+        const sessionToken = req.headers['x-reset-token']; // Récupérer le token du header
         
         if (!password) {
             return res.status(400).json({
@@ -297,7 +298,7 @@ exports.resetPassword = async (req, res) => {
         if (!sessionToken) {
             return res.status(400).json({
                 success: false,
-                message: 'Session token manquant'
+                message: 'Token de réinitialisation manquant dans les headers'
             });
         }
 

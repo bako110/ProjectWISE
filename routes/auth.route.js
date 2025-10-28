@@ -167,8 +167,15 @@ const {
  * 
  * /api/reset-password:
  *   post:
- *     summary: Réinitialiser le mot de passe
+ *     summary: Réinitialiser le mot de passe avec un token d'autorisation
  *     tags: [Auth]
+ *     parameters:
+ *       - in: header
+ *         name: x-reset-token
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Token de session reçu après vérification du code
  *     requestBody:
  *       required: true
  *       content:
@@ -180,10 +187,6 @@ const {
  *                 type: string
  *                 description: Nouveau mot de passe
  *                 example: "newpassword123"
- *               sessionToken:
- *                 type: string
- *                 description: Token de session reçu après vérification du code
- *                 example: "abc123def456"
  *     responses:
  *       200:
  *         description: Mot de passe réinitialisé avec succès
@@ -199,7 +202,7 @@ const {
  *                   type: string
  *                   example: "Mot de passe réinitialisé avec succès"
  *       400:
- *         description: Token de session invalide, expiré ou mot de passe manquant
+ *         description: Token manquant, invalide, expiré ou mot de passe manquant
  *       500:
  *         description: Erreur interne du serveur
  */
