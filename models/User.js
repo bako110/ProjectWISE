@@ -74,7 +74,15 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: null,
   },
-
+  // Dans models/User.js
+  resetPasswordCode: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false
+  },
 
   deletedate: { type: Date },
 }, {

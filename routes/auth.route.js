@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-
-
-const {  register,
+const {  
+  register,
   login,
   getUser,
   getAllUsers,
   updateUserById,
-  deleteUserById } = require('../controllers/auth.js');
-
-// const router = express.Router();
+  deleteUserById,
+  forgotPassword,
+  resetPassword,
+  verifyResetCode
+} = require('../controllers/auth.js');
 
 /**
  * @swagger
@@ -83,6 +84,122 @@ const {  register,
  *         description: Erreur de validation ou données manquantes
  *       401:
  *         description: Identifiant ou mot de passe incorrect
+ *       500:
+ *         description: Erreur interne du serveur
+ */
+
+/**
+ * @swagger
+ * /api/forgot-password:
+ *   post:
+ *     summary: Demander une réinitialisation de mot de passe
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "john.doe@example.com"
+ *     responses:
+ *       200:
+ *         description: Email avec le code de réinitialisation envoyé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Email de réinitialisation envoyé"
+ *       400:
+ *         description: Email manquant ou utilisateur non trouvé
+ *       500:
+ *         description: Erreur lors de l'envoi de l'email
+ * 
+ * /api/verify-reset-code:
+ *   post:
+ *     summary: Vérifier la validité d'un code de réinitialisation
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 description: Code à 6 chiffres reçu par email
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Code valide
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 valid:
+ *                   type: boolean
+ *                   example: true
+ *                 email:
+ *                   type: string
+ *                   example: "john.doe@example.com"
+ *                 sessionToken:
+ *                   type: string
+ *                   description: Token de session pour la réinitialisation
+ *                   example: "abc123def456"
+ *       400:
+ *         description: Code invalide ou expiré
+ *       500:
+ *         description: Erreur interne du serveur
+ * 
+ * /api/reset-password:
+ *   post:
+ *     summary: Réinitialiser le mot de passe
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Nouveau mot de passe
+ *                 example: "newpassword123"
+ *               sessionToken:
+ *                 type: string
+ *                 description: Token de session reçu après vérification du code
+ *                 example: "abc123def456"
+ *     responses:
+ *       200:
+ *         description: Mot de passe réinitialisé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Mot de passe réinitialisé avec succès"
+ *       400:
+ *         description: Token de session invalide, expiré ou mot de passe manquant
  *       500:
  *         description: Erreur interne du serveur
  */
@@ -221,9 +338,16 @@ const {  register,
  *        description: Erreur interne du serveur
  */
 
-
+// Routes d'authentification
 router.post('/register', register);
 router.post('/login', login);
+
+// Routes de mot de passe perdu avec code à 6 chiffres
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-code', verifyResetCode);
+router.post('/reset-password', resetPassword);
+
+// Routes de gestion des utilisateurs
 router.get('/user/:id', getUser);
 router.get('/users', getAllUsers);
 router.put('/user/:id', updateUserById);
