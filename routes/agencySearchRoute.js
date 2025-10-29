@@ -6,64 +6,52 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  * @swagger
  * tags:
  *   name: Agency Search
- *   description: API de recherche avancée d'agences
+ *   description: API de recherche unifiée d'agences avec critères détaillés
  */
 
 /**
  * @swagger
- * /api/agencies/search:
+ * /api/agencies/search/unified:
  *   get:
- *     summary: Recherche avancée d'agences
+ *     summary: Recherche unifiée détaillée d'agences
+ *     description: |
+ *       Endpoint principal de recherche qui combine tous les critères :
+ *       - Recherche par nom, quartier, zone d'activité, secteur, arrondissement, ville
+ *       - Recherche géospatiale par coordonnées
+ *       - Filtres avancés (propriétaire, nombre de gestionnaires)
+ *       - Pagination et tri
  *     tags: [Agency Search]
  *     parameters:
  *       - in: query
- *         name: search
+ *         name: name
  *         schema:
  *           type: string
- *         description: Terme de recherche général
- *       - in: query
- *         name: city
- *         schema:
- *           type: string
- *         description: Ville de l'agence
+ *         description: Recherche par nom d'agence (contient aussi description et slogan)
  *       - in: query
  *         name: neighborhood
  *         schema:
  *           type: string
- *         description: Quartier de l'agence
+ *         description: Recherche par quartier
  *       - in: query
- *         name: zoneActivite
+ *         name: activityZone
  *         schema:
  *           type: string
- *         description: Zone d'activité
+ *         description: Recherche par zone d'activité
  *       - in: query
- *         name: status
+ *         name: sector
  *         schema:
  *           type: string
- *           enum: [active, inactive, pending]
- *           default: active
- *         description: Statut de l'agence
+ *         description: Recherche par secteur d'activité
  *       - in: query
- *         name: page
+ *         name: arrondissement
  *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Numéro de page
+ *           type: string
+ *         description: Recherche par arrondissement
  *       - in: query
- *         name: limit
+ *         name: city
  *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Nombre d'éléments par page
- *       - in: query
- *         name: getAll
- *         schema:
- *           type: boolean
- *           default: false
- *         description: Récupérer tous les résultats sans pagination
+ *           type: string
+ *         description: Recherche par ville
  *       - in: query
  *         name: latitude
  *         schema:
@@ -82,259 +70,19 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *           type: number
  *           format: float
  *           default: 10
- *         description: Rayon de recherche en kilomètres
- *     responses:
- *       200:
- *         description: Recherche effectuée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Agency'
- *                 total:
- *                   type: integer
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
- *       500:
- *         description: Erreur serveur
- */
-router.get('/search', AgencySearchController.searchAgencies);
-
-/**
- * @swagger
- * /api/agencies/search/fulltext:
- *   get:
- *     summary: Recherche en plein texte avec scoring de pertinence
- *     tags: [Agency Search]
- *     parameters:
- *       - in: query
- *         name: query
- *         schema:
- *           type: string
- *         description: Requête de recherche en plein texte
- *       - in: query
- *         name: city
- *         schema:
- *           type: string
- *         description: Filtre par ville
- *       - in: query
- *         name: neighborhood
- *         schema:
- *           type: string
- *         description: Filtre par quartier
- *       - in: query
- *         name: zoneActivite
- *         schema:
- *           type: string
- *         description: Filtre par zone d'activité
+ *         description: Rayon de recherche en kilomètres (max 50)
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, inactive, pending]
  *           default: active
- *         description: Statut de l'agence
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Numéro de page
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Nombre d'éléments par page
- *     responses:
- *       200:
- *         description: Recherche en plein texte effectuée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Agency'
- *                 total:
- *                   type: integer
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
- *       500:
- *         description: Erreur serveur
- */
-router.get('/search/fulltext', AgencySearchController.fullTextSearch);
-
-/**
- * @swagger
- * /api/agencies/search/geo:
- *   get:
- *     summary: Recherche géospatiale avancée
- *     tags: [Agency Search]
- *     parameters:
- *       - in: query
- *         name: latitude
- *         schema:
- *           type: number
- *           format: float
- *         required: true
- *         description: Latitude du point de référence
- *       - in: query
- *         name: longitude
- *         schema:
- *           type: number
- *           format: float
- *         required: true
- *         description: Longitude du point de référence
- *       - in: query
- *         name: radius
- *         schema:
- *           type: number
- *           format: float
- *           default: 10
- *         description: Rayon de recherche en kilomètres
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Terme de recherche additionnel
- *       - in: query
- *         name: city
- *         schema:
- *           type: string
- *         description: Filtre par ville
- *       - in: query
- *         name: neighborhood
- *         schema:
- *           type: string
- *         description: Filtre par quartier
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, pending]
- *           default: active
- *         description: Statut de l'agence
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Numéro de page
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Nombre d'éléments par page
- *     responses:
- *       200:
- *         description: Recherche géospatiale effectuée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Agency'
- *                 total:
- *                   type: integer
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
- *       400:
- *         description: Paramètres manquants ou invalides
- *       500:
- *         description: Erreur serveur
- */
-router.get('/search/geo', AgencySearchController.geoSearch);
-
-/**
- * @swagger
- * /api/agencies/search/filters:
- *   get:
- *     summary: Recherche par filtres multiples
- *     tags: [Agency Search]
- *     parameters:
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Terme de recherche général
- *       - in: query
- *         name: city
- *         schema:
- *           type: string
- *         description: Ville de l'agence
- *       - in: query
- *         name: neighborhood
- *         schema:
- *           type: string
- *         description: Quartier de l'agence
- *       - in: query
- *         name: zoneActivite
- *         schema:
- *           type: string
- *         description: Zone d'activité
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, pending]
- *           default: active
- *         description: Statut de l'agence
+ *         description: Statut des agences
  *       - in: query
  *         name: hasOwner
  *         schema:
  *           type: boolean
- *           default: false
- *         description: Filtrer les agences avec propriétaire
+ *         description: Filtrer les agences avec/sans propriétaire
  *       - in: query
  *         name: minGestionnaires
  *         schema:
@@ -363,9 +111,23 @@ router.get('/search/geo', AgencySearchController.geoSearch);
  *           type: boolean
  *           default: false
  *         description: Récupérer tous les résultats sans pagination
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [name, createdAt, updatedAt]
+ *           default: createdAt
+ *         description: Champ de tri
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Ordre de tri
  *     responses:
  *       200:
- *         description: Recherche par filtres effectuée avec succès
+ *         description: Recherche effectuée avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -390,27 +152,149 @@ router.get('/search/geo', AgencySearchController.geoSearch);
  *                       type: integer
  *                     totalPages:
  *                       type: integer
+ *                 searchCriteria:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     neighborhood:
+ *                       type: string
+ *                     activityZone:
+ *                       type: string
+ *                     sector:
+ *                       type: string
+ *                     arrondissement:
+ *                       type: string
+ *                     city:
+ *                       type: string
+ *                     hasCoordinates:
+ *                       type: boolean
+ *                     radius:
+ *                       type: number
+ *                     status:
+ *                       type: string
+ *                     hasOwner:
+ *                       type: boolean
+ *                     minGestionnaires:
+ *                       type: integer
  *       500:
  *         description: Erreur serveur
  */
-router.get('/search/filters', AgencySearchController.searchByMultipleFilters);
+router.get('/search/unified', AgencySearchController.unifiedSearch);
 
 /**
  * @swagger
- * /api/agencies/search/suggestions:
+ * /api/agencies/search/advanced:
  *   get:
- *     summary: Récupérer les suggestions de recherche
+ *     summary: Recherche avancée avec scoring de pertinence
+ *     description: |
+ *       Recherche avancée avec scoring de pertinence pour les termes de recherche
+ *       et recherche géospatiale intégrée
  *     tags: [Agency Search]
  *     parameters:
  *       - in: query
- *         name: query
+ *         name: searchTerm
  *         schema:
  *           type: string
- *         required: true
- *         description: Terme de recherche pour les suggestions
+ *         description: Terme de recherche général pour la recherche en plein texte
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filtre par nom exact
+ *       - in: query
+ *         name: neighborhood
+ *         schema:
+ *           type: string
+ *         description: Filtre par quartier
+ *       - in: query
+ *         name: activityZone
+ *         schema:
+ *           type: string
+ *         description: Filtre par zone d'activité
+ *       - in: query
+ *         name: sector
+ *         schema:
+ *           type: string
+ *         description: Filtre par secteur
+ *       - in: query
+ *         name: arrondissement
+ *         schema:
+ *           type: string
+ *         description: Filtre par arrondissement
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filtre par ville
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive, pending]
+ *           default: active
+ *         description: Statut des agences
+ *       - in: query
+ *         name: hasOwner
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer les agences avec/sans propriétaire
+ *       - in: query
+ *         name: minGestionnaires
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *         description: Nombre minimum de gestionnaires
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Latitude pour recherche géospatiale
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Longitude pour recherche géospatiale
+ *       - in: query
+ *         name: radius
+ *         schema:
+ *           type: number
+ *           format: float
+ *           default: 10
+ *         description: Rayon de recherche en kilomètres
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Numéro de page
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Nombre d'éléments par page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [relevance, distance, name, createdAt]
+ *           default: relevance
+ *         description: Critère de tri
+ *       - in: query
+ *         name: includeInactive
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Inclure les agences inactives
  *     responses:
  *       200:
- *         description: Suggestions récupérées avec succès
+ *         description: Recherche avancée effectuée avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -418,29 +302,113 @@ router.get('/search/filters', AgencySearchController.searchByMultipleFilters);
  *               properties:
  *                 success:
  *                   type: boolean
- *                 suggestions:
+ *                 data:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                       name:
- *                         type: string
- *                       city:
- *                         type: string
- *                       neighborhood:
- *                         type: string
- *                       zoneActivite:
- *                         type: string
- *                       type:
- *                         type: string
- *                         enum: [name, city, neighborhood, zoneActivite]
- *       400:
- *         description: Paramètre query manquant ou trop court
+ *                     $ref: '#/components/schemas/Agency'
+ *                 total:
+ *                   type: integer
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                 searchSummary:
+ *                   type: object
+ *                   properties:
+ *                     term:
+ *                       type: string
+ *                     filters:
+ *                       type: object
+ *                     hasLocation:
+ *                       type: boolean
+ *                     sortBy:
+ *                       type: string
  *       500:
  *         description: Erreur serveur
  */
-router.get('/search/suggestions', AgencySearchController.getSearchSuggestions);
+router.get('/search/advanced', AgencySearchController.advancedSearch);
+
+/**
+ * @swagger
+ * /api/agencies/search/metadata:
+ *   get:
+ *     summary: Récupérer les métadonnées de recherche
+ *     description: |
+ *       Retourne les suggestions de recherche et les statistiques pour les filtres
+ *       Utile pour peupler les interfaces de recherche
+ *     tags: [Agency Search]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Terme de recherche pour les suggestions (min 2 caractères)
+ *     responses:
+ *       200:
+ *         description: Métadonnées récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     suggestions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           neighborhood:
+ *                             type: string
+ *                           city:
+ *                             type: string
+ *                           activityZone:
+ *                             type: string
+ *                           sector:
+ *                             type: string
+ *                           arrondissement:
+ *                             type: string
+ *                           type:
+ *                             type: string
+ *                     filters:
+ *                       type: object
+ *                       properties:
+ *                         cities:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                               count:
+ *                                 type: integer
+ *                         neighborhoods:
+ *                           type: array
+ *                         activityZones:
+ *                           type: array
+ *                         sectors:
+ *                           type: array
+ *                         arrondissements:
+ *                           type: array
+ *       400:
+ *         description: Paramètre query trop court
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/search/metadata', AgencySearchController.getSearchMetadata);
 
 module.exports = router;

@@ -1,52 +1,88 @@
 const Agency = require('../models/agency');
 
 class AgencySearchService {
-    // Recherche avancée d'agences
-    async searchAgencies({
-        search = '',
-        city = '',
+    // Recherche unifiée détaillée
+    async unifiedSearch({
+        // Critères de recherche détaillés
+        name = '',
         neighborhood = '',
-        zoneActivite = '',
+        activityZone = '',
+        sector = '',
+        arrondissement = '',
+        city = '',
+        
+        // Recherche géospatiale
+        latitude = null,
+        longitude = null,
+        radius = 10, // rayon en kilomètres
+        
+        // Filtres supplémentaires
         status = 'active',
+        hasOwner = null,
+        minGestionnaires = 0,
+        
+        // Pagination
         page = 1,
         limit = 10,
         getAll = false,
-        coordinates = null,
-        radius = 10 // rayon en kilomètres
+        
+        // Options de tri
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
     }) {
         try {
             const filter = {};
 
-            // Filtre par statut (par défaut seulement les agences actives)
+            // Filtre par statut
             if (status) {
                 filter.status = status;
             }
 
-            // Construction des conditions de recherche
+            // Construction des conditions de recherche détaillées
             const searchConditions = [];
 
-            // Recherche en plein texte
-            if (search) {
+            // Recherche par nom
+            if (name) {
                 searchConditions.push(
-                    { name: { $regex: search, $options: 'i' } },
-                    { agencyDescription: { $regex: search, $options: 'i' } },
-                    { slogan: { $regex: search, $options: 'i' } }
+                    { name: { $regex: name, $options: 'i' } },
+                    { agencyDescription: { $regex: name, $options: 'i' } },
+                    { slogan: { $regex: name, $options: 'i' } }
                 );
             }
 
-            // Filtre par ville
-            if (city) {
-                searchConditions.push({ 'address.city': { $regex: city, $options: 'i' } });
-            }
-
-            // Filtre par quartier
+            // Recherche par quartier
             if (neighborhood) {
-                searchConditions.push({ 'address.neighborhood': { $regex: neighborhood, $options: 'i' } });
+                searchConditions.push({ 
+                    'address.neighborhood': { $regex: neighborhood, $options: 'i' } 
+                });
             }
 
-            // Filtre par zone d'activité
-            if (zoneActivite) {
-                searchConditions.push({ zoneActivite: { $regex: zoneActivite, $options: 'i' } });
+            // Recherche par zone d'activité
+            if (activityZone) {
+                searchConditions.push({ 
+                    zoneActivite: { $regex: activityZone, $options: 'i' } 
+                });
+            }
+
+            // Recherche par secteur
+            if (sector) {
+                searchConditions.push({ 
+                    sector: { $regex: sector, $options: 'i' } 
+                });
+            }
+
+            // Recherche par arrondissement
+            if (arrondissement) {
+                searchConditions.push({ 
+                    'address.arrondissement': { $regex: arrondissement, $options: 'i' } 
+                });
+            }
+
+            // Recherche par ville
+            if (city) {
+                searchConditions.push({ 
+                    'address.city': { $regex: city, $options: 'i' } 
+                });
             }
 
             // Application des conditions de recherche
@@ -54,33 +90,53 @@ class AgencySearchService {
                 filter.$or = searchConditions;
             }
 
-            // Recherche géospatiale
-            let geoQuery = Agency.find(filter);
+            // Filtres supplémentaires
+            if (hasOwner !== null) {
+                if (hasOwner === true || hasOwner === 'true') {
+                    filter.owner = { $exists: true, $ne: null };
+                } else {
+                    filter.owner = { $exists: false };
+                }
+            }
 
-            if (coordinates && coordinates.length === 2) {
-                const [longitude, latitude] = coordinates;
-                
-                geoQuery = Agency.find({
+            if (minGestionnaires > 0) {
+                filter.$expr = { 
+                    $gte: [{ $size: { $ifNull: ['$gestionnaires', []] } }, parseInt(minGestionnaires)] 
+                };
+            }
+
+            // Construction de la requête de base
+            let query;
+
+            // Recherche géospatiale si coordonnées fournies
+            if (latitude && longitude) {
+                query = Agency.find({
                     ...filter,
                     'location.coordinates': {
                         $near: {
                             $geometry: {
                                 type: "Point",
-                                coordinates: [longitude, latitude]
+                                coordinates: [parseFloat(longitude), parseFloat(latitude)]
                             },
                             $maxDistance: radius * 1000 // Conversion en mètres
                         }
                     }
                 });
+            } else {
+                query = Agency.find(filter);
             }
 
-            // Population des relations
-            let query = geoQuery
+            // Configuration du tri
+            const sortOptions = {};
+            sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+            // Population des relations et application du tri
+            query = query
                 .populate('owner', 'firstName lastName email phone')
                 .populate('gestionnaires', 'firstName lastName email phone role')
                 .populate('client', 'firstName lastName email phone')
                 .populate('collector', 'firstName lastName email phone')
-                .sort({ createdAt: -1 });
+                .sort(sortOptions);
 
             // Option pour récupérer tout sans pagination
             if (getAll === 'true' || getAll === true) {
@@ -96,6 +152,19 @@ class AgencySearchService {
                         limit: total,
                         total,
                         totalPages: 1
+                    },
+                    searchCriteria: {
+                        name,
+                        neighborhood,
+                        activityZone,
+                        sector,
+                        arrondissement,
+                        city,
+                        hasCoordinates: !!(latitude && longitude),
+                        radius,
+                        status,
+                        hasOwner,
+                        minGestionnaires
                     }
                 };
             }
@@ -116,88 +185,168 @@ class AgencySearchService {
                     limit: parseInt(limit),
                     total,
                     totalPages: Math.ceil(total / limit)
+                },
+                searchCriteria: {
+                    name,
+                    neighborhood,
+                    activityZone,
+                    sector,
+                    arrondissement,
+                    city,
+                    hasCoordinates: !!(latitude && longitude),
+                    radius,
+                    status,
+                    hasOwner,
+                    minGestionnaires
                 }
             };
 
         } catch (error) {
-            throw new Error(`Erreur lors de la recherche d'agences: ${error.message}`);
+            throw new Error(`Erreur lors de la recherche unifiée d'agences: ${error.message}`);
         }
     }
 
-    // Recherche en plein texte avec scoring de pertinence
-    async fullTextSearch({
-        query = '',
-        city = '',
-        neighborhood = '',
-        zoneActivite = '',
-        status = 'active',
-        page = 1,
-        limit = 10
+    // Recherche avancée avec scoring de pertinence
+    async advancedSearch({
+        searchTerm = '',
+        filters = {},
+        location = null,
+        options = {}
     }) {
         try {
-            const searchPipeline = [];
+            const {
+                name,
+                neighborhood,
+                activityZone,
+                sector,
+                arrondissement,
+                city,
+                status = 'active',
+                hasOwner,
+                minGestionnaires
+            } = filters;
 
-            // Étape de recherche en texte intégral
-            if (query) {
-                searchPipeline.push({
-                    $match: {
-                        $text: { $search: query },
-                        status: status
-                    }
-                });
+            const {
+                page = 1,
+                limit = 10,
+                sortBy = 'relevance',
+                includeInactive = false
+            } = options;
 
-                // Ajout du score de pertinence
-                searchPipeline.push({
-                    $addFields: {
-                        score: { $meta: "textScore" }
-                    }
-                });
-            } else {
-                searchPipeline.push({
-                    $match: { status: status }
-                });
+            // Construction du pipeline d'agrégation
+            const pipeline = [];
+
+            // Étape de matching de base
+            const matchStage = {};
+
+            if (!includeInactive) {
+                matchStage.status = status;
             }
 
-            // Filtres supplémentaires
-            const matchStage = { status: status };
+            // Filtres détaillés
+            const detailedFilters = [];
 
-            if (city) {
-                matchStage['address.city'] = { $regex: city, $options: 'i' };
+            if (name) {
+                detailedFilters.push({ name: { $regex: name, $options: 'i' } });
             }
 
             if (neighborhood) {
-                matchStage['address.neighborhood'] = { $regex: neighborhood, $options: 'i' };
+                detailedFilters.push({ 'address.neighborhood': { $regex: neighborhood, $options: 'i' } });
             }
 
-            if (zoneActivite) {
-                matchStage.zoneActivite = { $regex: zoneActivite, $options: 'i' };
+            if (activityZone) {
+                detailedFilters.push({ zoneActivite: { $regex: activityZone, $options: 'i' } });
             }
 
-            if (Object.keys(matchStage).length > 1) { // Plus que juste le statut
-                searchPipeline.push({
-                    $match: matchStage
+            if (sector) {
+                detailedFilters.push({ sector: { $regex: sector, $options: 'i' } });
+            }
+
+            if (arrondissement) {
+                detailedFilters.push({ 'address.arrondissement': { $regex: arrondissement, $options: 'i' } });
+            }
+
+            if (city) {
+                detailedFilters.push({ 'address.city': { $regex: city, $options: 'i' } });
+            }
+
+            if (hasOwner !== null) {
+                if (hasOwner) {
+                    matchStage.owner = { $exists: true, $ne: null };
+                } else {
+                    matchStage.owner = { $exists: false };
+                }
+            }
+
+            if (minGestionnaires > 0) {
+                matchStage.$expr = { 
+                    $gte: [{ $size: { $ifNull: ['$gestionnaires', []] } }, parseInt(minGestionnaires)] 
+                };
+            }
+
+            // Recherche par terme général avec scoring
+            if (searchTerm) {
+                pipeline.push({
+                    $match: {
+                        ...matchStage,
+                        $text: { $search: searchTerm }
+                    }
+                });
+
+                pipeline.push({
+                    $addFields: {
+                        relevanceScore: { $meta: "textScore" }
+                    }
+                });
+            } else if (Object.keys(matchStage).length > 0 || detailedFilters.length > 0) {
+                // Application des filtres détaillés
+                if (detailedFilters.length > 0) {
+                    matchStage.$or = detailedFilters;
+                }
+                pipeline.push({ $match: matchStage });
+            }
+
+            // Recherche géospatiale
+            if (location && location.latitude && location.longitude) {
+                pipeline.push({
+                    $geoNear: {
+                        near: {
+                            type: "Point",
+                            coordinates: [location.longitude, location.latitude]
+                        },
+                        distanceField: "distance",
+                        maxDistance: (location.radius || 10) * 1000,
+                        spherical: true
+                    }
                 });
             }
 
-            // Tri par score de pertinence ou par date
-            if (query) {
-                searchPipeline.push({
-                    $sort: { score: -1, createdAt: -1 }
-                });
+            // Tri
+            const sortStage = {};
+            if (searchTerm) {
+                sortStage.relevanceScore = -1;
+            }
+            
+            if (sortBy === 'distance' && location) {
+                sortStage.distance = 1;
+            } else if (sortBy === 'name') {
+                sortStage.name = 1;
+            } else if (sortBy === 'createdAt') {
+                sortStage.createdAt = -1;
             } else {
-                searchPipeline.push({
-                    $sort: { createdAt: -1 }
-                });
+                sortStage.createdAt = -1;
             }
+
+            pipeline.push({ $sort: sortStage });
 
             // Pagination
-            searchPipeline.push(
+            pipeline.push(
                 { $skip: (page - 1) * limit },
                 { $limit: parseInt(limit) }
             );
 
             // Population des relations
-            searchPipeline.push(
+            pipeline.push(
                 {
                     $lookup: {
                         from: 'users',
@@ -228,11 +377,10 @@ class AgencySearchService {
                 }
             );
 
-            const agencies = await Agency.aggregate(searchPipeline);
+            const agencies = await Agency.aggregate(pipeline);
 
-            // Comptage total pour la pagination
-            const countPipeline = [...searchPipeline];
-            countPipeline.splice(countPipeline.length - 5, 5); // Retirer pagination et population
+            // Comptage total (sans pagination et population)
+            const countPipeline = pipeline.slice(0, -5); // Retirer pagination et population
             countPipeline.push({ $count: 'total' });
 
             const totalResult = await Agency.aggregate(countPipeline);
@@ -247,247 +395,142 @@ class AgencySearchService {
                     limit: parseInt(limit),
                     total,
                     totalPages: Math.ceil(total / limit)
-                }
-            };
-
-        } catch (error) {
-            throw new Error(`Erreur lors de la recherche en plein texte: ${error.message}`);
-        }
-    }
-
-    // Recherche géospatiale avancée
-    async geoSearch({
-        latitude,
-        longitude,
-        radius = 10, // en kilomètres
-        search = '',
-        city = '',
-        neighborhood = '',
-        status = 'active',
-        page = 1,
-        limit = 10
-    }) {
-        try {
-            if (!latitude || !longitude) {
-                throw new Error('Les coordonnées géographiques sont requises');
-            }
-
-            const filter = {
-                status: status,
-                'location.coordinates': {
-                    $near: {
-                        $geometry: {
-                            type: "Point",
-                            coordinates: [parseFloat(longitude), parseFloat(latitude)]
-                        },
-                        $maxDistance: radius * 1000 // Conversion en mètres
-                    }
-                }
-            };
-
-            // Filtres supplémentaires
-            if (search) {
-                filter.$or = [
-                    { name: { $regex: search, $options: 'i' } },
-                    { agencyDescription: { $regex: search, $options: 'i' } },
-                    { slogan: { $regex: search, $options: 'i' } }
-                ];
-            }
-
-            if (city) {
-                filter['address.city'] = { $regex: city, $options: 'i' };
-            }
-
-            if (neighborhood) {
-                filter['address.neighborhood'] = { $regex: neighborhood, $options: 'i' };
-            }
-
-            const agencies = await Agency.find(filter)
-                .populate('owner', 'firstName lastName email phone')
-                .populate('gestionnaires', 'firstName lastName email phone role')
-                .skip((page - 1) * limit)
-                .limit(parseInt(limit))
-                .sort({ createdAt: -1 });
-
-            const total = await Agency.countDocuments(filter);
-
-            return {
-                success: true,
-                data: agencies,
-                total,
-                pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    total,
-                    totalPages: Math.ceil(total / limit)
-                }
-            };
-
-        } catch (error) {
-            throw new Error(`Erreur lors de la recherche géospatiale: ${error.message}`);
-        }
-    }
-
-    // Recherche par filtres multiples
-    async searchByMultipleFilters(filters = {}) {
-        try {
-            const {
-                search = '',
-                city = '',
-                neighborhood = '',
-                zoneActivite = '',
-                status = 'active',
-                hasOwner = false,
-                minGestionnaires = 0,
-                page = 1,
-                limit = 10,
-                getAll = false
-            } = filters;
-
-            const filter = { status };
-
-            // Construction dynamique des conditions de recherche
-            const conditions = [];
-
-            if (search) {
-                conditions.push(
-                    { name: { $regex: search, $options: 'i' } },
-                    { agencyDescription: { $regex: search, $options: 'i' } },
-                    { slogan: { $regex: search, $options: 'i' } }
-                );
-            }
-
-            if (city) {
-                conditions.push({ 'address.city': { $regex: city, $options: 'i' } });
-            }
-
-            if (neighborhood) {
-                conditions.push({ 'address.neighborhood': { $regex: neighborhood, $options: 'i' } });
-            }
-
-            if (zoneActivite) {
-                conditions.push({ zoneActivite: { $regex: zoneActivite, $options: 'i' } });
-            }
-
-            if (conditions.length > 0) {
-                filter.$or = conditions;
-            }
-
-            // Filtres supplémentaires
-            if (hasOwner) {
-                filter.owner = { $exists: true, $ne: null };
-            }
-
-            if (minGestionnaires > 0) {
-                filter.$expr = { $gte: [{ $size: '$gestionnaires' }, parseInt(minGestionnaires)] };
-            }
-
-            let query = Agency.find(filter)
-                .populate('owner', 'firstName lastName email phone')
-                .populate('gestionnaires', 'firstName lastName email phone role')
-                .sort({ createdAt: -1 });
-
-            if (getAll) {
-                const agencies = await query;
-                const total = await Agency.countDocuments(filter);
-                
-                return {
-                    success: true,
-                    data: agencies,
-                    total,
-                    pagination: {
-                        page: 1,
-                        limit: total,
-                        total,
-                        totalPages: 1
-                    }
-                };
-            }
-
-            const agencies = await query
-                .skip((page - 1) * limit)
-                .limit(parseInt(limit));
-
-            const total = await Agency.countDocuments(filter);
-
-            return {
-                success: true,
-                data: agencies,
-                total,
-                pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    total,
-                    totalPages: Math.ceil(total / limit)
-                }
-            };
-
-        } catch (error) {
-            throw new Error(`Erreur lors de la recherche par filtres multiples: ${error.message}`);
-        }
-    }
-
-    // Récupérer les suggestions de recherche
-    async getSearchSuggestions(query = '') {
-        try {
-            if (!query || query.length < 2) {
-                return {
-                    success: true,
-                    suggestions: []
-                };
-            }
-
-            const suggestions = await Agency.aggregate([
-                {
-                    $match: {
-                        status: 'active',
-                        $or: [
-                            { name: { $regex: query, $options: 'i' } },
-                            { 'address.city': { $regex: query, $options: 'i' } },
-                            { 'address.neighborhood': { $regex: query, $options: 'i' } },
-                            { zoneActivite: { $regex: query, $options: 'i' } }
-                        ]
-                    }
                 },
-                {
-                    $project: {
-                        name: 1,
-                        city: '$address.city',
-                        neighborhood: '$address.neighborhood',
-                        zoneActivite: 1,
-                        type: {
-                            $cond: {
-                                if: { $regexMatch: { input: '$name', regex: query, options: 'i' } },
-                                then: 'name',
-                                else: {
-                                    $cond: {
-                                        if: { $regexMatch: { input: '$address.city', regex: query, options: 'i' } },
-                                        then: 'city',
-                                        else: {
-                                            $cond: {
-                                                if: { $regexMatch: { input: '$address.neighborhood', regex: query, options: 'i' } },
-                                                then: 'neighborhood',
-                                                else: 'zoneActivite'
+                searchSummary: {
+                    term: searchTerm,
+                    filters: {
+                        name: !!name,
+                        neighborhood: !!neighborhood,
+                        activityZone: !!activityZone,
+                        sector: !!sector,
+                        arrondissement: !!arrondissement,
+                        city: !!city,
+                        hasOwner,
+                        minGestionnaires
+                    },
+                    hasLocation: !!(location && location.latitude),
+                    sortBy
+                }
+            };
+
+        } catch (error) {
+            throw new Error(`Erreur lors de la recherche avancée: ${error.message}`);
+        }
+    }
+
+    // Récupérer les métadonnées de recherche (suggestions, filtres disponibles, etc.)
+    async getSearchMetadata(query = '') {
+        try {
+            const metadata = {};
+
+            // Suggestions basées sur la requête
+            if (query && query.length >= 2) {
+                const suggestions = await Agency.aggregate([
+                    {
+                        $match: {
+                            status: 'active',
+                            $or: [
+                                { name: { $regex: query, $options: 'i' } },
+                                { 'address.neighborhood': { $regex: query, $options: 'i' } },
+                                { 'address.city': { $regex: query, $options: 'i' } },
+                                { zoneActivite: { $regex: query, $options: 'i' } },
+                                { sector: { $regex: query, $options: 'i' } },
+                                { 'address.arrondissement': { $regex: query, $options: 'i' } }
+                            ]
+                        }
+                    },
+                    {
+                        $project: {
+                            name: 1,
+                            neighborhood: '$address.neighborhood',
+                            city: '$address.city',
+                            activityZone: '$zoneActivite',
+                            sector: 1,
+                            arrondissement: '$address.arrondissement',
+                            type: {
+                                $cond: [
+                                    { $regexMatch: { input: '$name', regex: query, options: 'i' } },
+                                    'name',
+                                    {
+                                        $cond: [
+                                            { $regexMatch: { input: '$address.neighborhood', regex: query, options: 'i' } },
+                                            'neighborhood',
+                                            {
+                                                $cond: [
+                                                    { $regexMatch: { input: '$address.city', regex: query, options: 'i' } },
+                                                    'city',
+                                                    {
+                                                        $cond: [
+                                                            { $regexMatch: { input: '$zoneActivite', regex: query, options: 'i' } },
+                                                            'activityZone',
+                                                            {
+                                                                $cond: [
+                                                                    { $regexMatch: { input: '$sector', regex: query, options: 'i' } },
+                                                                    'sector',
+                                                                    'arrondissement'
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
                                             }
-                                        }
+                                        ]
                                     }
-                                }
+                                ]
                             }
                         }
+                    },
+                    { $limit: 15 }
+                ]);
+
+                metadata.suggestions = suggestions;
+            }
+
+            // Statistiques générales pour les filtres
+            const stats = await Agency.aggregate([
+                { $match: { status: 'active' } },
+                {
+                    $facet: {
+                        cities: [
+                            { $group: { _id: '$address.city', count: { $sum: 1 } } },
+                            { $sort: { count: -1 } },
+                            { $limit: 20 }
+                        ],
+                        neighborhoods: [
+                            { $group: { _id: '$address.neighborhood', count: { $sum: 1 } } },
+                            { $sort: { count: -1 } },
+                            { $limit: 20 }
+                        ],
+                        activityZones: [
+                            { $group: { _id: '$zoneActivite', count: { $sum: 1 } } },
+                            { $sort: { count: -1 } },
+                            { $limit: 20 }
+                        ],
+                        sectors: [
+                            { $group: { _id: '$sector', count: { $sum: 1 } } },
+                            { $sort: { count: -1 } },
+                            { $limit: 20 }
+                        ],
+                        arrondissements: [
+                            { $group: { _id: '$address.arrondissement', count: { $sum: 1 } } },
+                            { $sort: { count: -1 } },
+                            { $limit: 20 }
+                        ]
                     }
-                },
-                { $limit: 10 }
+                }
             ]);
+
+            metadata.filters = stats[0];
 
             return {
                 success: true,
-                suggestions
+                metadata
             };
 
         } catch (error) {
-            throw new Error(`Erreur lors de la récupération des suggestions: ${error.message}`);
+            throw new Error(`Erreur lors de la récupération des métadonnées: ${error.message}`);
         }
     }
 }
 
-module.exports = new AgencySearchService ();
+module.exports = new AgencySearchService();

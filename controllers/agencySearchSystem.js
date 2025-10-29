@@ -1,145 +1,56 @@
 const AgencySearchService = require('../services/agencySearchSystem');
 
 class AgencySearchController {
-    // Recherche avancée d'agences
-    async searchAgencies(req, res) {
+    // Recherche unifiée détaillée - ENDPOINT PRINCIPAL
+    async unifiedSearch(req, res) {
         try {
             const {
-                search,
-                city,
+                // Critères détaillés
+                name,
                 neighborhood,
-                zoneActivite,
-                status,
-                page,
-                limit,
-                getAll,
-                latitude,
-                longitude,
-                radius
-            } = req.query;
-
-            let coordinates = null;
-            if (latitude && longitude) {
-                coordinates = [parseFloat(longitude), parseFloat(latitude)];
-            }
-
-            const result = await AgencySearchService.searchAgencies({
-                search,
+                activityZone,
+                sector,
+                arrondissement,
                 city,
-                neighborhood,
-                zoneActivite,
-                status,
-                page: parseInt(page) || 1,
-                limit: parseInt(limit) || 10,
-                getAll: getAll === 'true',
-                coordinates,
-                radius: parseFloat(radius) || 10
-            });
-
-            res.status(200).json(result);
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    }
-
-    // Recherche en plein texte
-    async fullTextSearch(req, res) {
-        try {
-            const {
-                query,
-                city,
-                neighborhood,
-                zoneActivite,
-                status,
-                page,
-                limit
-            } = req.query;
-
-            const result = await AgencySearchService.fullTextSearch({
-                query,
-                city,
-                neighborhood,
-                zoneActivite,
-                status,
-                page: parseInt(page) || 1,
-                limit: parseInt(limit) || 10
-            });
-
-            res.status(200).json(result);
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    }
-
-    // Recherche géospatiale
-    async geoSearch(req, res) {
-        try {
-            const {
+                
+                // Géolocalisation
                 latitude,
                 longitude,
                 radius,
-                search,
-                city,
-                neighborhood,
-                status,
-                page,
-                limit
-            } = req.query;
-
-            const result = await AgencySearchService.geoSearch({
-                latitude: parseFloat(latitude),
-                longitude: parseFloat(longitude),
-                radius: parseFloat(radius) || 10,
-                search,
-                city,
-                neighborhood,
-                status,
-                page: parseInt(page) || 1,
-                limit: parseInt(limit) || 10
-            });
-
-            res.status(200).json(result);
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    }
-
-    // Recherche par filtres multiples
-    async searchByMultipleFilters(req, res) {
-        try {
-            const {
-                search,
-                city,
-                neighborhood,
-                zoneActivite,
+                
+                // Filtres
                 status,
                 hasOwner,
                 minGestionnaires,
+                
+                // Pagination
                 page,
                 limit,
-                getAll
+                getAll,
+                
+                // Tri
+                sortBy,
+                sortOrder
             } = req.query;
 
-            const result = await AgencySearchService.searchByMultipleFilters({
-                search,
-                city,
+            const result = await AgencySearchService.unifiedSearch({
+                name,
                 neighborhood,
-                zoneActivite,
-                status,
-                hasOwner: hasOwner === 'true',
-                minGestionnaires: parseInt(minGestionnaires) || 0,
+                activityZone,
+                sector,
+                arrondissement,
+                city,
+                latitude: latitude ? parseFloat(latitude) : null,
+                longitude: longitude ? parseFloat(longitude) : null,
+                radius: radius ? parseFloat(radius) : 10,
+                status: status || 'active',
+                hasOwner: hasOwner !== undefined ? hasOwner === 'true' : null,
+                minGestionnaires: minGestionnaires ? parseInt(minGestionnaires) : 0,
                 page: parseInt(page) || 1,
                 limit: parseInt(limit) || 10,
-                getAll: getAll === 'true'
+                getAll: getAll === 'true',
+                sortBy: sortBy || 'createdAt',
+                sortOrder: sortOrder || 'desc'
             });
 
             res.status(200).json(result);
@@ -151,12 +62,70 @@ class AgencySearchController {
         }
     }
 
-    // Suggestions de recherche
-    async getSearchSuggestions(req, res) {
+    // Recherche avancée avec scoring
+    async advancedSearch(req, res) {
+        try {
+            const {
+                searchTerm,
+                name,
+                neighborhood,
+                activityZone,
+                sector,
+                arrondissement,
+                city,
+                status,
+                hasOwner,
+                minGestionnaires,
+                latitude,
+                longitude,
+                radius,
+                page,
+                limit,
+                sortBy,
+                includeInactive
+            } = req.query;
+
+            const result = await AgencySearchService.advancedSearch({
+                searchTerm,
+                filters: {
+                    name,
+                    neighborhood,
+                    activityZone,
+                    sector,
+                    arrondissement,
+                    city,
+                    status: status || 'active',
+                    hasOwner: hasOwner !== undefined ? hasOwner === 'true' : null,
+                    minGestionnaires: minGestionnaires ? parseInt(minGestionnaires) : 0
+                },
+                location: latitude && longitude ? {
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude),
+                    radius: radius ? parseFloat(radius) : 10
+                } : null,
+                options: {
+                    page: parseInt(page) || 1,
+                    limit: parseInt(limit) || 10,
+                    sortBy: sortBy || 'relevance',
+                    includeInactive: includeInactive === 'true'
+                }
+            });
+
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    // Métadonnées pour l'interface de recherche
+    async getSearchMetadata(req, res) {
         try {
             const { query } = req.query;
 
-            const result = await AgencySearchService.getSearchSuggestions(query);
+            const result = await AgencySearchService.getSearchMetadata(query);
 
             res.status(200).json(result);
         } catch (error) {
