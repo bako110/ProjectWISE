@@ -61,20 +61,39 @@
  *           enum: [active, inactive, deleted]
  *           default: active
  *           example: active
- *         location:
+ *         address:
  *           type: object
- *           description: Coordonnées géographiques de l'agence (GeoJSON Point)
  *           properties:
- *             type:
+ *             street:
  *               type: string
- *               enum: [Point]
- *               default: Point
- *               example: Point
- *             coordinates:
- *               type: array
- *               items:
- *                 type: number
- *               example: [-17.444, 14.692]
+ *               example: Rue 12
+ *             arrondissement:
+ *               type: string
+ *               example: Plateau
+ *             sector:
+ *               type: string
+ *               example: Centre-ville
+ *             doorNumber:
+ *               type: string
+ *               example: 12B
+ *             doorColor:
+ *               type: string
+ *               example: Bleu
+ *             neighborhood:
+ *               type: string
+ *               example: Medina
+ *             city:
+ *               type: string
+ *               example: Dakar
+ *             postalCode:
+ *               type: string
+ *               example: 10000
+ *             longitude:
+ *               type: number
+ *               example: -17.444
+ *             latitude:
+ *               type: number
+ *               example: 14.692
  *         deletedate:
  *           type: string
  *           format: date-time
