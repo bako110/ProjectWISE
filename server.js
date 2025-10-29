@@ -5,7 +5,8 @@ const cors = require('cors');
 const connectDB = require('./config/db.js');
 const swaggerDocs = require('./swagger.js');
 const authRoute = require('./routes/auth.route.js'); // require au lieu d'import
-const agencyRoute = require('./routes/agencyRoutes.js');
+const agencyRoute = require('./routes/agencyRoute.js');
+const agencySearchRoute = require('./routes/agencySearchRoute.js');
 
 dotenv.config();
 connectDB();
@@ -23,6 +24,7 @@ app.use(express.json());
 // app.use('/api/auth', authRoutes);
 app.use('/api', authRoute);
 app.use('/api/agencies', agencyRoute);
+app.use('/api/agencies', agencySearchRoute);
 
 // Swagger
 swaggerDocs(app);
