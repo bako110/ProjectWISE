@@ -20,19 +20,19 @@ const userSchema = new mongoose.Schema({
     neighborhood: { type: String, trim: true },
     city: { type: String, trim: true },
     postalCode: { type: String, trim: true },
-    // latitude: { type: Number },
-    // longitude: { type: Number }
-    location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point'
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-      default: [0, 0]
-    }
-  }
+    latitude: { type: Number },
+    longitude: { type: Number }
+  //   location: {
+  //   type: {
+  //     type: String,
+  //     enum: ['Point'],
+  //     default: 'Point'
+  //   },
+  //   coordinates: {
+  //     type: [Number], // [longitude, latitude]
+  //     default: [0, 0]
+  //   }
+  // }
   },
     status: {
     type: String,

@@ -8,7 +8,8 @@ const resetSessions = new Map();
 
 exports.register = async (req, res) => {
     try {
-        const data = req.body;       
+        const data = req.body;   
+        let newAgency = {};    
         if(!data.role) {
             throw new Error('Le rôle est requis pour l\'inscription');
         }
@@ -29,7 +30,9 @@ exports.register = async (req, res) => {
                     if(!agencyData || !agencyData.name) {
                         throw new Error('Les informations de l\'agence avec au moins le nom sont requises pour créer une agence');
                     }
-                    const newAgency = await createAgency(agencyData);
+
+                    agencyData.address = data.address;
+                    newAgency = await createAgency(agencyData);
                     data.agencyId = newAgency._id;
                     data.isOwnerAgency = true;
                 }
@@ -41,11 +44,17 @@ exports.register = async (req, res) => {
                 break;
         }
         const user = await registerUser(data);
+        if(data.isOwnerAgency && newAgency._id) {
+            newAgency.owner = user._id;
+            await newAgency.save();
+        }
+        
+        logger.info(`Nouvel utilisateur enregistré: ${user.email} avec le rôle ${user.role}`);
         
         // Envoyer l'email de bienvenue (asynchrone, ne bloque pas la réponse)
-        sendWelcomeEmail(user.email, user.firstName).catch(error => {
-            logger.error('Erreur lors de l\'envoi de l\'email de bienvenue:', error);
-        });
+        // sendWelcomeEmail(user.email, user.firstName).catch(error => {
+        //     logger.error('Erreur lors de l\'envoi de l\'email de bienvenue:', error);
+        // });
         
         res.status(201).json({
             success: true,

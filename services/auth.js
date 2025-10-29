@@ -6,14 +6,23 @@ const crypto = require('crypto');
 const { sendResetPasswordEmail } = require('../utils/sendResetCodeMail.js');
 
 const registerUser = async (userData) => {
+  const existingUser = await User.findOne({ $or: [ { email: userData.email }, { phone: userData.phone } ] });
+  if (existingUser) {
+    throw new Error('Un utilisateur avec cet email ou téléphone existe déjà');
+  }
   const user = new User(userData);
   await user.save();
   return user;
 }
 
 const createAgency = async (agencyData) => {
+
+  const existingAgency = await Agency.findOne({ name: agencyData.name });
+  if (existingAgency) {
+    throw new Error('Une agence avec ce nom existe déjà');
+  }
   const agency = new Agency(agencyData);
-  await agency.save();
+  // await agency.save();
   return agency;
 }
 
