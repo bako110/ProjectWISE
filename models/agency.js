@@ -53,17 +53,17 @@ const agenceSchema = new mongoose.Schema({
     default: 'inactive'
   },
 
-  address: {
-    street: { type: String, trim: true },
-    arrondissement: { type: String, trim: true },
-    sector: { type: String, trim: true },
-    doorNumber:     { type: String, trim: true },
-    doorColor:      { type: String, trim: true },
-    neighborhood: { type: String, trim: true },
-    city: { type: String, trim: true },
-    postalCode: { type: String, trim: true },
-    latitude: { type: Number },
-    longitude: { type: Number }
+  // address: {
+  //   street: { type: String, trim: true },
+  //   arrondissement: { type: String, trim: true },
+  //   sector: { type: String, trim: true },
+  //   doorNumber:     { type: String, trim: true },
+  //   doorColor:      { type: String, trim: true },
+  //   neighborhood: { type: String, trim: true },
+  //   city: { type: String, trim: true },
+  //   postalCode: { type: String, trim: true },
+  //   latitude: { type: Number },
+  //   longitude: { type: Number }
   //   location: {
   //   type: {
   //     type: String,
@@ -75,7 +75,7 @@ const agenceSchema = new mongoose.Schema({
   //     default: [0, 0]
   //   }
   // }
-  },
+  // },
   
   deletedate: { type: Date },
 }, {
