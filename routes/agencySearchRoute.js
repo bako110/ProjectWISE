@@ -24,57 +24,7 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *     parameters:
  *       - in: query
  *         name: name
- *         schema:// Dans AgencySearchController - unifiedSearch()
-async unifiedSearch(req, res) {
-    try {
-        const {
-            name,
-            neighborhood,
-            activityZone,
-            sector,
-            arrondissement,
-            city,
-            latitude,
-            longitude,
-            radius = 10,
-            hasOwner, // SUPPRIMER status
-            minGestionnaires = 0,
-            page = 1,
-            limit = 10,
-            getAll = false,
-            sortBy = 'createdAt',
-            sortOrder = 'desc'
-        } = req.query;
-
-        const result = await AgencySearchService.unifiedSearch({
-            name: name || '',
-            neighborhood: neighborhood || '',
-            activityZone: activityZone || '',
-            sector: sector || '',
-            arrondissement: arrondissement || '',
-            city: city || '',
-            latitude: latitude ? parseFloat(latitude) : null,
-            longitude: longitude ? parseFloat(longitude) : null,
-            radius: radius ? parseFloat(radius) : 10,
-            hasOwner: hasOwner !== undefined ? 
-                (hasOwner === 'true' || hasOwner === true) : null, // SUPPRIMER status
-            minGestionnaires: minGestionnaires ? 
-                parseInt(minGestionnaires) : 0,
-            page: parseInt(page) || 1,
-            limit: parseInt(limit) || 10,
-            getAll: getAll === 'true' || getAll === true,
-            sortBy: sortBy || 'createdAt',
-            sortOrder: sortOrder || 'desc'
-        });
-
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-}
+ *         schema:
  *           type: string
  *         description: Recherche par nom d'agence (contient aussi description et slogan)
  *       - in: query
