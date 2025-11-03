@@ -1,5 +1,5 @@
 const Agency = require('../models/agency');
-const User = require('../models/user');
+const User = require('../models/User');
 
 class AgencySearchService {
     // Recherche unifiée détaillée - COMPLÈTEMENT RECODÉE
