@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchController');
+const AgencySearchController = require('../controllers/agencySearchSystem');
 
 /**
  * @swagger
@@ -24,7 +24,57 @@ const AgencySearchController = require('../controllers/agencySearchController');
  *     parameters:
  *       - in: query
  *         name: name
- *         schema:
+ *         schema:// Dans AgencySearchController - unifiedSearch()
+async unifiedSearch(req, res) {
+    try {
+        const {
+            name,
+            neighborhood,
+            activityZone,
+            sector,
+            arrondissement,
+            city,
+            latitude,
+            longitude,
+            radius = 10,
+            hasOwner, // SUPPRIMER status
+            minGestionnaires = 0,
+            page = 1,
+            limit = 10,
+            getAll = false,
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        } = req.query;
+
+        const result = await AgencySearchService.unifiedSearch({
+            name: name || '',
+            neighborhood: neighborhood || '',
+            activityZone: activityZone || '',
+            sector: sector || '',
+            arrondissement: arrondissement || '',
+            city: city || '',
+            latitude: latitude ? parseFloat(latitude) : null,
+            longitude: longitude ? parseFloat(longitude) : null,
+            radius: radius ? parseFloat(radius) : 10,
+            hasOwner: hasOwner !== undefined ? 
+                (hasOwner === 'true' || hasOwner === true) : null, // SUPPRIMER status
+            minGestionnaires: minGestionnaires ? 
+                parseInt(minGestionnaires) : 0,
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            getAll: getAll === 'true' || getAll === true,
+            sortBy: sortBy || 'createdAt',
+            sortOrder: sortOrder || 'desc'
+        });
+
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
  *           type: string
  *         description: Recherche par nom d'agence (contient aussi description et slogan)
  *       - in: query
@@ -71,6 +121,13 @@ const AgencySearchController = require('../controllers/agencySearchController');
  *           format: float
  *           default: 10
  *         description: Rayon de recherche en kilomètres (max 50)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive, pending]
+ *           default: active
+ *         description: Statut des agences
  *       - in: query
  *         name: hasOwner
  *         schema:
@@ -164,6 +221,8 @@ const AgencySearchController = require('../controllers/agencySearchController');
  *                       type: boolean
  *                     radius:
  *                       type: number
+ *                     status:
+ *                       type: string
  *                     hasOwner:
  *                       type: boolean
  *                     minGestionnaires:
@@ -218,6 +277,13 @@ router.get('/search/unified', AgencySearchController.unifiedSearch);
  *         schema:
  *           type: string
  *         description: Filtre par ville
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive, pending]
+ *           default: active
+ *         description: Statut des agences
  *       - in: query
  *         name: hasOwner
  *         schema:

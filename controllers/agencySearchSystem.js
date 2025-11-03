@@ -19,6 +19,7 @@ class AgencySearchController {
                 radius,
                 
                 // Filtres
+                status,
                 hasOwner,
                 minGestionnaires,
                 
@@ -43,6 +44,7 @@ class AgencySearchController {
                 latitude: latitude ? parseFloat(latitude) : null,
                 longitude: longitude ? parseFloat(longitude) : null,
                 radius: radius ? parseFloat(radius) : 10,
+                status: status || 'active', // Permet 'all' pour tous les statuts
                 hasOwner: hasOwner !== undefined ? 
                     (hasOwner === 'true' || hasOwner === true) : null,
                 minGestionnaires: minGestionnaires ? 
@@ -76,6 +78,7 @@ class AgencySearchController {
                 sector,
                 arrondissement,
                 city,
+                status,
                 hasOwner,
                 minGestionnaires,
                 latitude,
@@ -83,7 +86,8 @@ class AgencySearchController {
                 radius,
                 page,
                 limit,
-                sortBy
+                sortBy,
+                includeInactive
             } = req.query;
 
             const result = await AgencySearchService.advancedSearch({
@@ -95,6 +99,7 @@ class AgencySearchController {
                     sector: sector || '',
                     arrondissement: arrondissement || '',
                     city: city || '',
+                    status: status || 'active', // Permet 'all' pour tous les statuts
                     hasOwner: hasOwner !== undefined ? 
                         (hasOwner === 'true' || hasOwner === true) : null,
                     minGestionnaires: minGestionnaires ? 
@@ -108,7 +113,8 @@ class AgencySearchController {
                 options: {
                     page: parseInt(page) || 1,
                     limit: parseInt(limit) || 10,
-                    sortBy: sortBy || 'relevance'
+                    sortBy: sortBy || 'relevance',
+                    includeInactive: includeInactive === 'true' || includeInactive === true
                 }
             });
 
@@ -183,7 +189,7 @@ class AgencySearchController {
             const result = await AgencySearchService.advancedSearch({
                 searchTerm: q,
                 filters: {
-                    // PLUS DE FILTRE STATUS
+                    status: 'active'
                 },
                 options: {
                     page: parseInt(page) || 1,
@@ -218,6 +224,7 @@ class AgencySearchController {
                 latitude: parseFloat(latitude),
                 longitude: parseFloat(longitude),
                 radius: radius ? parseFloat(radius) : 10,
+                status: 'active',
                 page: parseInt(page) || 1,
                 limit: parseInt(limit) || 10,
                 sortBy: 'createdAt',
