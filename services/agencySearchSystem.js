@@ -1,7 +1,7 @@
 const Agency = require('../models/agency');
 
 class AgencySearchService {
-    // Recherche unifiée détaillée - ADAPTÉE AU MODÈLE RÉEL
+    // Recherche unifiée détaillée - SANS FILTRE STATUS
     async unifiedSearch({
         // Critères de recherche détaillés
         name = '',
@@ -17,7 +17,6 @@ class AgencySearchService {
         radius = 10, // rayon en kilomètres
         
         // Filtres supplémentaires
-        status = 'active',
         hasOwner = null,
         minGestionnaires = 0,
         
@@ -31,12 +30,7 @@ class AgencySearchService {
         sortOrder = 'desc'
     }) {
         try {
-            const filter = {};
-
-            // Filtre par statut
-            if (status && status !== 'all') {
-                filter.status = status;
-            }
+            const filter = {}; // PLUS DE FILTRE STATUS
 
             // Construction des conditions de recherche détaillées
             const searchConditions = [];
@@ -174,7 +168,6 @@ class AgencySearchService {
                         city,
                         hasCoordinates: !!(latitude && longitude),
                         radius,
-                        status,
                         hasOwner,
                         minGestionnaires
                     }
@@ -207,7 +200,6 @@ class AgencySearchService {
                     city,
                     hasCoordinates: !!(latitude && longitude),
                     radius,
-                    status,
                     hasOwner,
                     minGestionnaires
                 }
@@ -218,7 +210,7 @@ class AgencySearchService {
         }
     }
 
-    // Recherche avancée avec scoring de pertinence
+    // Recherche avancée avec scoring de pertinence - SANS FILTRE STATUS
     async advancedSearch({
         searchTerm = '',
         filters = {},
@@ -233,7 +225,6 @@ class AgencySearchService {
                 sector,
                 arrondissement,
                 city,
-                status = 'active',
                 hasOwner,
                 minGestionnaires
             } = filters;
@@ -241,19 +232,14 @@ class AgencySearchService {
             const {
                 page = 1,
                 limit = 10,
-                sortBy = 'relevance',
-                includeInactive = false
+                sortBy = 'relevance'
             } = options;
 
             // Construction du pipeline d'agrégation
             const pipeline = [];
 
-            // Étape de matching de base
+            // Étape de matching de base - PLUS DE FILTRE STATUS
             const matchStage = {};
-
-            if (status && status !== 'all' && !includeInactive) {
-                matchStage.status = status;
-            }
 
             // Filtres détaillés - TOUS DANS LE MODÈLE AGENCY
             const detailedFilters = [];

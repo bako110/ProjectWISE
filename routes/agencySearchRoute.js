@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchSystem');
+const AgencySearchController = require('../controllers/agencySearchController');
 
 /**
  * @swagger
@@ -71,13 +71,6 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *           format: float
  *           default: 10
  *         description: Rayon de recherche en kilomètres (max 50)
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, pending]
- *           default: active
- *         description: Statut des agences
  *       - in: query
  *         name: hasOwner
  *         schema:
@@ -171,8 +164,6 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *                       type: boolean
  *                     radius:
  *                       type: number
- *                     status:
- *                       type: string
  *                     hasOwner:
  *                       type: boolean
  *                     minGestionnaires:
@@ -227,13 +218,6 @@ router.get('/search/unified', AgencySearchController.unifiedSearch);
  *         schema:
  *           type: string
  *         description: Filtre par ville
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, pending]
- *           default: active
- *         description: Statut des agences
  *       - in: query
  *         name: hasOwner
  *         schema:
