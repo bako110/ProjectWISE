@@ -33,8 +33,8 @@ class AgencySearchService {
         try {
             const filter = {};
 
-            // Filtre par statut
-            if (status) {
+            // Filtre par statut - CORRIGÉ : permettre recherche sans filtre de statut
+            if (status && status !== 'all') {
                 filter.status = status;
             }
 
@@ -64,10 +64,10 @@ class AgencySearchService {
                 });
             }
 
-            // Recherche par secteur
+            // RECHERCHE PAR SECTEUR CORRIGÉE - utiliser address.sector
             if (sector) {
                 searchConditions.push({ 
-                    sector: { $regex: sector, $options: 'i' } 
+                    'address.sector': { $regex: sector, $options: 'i' } 
                 });
             }
 
@@ -112,15 +112,26 @@ class AgencySearchService {
             if (latitude && longitude) {
                 query = Agency.find({
                     ...filter,
-                    'location.coordinates': {
-                        $near: {
-                            $geometry: {
-                                type: "Point",
-                                coordinates: [parseFloat(longitude), parseFloat(latitude)]
-                            },
-                            $maxDistance: radius * 1000 // Conversion en mètres
-                        }
-                    }
+                    'address.latitude': { $exists: true, $ne: null },
+                    'address.longitude': { $exists: true, $ne: null },
+                    $where: `function() {
+                        const R = 6371; // Rayon de la Terre en km
+                        const lat1 = ${parseFloat(latitude)};
+                        const lon1 = ${parseFloat(longitude)};
+                        const lat2 = this.address.latitude;
+                        const lon2 = this.address.longitude;
+                        
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = 
+                            Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        const distance = R * c;
+                        
+                        return distance <= ${parseFloat(radius)};
+                    }`
                 });
             } else {
                 query = Agency.find(filter);
@@ -206,7 +217,7 @@ class AgencySearchService {
         }
     }
 
-    // Recherche avancée avec scoring de pertinence
+    // Recherche avancée avec scoring de pertinence - CORRIGÉE
     async advancedSearch({
         searchTerm = '',
         filters = {},
@@ -236,14 +247,14 @@ class AgencySearchService {
             // Construction du pipeline d'agrégation
             const pipeline = [];
 
-            // Étape de matching de base
+            // Étape de matching de base - CORRIGÉ : gestion du statut
             const matchStage = {};
 
-            if (!includeInactive) {
+            if (status && status !== 'all' && !includeInactive) {
                 matchStage.status = status;
             }
 
-            // Filtres détaillés
+            // Filtres détaillés - CORRIGÉS : champs address
             const detailedFilters = [];
 
             if (name) {
@@ -258,8 +269,9 @@ class AgencySearchService {
                 detailedFilters.push({ zoneActivite: { $regex: activityZone, $options: 'i' } });
             }
 
+            // CORRECTION : address.sector au lieu de sector
             if (sector) {
-                detailedFilters.push({ sector: { $regex: sector, $options: 'i' } });
+                detailedFilters.push({ 'address.sector': { $regex: sector, $options: 'i' } });
             }
 
             if (arrondissement) {
@@ -289,13 +301,41 @@ class AgencySearchService {
                 pipeline.push({
                     $match: {
                         ...matchStage,
-                        $text: { $search: searchTerm }
+                        $or: [
+                            { name: { $regex: searchTerm, $options: 'i' } },
+                            { agencyDescription: { $regex: searchTerm, $options: 'i' } },
+                            { slogan: { $regex: searchTerm, $options: 'i' } },
+                            { 'address.neighborhood': { $regex: searchTerm, $options: 'i' } },
+                            { 'address.city': { $regex: searchTerm, $options: 'i' } },
+                            { zoneActivite: { $regex: searchTerm, $options: 'i' } },
+                            { 'address.sector': { $regex: searchTerm, $options: 'i' } },
+                            { 'address.arrondissement': { $regex: searchTerm, $options: 'i' } }
+                        ]
                     }
                 });
 
+                // Ajout du score de pertinence manuel
                 pipeline.push({
                     $addFields: {
-                        relevanceScore: { $meta: "textScore" }
+                        relevanceScore: {
+                            $cond: [
+                                { $regexMatch: { input: '$name', regex: searchTerm, options: 'i' } },
+                                3, // Score le plus élevé pour le nom
+                                {
+                                    $cond: [
+                                        { $regexMatch: { input: '$agencyDescription', regex: searchTerm, options: 'i' } },
+                                        2,
+                                        {
+                                            $cond: [
+                                                { $regexMatch: { input: '$slogan', regex: searchTerm, options: 'i' } },
+                                                2,
+                                                1 // Score de base pour les autres champs
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                     }
                 });
             } else if (Object.keys(matchStage).length > 0 || detailedFilters.length > 0) {
@@ -304,19 +344,48 @@ class AgencySearchService {
                     matchStage.$or = detailedFilters;
                 }
                 pipeline.push({ $match: matchStage });
+            } else {
+                // Si aucun critère, retourner toutes les agences (avec filtre de statut si applicable)
+                pipeline.push({ $match: matchStage });
             }
 
-            // Recherche géospatiale
+            // Recherche géospatiale simplifiée
             if (location && location.latitude && location.longitude) {
                 pipeline.push({
-                    $geoNear: {
-                        near: {
-                            type: "Point",
-                            coordinates: [location.longitude, location.latitude]
-                        },
-                        distanceField: "distance",
-                        maxDistance: (location.radius || 10) * 1000,
-                        spherical: true
+                    $addFields: {
+                        distance: {
+                            $let: {
+                                vars: {
+                                    R: 6371, // Rayon Terre en km
+                                    lat1: { $degreesToRadians: location.latitude },
+                                    lon1: { $degreesToRadians: location.longitude },
+                                    lat2: { $degreesToRadians: '$address.latitude' },
+                                    lon2: { $degreesToRadians: '$address.longitude' },
+                                    dLat: { $subtract: ['$lat2', '$lat1'] },
+                                    dLon: { $subtract: ['$lon2', '$lon1'] },
+                                    a: {
+                                        $add: [
+                                            { $multiply: [{ $sin: { $divide: ['$dLat', 2] } }, { $sin: { $divide: ['$dLat', 2] } }] },
+                                            { $multiply: [
+                                                { $multiply: [{ $cos: '$lat1' }, { $cos: '$lat2' }] },
+                                                { $multiply: [{ $sin: { $divide: ['$dLon', 2] } }, { $sin: { $divide: ['$dLon', 2] } }] }
+                                            ] }
+                                        ]
+                                    },
+                                    c: { $multiply: [2, { $atan2: [{ $sqrt: '$a' }, { $sqrt: { $subtract: [1, '$a'] } }] }] }
+                                },
+                                in: { $multiply: ['$R', '$c'] }
+                            }
+                        }
+                    }
+                });
+
+                // Filtrer par distance
+                pipeline.push({
+                    $match: {
+                        'address.latitude': { $exists: true, $ne: null },
+                        'address.longitude': { $exists: true, $ne: null },
+                        distance: { $lte: location.radius || 10 }
                     }
                 });
             }
@@ -340,8 +409,9 @@ class AgencySearchService {
             pipeline.push({ $sort: sortStage });
 
             // Pagination
+            const skip = (page - 1) * limit;
             pipeline.push(
-                { $skip: (page - 1) * limit },
+                { $skip: skip },
                 { $limit: parseInt(limit) }
             );
 
@@ -379,8 +449,9 @@ class AgencySearchService {
 
             const agencies = await Agency.aggregate(pipeline);
 
-            // Comptage total (sans pagination et population)
-            const countPipeline = pipeline.slice(0, -5); // Retirer pagination et population
+            // Comptage total
+            const countPipeline = [...pipeline];
+            countPipeline.splice(countPipeline.length - 5, 5); // Retirer pagination et population
             countPipeline.push({ $count: 'total' });
 
             const totalResult = await Agency.aggregate(countPipeline);
@@ -418,23 +489,22 @@ class AgencySearchService {
         }
     }
 
-    // Récupérer les métadonnées de recherche (suggestions, filtres disponibles, etc.)
+    // Récupérer les métadonnées de recherche (suggestions, filtres disponibles, etc.) - CORRIGÉ
     async getSearchMetadata(query = '') {
         try {
             const metadata = {};
 
-            // Suggestions basées sur la requête
+            // Suggestions basées sur la requête - CORRIGÉ : champs address
             if (query && query.length >= 2) {
                 const suggestions = await Agency.aggregate([
                     {
                         $match: {
-                            status: 'active',
                             $or: [
                                 { name: { $regex: query, $options: 'i' } },
                                 { 'address.neighborhood': { $regex: query, $options: 'i' } },
                                 { 'address.city': { $regex: query, $options: 'i' } },
                                 { zoneActivite: { $regex: query, $options: 'i' } },
-                                { sector: { $regex: query, $options: 'i' } },
+                                { 'address.sector': { $regex: query, $options: 'i' } },
                                 { 'address.arrondissement': { $regex: query, $options: 'i' } }
                             ]
                         }
@@ -445,7 +515,7 @@ class AgencySearchService {
                             neighborhood: '$address.neighborhood',
                             city: '$address.city',
                             activityZone: '$zoneActivite',
-                            sector: 1,
+                            sector: '$address.sector',
                             arrondissement: '$address.arrondissement',
                             type: {
                                 $cond: [
@@ -465,7 +535,7 @@ class AgencySearchService {
                                                             'activityZone',
                                                             {
                                                                 $cond: [
-                                                                    { $regexMatch: { input: '$sector', regex: query, options: 'i' } },
+                                                                    { $regexMatch: { input: '$address.sector', regex: query, options: 'i' } },
                                                                     'sector',
                                                                     'arrondissement'
                                                                 ]
@@ -486,9 +556,8 @@ class AgencySearchService {
                 metadata.suggestions = suggestions;
             }
 
-            // Statistiques générales pour les filtres
+            // Statistiques générales pour les filtres - CORRIGÉ : champs address
             const stats = await Agency.aggregate([
-                { $match: { status: 'active' } },
                 {
                     $facet: {
                         cities: [
@@ -502,12 +571,13 @@ class AgencySearchService {
                             { $limit: 20 }
                         ],
                         activityZones: [
+                            { $unwind: '$zoneActivite' },
                             { $group: { _id: '$zoneActivite', count: { $sum: 1 } } },
                             { $sort: { count: -1 } },
                             { $limit: 20 }
                         ],
                         sectors: [
-                            { $group: { _id: '$sector', count: { $sum: 1 } } },
+                            { $group: { _id: '$address.sector', count: { $sum: 1 } } },
                             { $sort: { count: -1 } },
                             { $limit: 20 }
                         ],
@@ -515,6 +585,9 @@ class AgencySearchService {
                             { $group: { _id: '$address.arrondissement', count: { $sum: 1 } } },
                             { $sort: { count: -1 } },
                             { $limit: 20 }
+                        ],
+                        statusCounts: [
+                            { $group: { _id: '$status', count: { $sum: 1 } } }
                         ]
                     }
                 }
