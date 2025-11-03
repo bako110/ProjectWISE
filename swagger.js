@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       { url: 'http://localhost:3000' },
-      { url: 'https://projectwise.onrender.com/' }
+      { url: 'https://waste-6k43.onrender.com/' }
     ],
     components: {
       securitySchemes: {
