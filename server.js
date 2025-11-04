@@ -24,7 +24,7 @@ app.use(express.json());
 // app.use('/api/auth', authRoutes);
 app.use('/api', authRoute);
 app.use('/api/agencies', agencyRoute);
-app.use('/api/agency', agencySearchRoute);
+app.use('/api/search/agencies', agencySearchRoute);
 
 // Swagger
 swaggerDocs(app);

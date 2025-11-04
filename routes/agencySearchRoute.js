@@ -11,7 +11,7 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
 
 /**
  * @swagger
- * /api/agency/unified:
+ * /api/search/agencies/unified:
  *   get:
  *     summary: Recherche unifiée détaillée d'agences
  *     description: |
@@ -159,7 +159,7 @@ router.get('/unified', AgencySearchController.unifiedSearch);
 
 /**
  * @swagger
- * /api/agency/search/advanced:
+ * /api/search/agencies/advanced:
  *   get:
  *     summary: Recherche avancée avec scoring de pertinence
  *     description: |
@@ -307,11 +307,11 @@ router.get('/unified', AgencySearchController.unifiedSearch);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/search/advanced', AgencySearchController.advancedSearch);
+router.get('/advanced', AgencySearchController.advancedSearch);
 
 /**
  * @swagger
- * /api/agency/search/metadata:
+ * /api/search/agencies/metadata:
  *   get:
  *     summary: Récupérer les métadonnées de recherche
  *     description: |
@@ -366,6 +366,6 @@ router.get('/search/advanced', AgencySearchController.advancedSearch);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/search/metadata', AgencySearchController.getSearchMetadata);
+router.get('/metadata', AgencySearchController.getSearchMetadata);
 
 module.exports = router;
