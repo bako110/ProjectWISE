@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchController');
+const AgencySearchController = require('../controllers/agencySearchSystem');
 
 /**
  * @swagger
