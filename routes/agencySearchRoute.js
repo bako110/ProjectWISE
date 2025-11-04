@@ -11,7 +11,7 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
 
 /**
  * @swagger
- * /api/agencies/unified:
+ * /api/agency/unified:
  *   get:
  *     summary: Recherche unifiée détaillée d'agences
  *     description: |
@@ -159,7 +159,7 @@ router.get('/unified', AgencySearchController.unifiedSearch);
 
 /**
  * @swagger
- * /api/agencies/search/advanced:
+ * /api/agency/search/advanced:
  *   get:
  *     summary: Recherche avancée avec scoring de pertinence
  *     description: |
@@ -311,7 +311,7 @@ router.get('/search/advanced', AgencySearchController.advancedSearch);
 
 /**
  * @swagger
- * /api/agencies/search/metadata:
+ * /api/agency/search/metadata:
  *   get:
  *     summary: Récupérer les métadonnées de recherche
  *     description: |
