@@ -15,11 +15,7 @@ const AgencySearchController = require('../controllers/agencySearchController');
  *   get:
  *     summary: Recherche unifiée détaillée d'agences
  *     description: |
- *       Endpoint principal de recherche qui combine tous les critères :
- *       - Recherche par nom, quartier, zone d'activité, secteur, arrondissement, ville
- *       - Recherche géospatiale par coordonnées
- *       - Filtres avancés (propriétaire, nombre de gestionnaires)
- *       - Pagination et tri
+ *       Endpoint principal de recherche qui combine tous les critères
  *     tags: [Agency Search]
  *     parameters:
  *       - in: query
@@ -70,14 +66,18 @@ const AgencySearchController = require('../controllers/agencySearchController');
  *           type: number
  *           format: float
  *           default: 10
- *         description: Rayon de recherche en kilomètres (max 50)
+ *         description: Rayon de recherche en kilomètres
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, inactive, all]
  *           default: active
- *         description: Statut des agences
+ *         description: |
+ *           Statut des agences :
+ *           - active : Agences actives seulement
+ *           - inactive : Agences inactives seulement  
+ *           - all : Toutes les agences (actives et inactives)
  *       - in: query
  *         name: hasOwner
  *         schema:
@@ -164,14 +164,13 @@ router.get('/unified', AgencySearchController.unifiedSearch);
  *     summary: Recherche avancée avec scoring de pertinence
  *     description: |
  *       Recherche avancée avec scoring de pertinence pour les termes de recherche
- *       et recherche géospatiale intégrée
  *     tags: [Agency Search]
  *     parameters:
  *       - in: query
  *         name: searchTerm
  *         schema:
  *           type: string
- *         description: Terme de recherche général pour la recherche en plein texte
+ *         description: Terme de recherche général
  *       - in: query
  *         name: name
  *         schema:
@@ -266,7 +265,7 @@ router.get('/unified', AgencySearchController.unifiedSearch);
  *         schema:
  *           type: boolean
  *           default: false
- *         description: Inclure les agences inactives
+ *         description: Inclure les agences inactives (déprécié - utiliser status=all à la place)
  *     responses:
  *       200:
  *         description: Recherche avancée effectuée avec succès
@@ -317,7 +316,6 @@ router.get('/search/advanced', AgencySearchController.advancedSearch);
  *     summary: Récupérer les métadonnées de recherche
  *     description: |
  *       Retourne les suggestions de recherche et les statistiques pour les filtres
- *       Utile pour peupler les interfaces de recherche
  *     tags: [Agency Search]
  *     parameters:
  *       - in: query
