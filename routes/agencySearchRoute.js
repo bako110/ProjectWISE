@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchSystem');
+const AgencySearchController = require('../controllers/agencySearchController');
 
 /**
  * @swagger
@@ -11,7 +11,7 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
 
 /**
  * @swagger
- * /api/agencies/search/unified:
+ * /api/agencies/unified:
  *   get:
  *     summary: Recherche unifiée détaillée d'agences
  *     description: |
@@ -75,7 +75,7 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *         name: status
  *         schema:
  *           type: string
- *           enum: [active, inactive, pending]
+ *           enum: [active, inactive, all]
  *           default: active
  *         description: Statut des agences
  *       - in: query
@@ -152,35 +152,10 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *                       type: integer
  *                     totalPages:
  *                       type: integer
- *                 searchCriteria:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     neighborhood:
- *                       type: string
- *                     activityZone:
- *                       type: string
- *                     sector:
- *                       type: string
- *                     arrondissement:
- *                       type: string
- *                     city:
- *                       type: string
- *                     hasCoordinates:
- *                       type: boolean
- *                     radius:
- *                       type: number
- *                     status:
- *                       type: string
- *                     hasOwner:
- *                       type: boolean
- *                     minGestionnaires:
- *                       type: integer
  *       500:
  *         description: Erreur serveur
  */
-router.get('/search/unified', AgencySearchController.unifiedSearch);
+router.get('/unified', AgencySearchController.unifiedSearch);
 
 /**
  * @swagger
@@ -231,7 +206,7 @@ router.get('/search/unified', AgencySearchController.unifiedSearch);
  *         name: status
  *         schema:
  *           type: string
- *           enum: [active, inactive, pending]
+ *           enum: [active, inactive, all]
  *           default: active
  *         description: Statut des agences
  *       - in: query
@@ -283,7 +258,7 @@ router.get('/search/unified', AgencySearchController.unifiedSearch);
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [relevance, distance, name, createdAt]
+ *           enum: [relevance, name, createdAt]
  *           default: relevance
  *         description: Critère de tri
  *       - in: query
@@ -372,16 +347,6 @@ router.get('/search/advanced', AgencySearchController.advancedSearch);
  *                             type: string
  *                           name:
  *                             type: string
- *                           neighborhood:
- *                             type: string
- *                           city:
- *                             type: string
- *                           activityZone:
- *                             type: string
- *                           sector:
- *                             type: string
- *                           arrondissement:
- *                             type: string
  *                           type:
  *                             type: string
  *                     filters:
@@ -400,12 +365,6 @@ router.get('/search/advanced', AgencySearchController.advancedSearch);
  *                           type: array
  *                         activityZones:
  *                           type: array
- *                         sectors:
- *                           type: array
- *                         arrondissements:
- *                           type: array
- *       400:
- *         description: Paramètre query trop court
  *       500:
  *         description: Erreur serveur
  */
