@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AgencyEmployeeController = require('../controllers/agencyEmployee');
-const protect = require('../middlewares/auth');
+// const protect = require('../middlewares/auth');
 
 /**
  * @swagger
@@ -68,6 +68,6 @@ const protect = require('../middlewares/auth');
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:agencyId/employees', protect(['super_admin', 'manager']), AgencyEmployeeController.getEmployees);
+router.get('/:agencyId/employees',  AgencyEmployeeController.getEmployees);
 
 module.exports = router;
