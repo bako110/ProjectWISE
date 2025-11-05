@@ -2,7 +2,7 @@ const AgencySearchService = require('../services/agencySearchSystem');
 
 class AgencySearchController {
     
-    // ✅ RECHERCHE UNIFIÉE - Adaptée au service simplifié
+    // ✅ SEULE MÉTHODE PRINCIPALE: Recherche unifiée avec fonctionnalités dynamiques
     async unifiedSearch(req, res) {
         try {
             const {
@@ -31,10 +31,13 @@ class AgencySearchController {
                 
                 // Options de tri
                 sortBy,
-                sortOrder
+                sortOrder,
+                
+                // NOUVEAU: Option pour la recherche dynamique
+                includeAvailableFilters = 'false'
             } = req.query;
 
-            // Préparation des paramètres pour le service simplifié
+            // Préparation des paramètres
             const searchParams = {
                 // Chaînes de caractères
                 name: name || '',
@@ -61,10 +64,13 @@ class AgencySearchController {
                 
                 // Tri
                 sortBy: sortBy || 'createdAt',
-                sortOrder: sortOrder || 'desc'
+                sortOrder: sortOrder || 'desc',
+                
+                // NOUVEAU: Inclure les filtres disponibles
+                includeAvailableFilters: includeAvailableFilters === 'true'
             };
 
-            // Validation des paramètres géo (optionnel mais recommandé)
+            // Validation des paramètres géo
             if ((searchParams.latitude && !searchParams.longitude) || 
                 (!searchParams.latitude && searchParams.longitude)) {
                 return res.status(400).json({
@@ -90,79 +96,30 @@ class AgencySearchController {
         }
     }
 
-    // ✅ RECHERCHE AVANCÉE - Adaptée au service simplifié
-    async advancedSearch(req, res) {
-        try {
-            const {
-                searchTerm,
-                name,
-                neighborhood,
-                activityZone, 
-                sector,
-                arrondissement,
-                city,
-                status,
-                hasOwner,
-                minGestionnaires,
-                latitude,
-                longitude,
-                radius,
-                page,
-                limit,
-                sortBy,
-                includeInactive
-            } = req.query;
-
-            // Préparation des paramètres selon la nouvelle structure
-            const searchParams = {
-                searchTerm: searchTerm || '',
-                filters: {
-                    name: name || '',
-                    neighborhood: neighborhood || '',
-                    activityZone: activityZone || '',
-                    sector: sector || '',
-                    arrondissement: arrondissement || '',
-                    city: city || '',
-                    status: status || 'active',
-                    hasOwner: hasOwner !== undefined ? (hasOwner === 'true') : null,
-                    minGestionnaires: minGestionnaires ? parseInt(minGestionnaires) : 0
-                },
-                location: (latitude && longitude) ? {
-                    latitude: parseFloat(latitude),
-                    longitude: parseFloat(longitude),
-                    radius: radius ? parseFloat(radius) : 10
-                } : null,
-                options: {
-                    page: page ? parseInt(page) : 1,
-                    limit: limit ? parseInt(limit) : 10,
-                    sortBy: sortBy || 'createdAt',
-                    includeInactive: includeInactive === 'true'
-                }
-            };
-
-            const result = await AgencySearchService.advancedSearch(searchParams);
-
-            res.status(200).json(result);
-
-        } catch (error) {
-            console.error('❌ Erreur contrôleur recherche avancée:', error);
-            
-            res.status(500).json({
-                success: false,
-                message: 'Erreur lors de la recherche avancée',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-                timestamp: new Date().toISOString()
-            });
-        }
-    }
-
-    // ✅ MÉTADONNÉES DE RECHERCHE - Adaptée au service simplifié
+    // ✅ DEUXIÈME MÉTHODE: Récupération des métadonnées et suggestions
     async getSearchMetadata(req, res) {
         try {
-            const { query } = req.query;
+            const { 
+                query,
+                city,
+                arrondissement, 
+                sector 
+            } = req.query;
 
+            // Si des filtres géographiques sont fournis, retourner les filtres disponibles
+            if (city || arrondissement || sector) {
+                const currentFilters = {
+                    city: city || '',
+                    arrondissement: arrondissement || '',
+                    sector: sector || ''
+                };
+
+                const result = await AgencySearchService.getAvailableFilters(currentFilters);
+                return res.status(200).json(result);
+            }
+
+            // Sinon, retourner les métadonnées classiques
             const result = await AgencySearchService.getSearchMetadata(query || '');
-
             res.status(200).json(result);
 
         } catch (error) {
@@ -177,40 +134,7 @@ class AgencySearchController {
         }
     }
 
-    // ✅ NOUVELLE MÉTHODE: Recherche rapide (optionnelle)
-    async quickSearch(req, res) {
-        try {
-            const { q: query, page = 1, limit = 10 } = req.query;
-
-            if (!query || query.length < 2) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Le terme de recherche doit contenir au moins 2 caractères'
-                });
-            }
-
-            // Utilisation de unifiedSearch pour une recherche rapide
-            const result = await AgencySearchService.unifiedSearch({
-                name: query,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                getAll: false,
-                sortBy: 'relevance',
-                status: 'active'
-            });
-
-            res.status(200).json(result);
-
-        } catch (error) {
-            console.error('❌ Erreur contrôleur recherche rapide:', error);
-            
-            res.status(500).json({
-                success: false,
-                message: 'Erreur lors de la recherche rapide',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
-        }
-    }
+    // ❌ SUPPRIMER: Toutes les autres méthodes (hierarchicalSearch, dynamicSearch, etc.)
 }
 
 module.exports = new AgencySearchController();

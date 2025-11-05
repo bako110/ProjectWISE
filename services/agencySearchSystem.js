@@ -19,10 +19,12 @@ class AgencySearchService {
         limit = 10,
         getAll = false,
         sortBy = 'createdAt',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
+        // NOUVEAU: Paramètre pour inclure les filtres disponibles
+        includeAvailableFilters = false
     }) {
         try {
-            // ÉTAPE 1: Construction du filtre principal
+            // ÉTAPE 1: Construction du filtre principal avec logique hiérarchique
             const filter = {};
             
             // Filtre par statut
@@ -30,11 +32,36 @@ class AgencySearchService {
                 filter.status = status;
             }
             
-            // Conditions de recherche
+            // CONSTRUCTION HIÉRARCHIQUE DES FILTRES GÉOGRAPHIQUES
+            const addressConditions = {};
+            
+            // Logique hiérarchique: ville → arrondissement → secteur → quartier
+            if (city) {
+                addressConditions['address.city'] = { $regex: city, $options: 'i' };
+                
+                if (arrondissement) {
+                    addressConditions['address.arrondissement'] = { $regex: arrondissement, $options: 'i' };
+                    
+                    if (sector) {
+                        addressConditions['address.sector'] = { $regex: sector, $options: 'i' };
+                        
+                        if (neighborhood) {
+                            addressConditions['address.neighborhood'] = { $regex: neighborhood, $options: 'i' };
+                        }
+                    }
+                }
+            }
+            
+            // Fusion des conditions d'adresse
+            if (Object.keys(addressConditions).length > 0) {
+                Object.assign(filter, addressConditions);
+            }
+            
+            // Conditions de recherche additionnelles (OR)
             const searchConditions = [];
             
-            // Recherche par nom, description, slogan
-            if (name) {
+            // Recherche par nom, description, slogan (seulement si pas déjà filtré par hiérarchie)
+            if (name && !filter['address.city']) {
                 searchConditions.push(
                     { name: { $regex: name, $options: 'i' } },
                     { agencyDescription: { $regex: name, $options: 'i' } },
@@ -49,32 +76,32 @@ class AgencySearchService {
                 });
             }
             
-            // Recherche dans l'adresse
-            if (neighborhood) {
+            // Recherche additionnelle dans l'adresse (pour cas non hiérarchique)
+            if (neighborhood && !filter['address.neighborhood']) {
                 searchConditions.push({
                     'address.neighborhood': { $regex: neighborhood, $options: 'i' }
                 });
             }
             
-            if (sector) {
+            if (sector && !filter['address.sector']) {
                 searchConditions.push({
                     'address.sector': { $regex: sector, $options: 'i' }
                 });
             }
             
-            if (arrondissement) {
+            if (arrondissement && !filter['address.arrondissement']) {
                 searchConditions.push({
                     'address.arrondissement': { $regex: arrondissement, $options: 'i' }
                 });
             }
             
-            if (city) {
+            if (city && !filter['address.city']) {
                 searchConditions.push({
                     'address.city': { $regex: city, $options: 'i' }
                 });
             }
             
-            // Application des conditions de recherche
+            // Application des conditions de recherche additionnelles
             if (searchConditions.length > 0) {
                 filter.$or = searchConditions;
             }
@@ -90,11 +117,10 @@ class AgencySearchService {
                 };
             }
             
-            // Recherche géospatiale SIMPLIFIÉE
+            // Recherche géospatiale
             if (latitude && longitude) {
                 filter['address.latitude'] = { $exists: true, $ne: null };
                 filter['address.longitude'] = { $exists: true, $ne: null };
-                // Le filtrage par distance se fera côté application pour l'instant
             }
             
             // ÉTAPE 2: Construction de la requête
@@ -137,10 +163,16 @@ class AgencySearchService {
                 
             const total = await Agency.countDocuments(filter);
             
-            // Filtrage géospatial côté application (simplifié)
+            // Filtrage géospatial côté application
             let filteredAgencies = agencies;
             if (latitude && longitude) {
                 filteredAgencies = this.filterByDistance(agencies, latitude, longitude, radius);
+            }
+            
+            // ÉTAPE 4: Récupération des filtres disponibles si demandé
+            let availableFilters = null;
+            if (includeAvailableFilters) {
+                availableFilters = await this.getAvailableFilters({ city, arrondissement, sector });
             }
             
             return {
@@ -152,6 +184,24 @@ class AgencySearchService {
                     limit: parseInt(limit),
                     total: filteredAgencies.length,
                     totalPages: Math.ceil(filteredAgencies.length / limit)
+                },
+                // NOUVEAU: Retourne les filtres utilisés et disponibles
+                searchContext: {
+                    filtersUsed: {
+                        city: !!city,
+                        arrondissement: !!arrondissement,
+                        sector: !!sector,
+                        neighborhood: !!neighborhood,
+                        activityZone: !!activityZone,
+                        name: !!name
+                    },
+                    availableFilters: availableFilters?.availableFilters || null,
+                    hierarchicalPath: {
+                        city: city || null,
+                        arrondissement: arrondissement || null,
+                        sector: sector || null,
+                        neighborhood: neighborhood || null
+                    }
                 }
             };
             
@@ -160,8 +210,85 @@ class AgencySearchService {
             throw new Error(`Erreur lors de la recherche d'agences: ${error.message}`);
         }
     }
+
+    // Méthode utilitaire pour récupérer les filtres disponibles
+    async getAvailableFilters(currentFilters = {}) {
+        try {
+            const { city = '', arrondissement = '', sector = '' } = currentFilters;
+            
+            const baseMatch = { status: 'active' };
+            const addressMatch = {};
+            
+            // Construction du match de base selon la hiérarchie
+            if (city) {
+                addressMatch['address.city'] = { $regex: city, $options: 'i' };
+                
+                if (arrondissement) {
+                    addressMatch['address.arrondissement'] = { $regex: arrondissement, $options: 'i' };
+                    
+                    if (sector) {
+                        addressMatch['address.sector'] = { $regex: sector, $options: 'i' };
+                    }
+                }
+            }
+            
+            // Fusion des conditions
+            Object.assign(baseMatch, addressMatch);
+            
+            const [
+                cities,
+                arrondissements,
+                sectors,
+                neighborhoods,
+                activityZones
+            ] = await Promise.all([
+                // Villes disponibles
+                Agency.distinct('address.city', { status: 'active' }),
+                
+                // Arrondissements (filtrés par ville si spécifiée)
+                Agency.distinct('address.arrondissement', baseMatch),
+                
+                // Secteurs (filtrés par ville/arrondissement)
+                Agency.distinct('address.sector', baseMatch),
+                
+                // Quartiers (filtrés par ville/arrondissement/secteur)
+                Agency.distinct('address.neighborhood', baseMatch),
+                
+                // Zones d'activité (toutes)
+                Agency.aggregate([
+                    { $match: { status: 'active' } },
+                    { $unwind: '$zoneActivite' },
+                    { $group: { _id: '$zoneActivite', count: { $sum: 1 } } },
+                    { $sort: { count: -1 } }
+                ])
+            ]);
+            
+            return {
+                success: true,
+                availableFilters: {
+                    cities: cities.filter(c => c && c.trim() !== '').sort(),
+                    arrondissements: arrondissements.filter(a => a && a.trim() !== '').sort(),
+                    sectors: sectors.filter(s => s && s.trim() !== '').sort(),
+                    neighborhoods: neighborhoods.filter(n => n && n.trim() !== '').sort(),
+                    activityZones: activityZones.map(zone => ({
+                        name: zone._id,
+                        count: zone.count
+                    }))
+                },
+                currentSelection: {
+                    city: city || null,
+                    arrondissement: arrondissement || null,
+                    sector: sector || null
+                }
+            };
+            
+        } catch (error) {
+            console.error('Erreur récupération filtres:', error);
+            throw new Error(`Erreur récupération filtres: ${error.message}`);
+        }
+    }
     
-    // Méthode utilitaire pour le filtrage par distance
+    // Méthodes utilitaires existantes...
     filterByDistance(agencies, lat, lng, radius) {
         return agencies.filter(agency => {
             if (!agency.address?.latitude || !agency.address?.longitude) {
@@ -177,9 +304,8 @@ class AgencySearchService {
         });
     }
     
-    // Calcul de distance (formule de Haversine)
     calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Rayon de la Terre en km
+        const R = 6371;
         const dLat = this.toRad(lat2 - lat1);
         const dLon = this.toRad(lon2 - lon1);
         
@@ -195,6 +321,8 @@ class AgencySearchService {
     toRad(degrees) {
         return degrees * (Math.PI/180);
     }
+
+
 
     async advancedSearch({
         searchTerm = '',
