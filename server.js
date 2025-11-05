@@ -4,7 +4,9 @@ const logger = require('./utils/logger.js');
 const cors = require('cors');
 const connectDB = require('./config/db.js');
 const swaggerDocs = require('./swagger.js');
-const authRoute = require('./routes/auth.route.js'); // require au lieu d'import
+
+// Import des routes
+const authRoute = require('./routes/auth.route.js');
 const agencyRoute = require('./routes/agencyRoute.js');
 const agencySearchRoute = require('./routes/agencySearchRoute.js');
 const agenceValidationRoute = require('./routes/superAdminValidateAgencyRoutes.js');
@@ -14,36 +16,35 @@ connectDB();
 
 const app = express();
 
-// Middleware
+// ✅ Middleware globaux
 app.use(cors({
   origin: '*',
   credentials: true,
 }));
 app.use(express.json());
 
-// Routes
-// app.use('/api/auth', authRoutes);
+// ✅ Routes principales
 app.use('/api', authRoute);
 app.use('/api/agencies', agencyRoute);
 app.use('/api/search/agencies', agencySearchRoute);
 app.use('/api/agencies_validation', agenceValidationRoute);
-// Swagger
+
+// ✅ Swagger (documentation)
 swaggerDocs(app);
 
-// 404
+// ✅ Route 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Route non trouvée' });
 });
 
-// Middleware erreurs
+// ✅ Middleware de gestion d'erreurs
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Erreur serveur', details: err.message });
 });
 
-// Lancement du serveur
+// ✅ Lancement du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   logger.info(`✅ Serveur lancé sur le port ${PORT}`);
-  // console.log(`✅ Serveur lancé sur le port ${PORT}`);
 });

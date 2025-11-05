@@ -124,40 +124,6 @@ class AgencyService {
             .sort({ createdAt: -1 });
         return agencies;
     }
-
-    // Changer le statut d'une agence
-    async changeAgencyStatus(agencyId, newStatus) {
-        if (!agencyId) {
-            throw new Error('L\'identifiant de l\'agence est requis');
-        }
-
-        if (!newStatus) {
-            throw new Error('Le nouveau statut est requis');
-        }
-
-        const validStatuses = ['active', 'inactive', 'deleted'];
-        if (!validStatuses.includes(newStatus)) {
-            throw new Error('Statut invalide. Les statuts valides sont: active, inactive, deleted');
-        }
-
-        const updateData = { status: newStatus };
-        if (newStatus === 'deleted') {
-            updateData.deletedate = new Date();
-        }
-
-        const agency = await Agency.findByIdAndUpdate(
-            agencyId,
-            updateData,
-            { new: true, runValidators: true }
-        )
-        .populate('owner', 'firstName lastName email phone')
-        .populate('gestionnaires', 'firstName lastName email phone role');
-        
-        if (!agency) {
-            throw new Error('Agence non trouvée');
-        }
-        return agency;
-    }
 }
 
 module.exports = new AgencyService();
