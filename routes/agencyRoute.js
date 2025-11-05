@@ -1,322 +1,129 @@
-const express = require('express');
-const router = express.Router();
-const agencyController = require('../controllers/agency');
-// const { authenticate, authorize } = require('../middlewares/auth');
+const Agency = require('../models/agency');
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Agency:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *           description: ID unique de l'agence
- *         name:
- *           type: string
- *           description: Nom de l'agence
- *         agencyDescription:
- *           type: string
- *           description: Description de l'agence
- *         zoneActivite:
- *           type: string
- *           description: Zone d'activité
- *         slogan:
- *           type: string
- *           description: Slogan de l'agence
- *         status:
- *           type: string
- *           enum: [active, inactive, deleted]
- *           description: Statut de l'agence
- *         owner:
- *           type: object
- *           description: Propriétaire de l'agence
- *         gestionnaires:
- *           type: array
- *           items:
- *             type: object
- *           description: Liste des gestionnaires
- *         documents:
- *           type: array
- *           items:
- *             type: string
- *           description: Documents associés
- *         location:
- *           type: object
- *           description: Localisation de l'agence
- * 
- *   parameters:
- *     agencyId:
- *       in: path
- *       name: id
- *       required: true
- *       schema:
- *         type: string
- *       description: ID de l'agence
- *     statusParam:
- *       in: path
- *       name: status
- *       required: true
- *       schema:
- *         type: string
- *         enum: [active, inactive, deleted]
- *       description: Statut des agences à récupérer
- * 
- *   responses:
- *     UnauthorizedError:
- *       description: Token d'authentification manquant ou invalide
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: false
- *               error:
- *                 type: string
- *                 example: "Non authentifié"
- *     ForbiddenError:
- *       description: Droits insuffisants
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: false
- *               error:
- *                 type: string
- *                 example: "Accès non autorisé"
- */
+class AgencyService {
+    // Récupérer toutes les agences avec pagination et filtres
+    async getAllAgencies({ status, search, page = 1, limit = 10 }) {
+        const filter = {};
+        
+        if (status) {
+            filter.status = status;
+        }
 
-// Appliquer l'authentification à toutes les routes
-// router.use(authenticate);
+        let result;
+        if (search) {
+            const searchFilter = {
+                $or: [
+                    { name: { $regex: search, $options: 'i' } },
+                    { agencyDescription: { $regex: search, $options: 'i' } },
+                    { slogan: { $regex: search, $options: 'i' } }
+                ]
+            };
+            Object.assign(filter, searchFilter);
+        }
 
-/**
- * @swagger
- * /api/agencies:
- *   get:
- *     summary: Récupérer toutes les agences avec pagination et filtres
- *     tags: [Agencies]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive, deleted]
- *         description: Filtrer par statut
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Terme de recherche (nom, description, slogan)
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Numéro de page
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Nombre d'éléments par page
- *     responses:
- *       200:
- *         description: Liste des agences récupérée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Agency'
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
- *       500:
- *         description: Erreur serveur
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/responses/UnauthorizedError'
- */
-router.get('/', agencyController.getAllAgencies);
+        const agencies = await Agency.find(filter)
+            .populate('owner', 'firstName lastName email phone')
+            .populate('gestionnaires', 'firstName lastName email phone role')
+            .populate('client', 'firstName lastName email phone')
+            .populate('collector', 'firstName lastName email phone')
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
 
-/**
- * @swagger
- * /api/agencies/status/{status}:
- *   get:
- *     summary: Récupérer les agences par statut
- *     tags: [Agencies]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - $ref: '#/components/parameters/statusParam'
- *     responses:
- *       200:
- *         description: Liste des agences par statut
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Agency'
- *                 count:
- *                   type: integer
- *       400:
- *         description: Statut non valide
- *       500:
- *         description: Erreur serveur
- */
-router.get('/status/:status', agencyController.getAgenciesByStatus);
+        const total = await Agency.countDocuments(filter);
 
-/**
- * @swagger
- * /api/agencies/{id}:
- *   get:
- *     summary: Récupérer une agence par son ID
- *     tags: [Agencies]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - $ref: '#/components/parameters/agencyId'
- *     responses:
- *       200:
- *         description: Agence récupérée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Agency'
- *       404:
- *         description: Agence non trouvée
- */
-router.get('/:id', agencyController.getAgency);
+        return {
+            agencies,
+            total,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
 
-/**
- * @swagger
- * /api/agencies/{id}:
- *   put:
- *     summary: Mettre à jour une agence
- *     tags: [Agencies]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - $ref: '#/components/parameters/agencyId'
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               agencyDescription:
- *                 type: string
- *               zoneActivite:
- *                 type: string
- *               slogan:
- *                 type: string
- *               status:
- *                 type: string
- *                 enum: [active, inactive, deleted]
- *               documents:
- *                 type: array
- *                 items:
- *                   type: string
- *               location:
- *                 type: object
- *     responses:
- *       200:
- *         description: Agence mise à jour avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Agency'
- *                 message:
- *                   type: string
- *                   example: "Agence mise à jour avec succès"
- *       400:
- *         description: Données invalides
- *       404:
- *         description: Agence non trouvée
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.put('/:id', agencyController.updateAgency);
+    // Récupérer une agence par ID
+    async getAgencyById(agencyId) {
+        if (!agencyId) {
+            throw new Error('L\'identifiant de l\'agence est requis');
+        }
 
-/**
- * @swagger
- * /api/agencies/{id}:
- *   delete:
- *     summary: Supprimer une agence (soft delete)
- *     tags: [Agencies]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - $ref: '#/components/parameters/agencyId'
- *     responses:
- *       200:
- *         description: Agence supprimée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Agency'
- *                 message:
- *                   type: string
- *                   example: "Agence supprimée avec succès"
- *       404:
- *         description: Agence non trouvée
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-router.delete('/:id',  agencyController.deleteAgency);
+        const agency = await Agency.findById(agencyId)
+            .populate('owner', 'firstName lastName email phone')
+            .populate('gestionnaires', 'firstName lastName email phone role')
+            .populate('client', 'firstName lastName email phone')
+            .populate('collector', 'firstName lastName email phone');
+        
+        if (!agency) {
+            throw new Error('Agence non trouvée');
+        }
+        return agency;
+    }
 
-module.exports = router;
+    // Mettre à jour une agence
+    async updateAgency(agencyId, updateData) {
+        if (!agencyId) {
+            throw new Error('L\'identifiant de l\'agence est requis');
+        }
+
+        const allowedFields = ['name', 'agencyDescription', 'zoneActivite', 'slogan', 'documents', 'status', 'location'];
+        const filteredUpdateData = {};
+        
+        Object.keys(updateData).forEach(key => {
+            if (allowedFields.includes(key)) {
+                filteredUpdateData[key] = updateData[key];
+            }
+        });
+
+        const agency = await Agency.findByIdAndUpdate(
+            agencyId, 
+            filteredUpdateData, 
+            { new: true, runValidators: true }
+        )
+        .populate('owner', 'firstName lastName email phone')
+        .populate('gestionnaires', 'firstName lastName email phone role');
+        
+        if (!agency) {
+            throw new Error('Agence non trouvée');
+        }
+        return agency;
+    }
+
+    // Supprimer une agence (soft delete)
+    async deleteAgency(agencyId) {
+        if (!agencyId) {
+            throw new Error('L\'identifiant de l\'agence est requis');
+        }
+
+        const agency = await Agency.findByIdAndUpdate(
+            agencyId,
+            { 
+                status: 'deleted',
+                deletedate: new Date()
+            },
+            { new: true }
+        );
+        
+        if (!agency) {
+            throw new Error('Agence non trouvée');
+        }
+        return agency;
+    }
+
+    // Récupérer les agences par statut
+    async getAgenciesByStatus(status) {
+        if (!status) {
+            throw new Error('Le statut est requis');
+        }
+
+        const agencies = await Agency.find({ status })
+            .populate('owner', 'firstName lastName email phone')
+            .populate('gestionnaires', 'firstName lastName email phone role')
+            .sort({ createdAt: -1 });
+        return agencies;
+    }
+}
+
+module.exports = new AgencyService();
