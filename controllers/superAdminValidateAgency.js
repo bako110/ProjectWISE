@@ -6,7 +6,7 @@ class AgencyValidationController {
      * Modifier le statut d'une agence
      * Reçoit un paramètre query `action=activate|deactivate`
      */
-    async changeStatus(req, res) {
+    async validateAgency(req, res) {
         try {
             const { id } = req.params;
             const { action } = req.query;

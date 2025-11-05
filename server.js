@@ -9,7 +9,8 @@ const swaggerDocs = require('./swagger.js');
 const authRoute = require('./routes/auth.route.js');
 const agencyRoute = require('./routes/agencyRoute.js');
 const agencySearchRoute = require('./routes/agencySearchRoute.js');
-const agenceValidationRoute = require('./routes/superAdminValidateAgencyRoutes.js');
+const agencyValidationRoute = require('./routes/superAdminValidateAgencyRoutes.js');
+const agencyEmployeeRoute = require('./routes/agencyEmployeeRoute.js');
 
 dotenv.config();
 connectDB();
@@ -27,7 +28,8 @@ app.use(express.json());
 app.use('/api', authRoute);
 app.use('/api/agencies', agencyRoute);
 app.use('/api/search/agencies', agencySearchRoute);
-app.use('/api/agencies_validation', agenceValidationRoute);
+app.use('/api/agencies_validation', agencyValidationRoute);
+app.use('/api/agency_employees', agencyEmployeeRoute);  
 
 // ✅ Swagger (documentation)
 swaggerDocs(app);
