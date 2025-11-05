@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchController'); // Correction du nom
+const AgencySearchController = require('../controllers/agencySearchSystem'); // Correction du nom
 
 /**
  * @swagger
