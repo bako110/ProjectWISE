@@ -11,7 +11,7 @@ const AgencyValidationController = require('../controllers/superAdminValidateAge
 
 /**
  * @swagger
- * /api/agencies/{id}/validate:
+ * /api/agencies_validation/{id}/validate:
  *   patch:
  *     summary: Valider une agence
  *     description: |
