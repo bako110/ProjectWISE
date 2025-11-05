@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencySearchController = require('../controllers/agencySearchSystem');
+const AgencySearchController = require('../controllers/agencySearchController'); // Correction du nom
 
 /**
  * @swagger
@@ -71,8 +71,13 @@ const AgencySearchController = require('../controllers/agencySearchSystem');
  *         name: status
  *         schema:
  *           type: string
+ *           enum: [active, inactive, all]
  *           default: active
- *         description: Statut des agences
+ *         description: |
+ *           Statut des agences :
+ *           - active : Agences actives seulement
+ *           - inactive : Agences inactives seulement  
+ *           - all : Toutes les agences (actives et inactives)
  *       - in: query
  *         name: page
  *         schema:
