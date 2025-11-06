@@ -1,23 +1,27 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
-const walletSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
+const walletSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     balance: {
-    type: Number,
-    default: 0,
-    required: true
-  },
+      type: Number,
+      default: 0,
+      required: true,
+    },
     kind: {
-    type: String,
-    enum: ['standard', 'premium'],
-    default: 'standard',
-    required: true
+      type: String,
+      enum: ['standard', 'premium'],
+      default: 'standard',
+      required: true,
+    },
   },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 const Wallet = mongoose.model('Wallet', walletSchema);
-export default Wallet;
+
+module.exports = Wallet;
