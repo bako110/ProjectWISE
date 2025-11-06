@@ -11,29 +11,29 @@ const userSchema = new mongoose.Schema({
     enum: ['client', 'collector', 'manager', 'municipality', 'super_admin'],
   },
   phone: { type: String, required: true, trim: true, unique: true },
-  address: {
-    street: { type: String, trim: true },
-    arrondissement: { type: String, trim: true },
-    sector: { type: String, trim: true },
-    doorNumber:     { type: String, trim: true },
-    doorColor:      { type: String, trim: true },
-    neighborhood: { type: String, trim: true },
-    city: { type: String, trim: true },
-    postalCode: { type: String, trim: true },
-    latitude: { type: Number },
-    longitude: { type: Number }
-  //   location: {
-  //   type: {
-  //     type: String,
-  //     enum: ['Point'],
-  //     default: 'Point'
-  //   },
-  //   coordinates: {
-  //     type: [Number], // [longitude, latitude]
-  //     default: [0, 0]
-  //   }
-  // }
-  },
+  // address: {
+  //   street: { type: String, trim: true },
+  //   arrondissement: { type: String, trim: true },
+  //   sector: { type: String, trim: true },
+  //   doorNumber:     { type: String, trim: true },
+  //   doorColor:      { type: String, trim: true },
+  //   neighborhood: { type: String, trim: true },
+  //   city: { type: String, trim: true },
+  //   postalCode: { type: String, trim: true },
+  //   latitude: { type: Number },
+  //   longitude: { type: Number }
+  // //   location: {
+  // //   type: {
+  // //     type: String,
+  // //     enum: ['Point'],
+  // //     default: 'Point'
+  // //   },
+  // //   coordinates: {
+  // //     type: [Number], // [longitude, latitude]
+  // //     default: [0, 0]
+  // //   }
+  // // }
+  // },
     status: {
     type: String,
     enum: ['active', 'inactive', 'deleted'],
