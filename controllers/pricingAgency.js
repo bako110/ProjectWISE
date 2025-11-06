@@ -25,10 +25,11 @@ export const createPricingController = async (req, res) => {
 
 /**
  * Récupère tous les tarifs d'une agence
+ * agencyId est passé dans l'URL : /api/pricing/:agencyId
  */
 export const getPricingsController = async (req, res) => {
     try {
-        const { agencyId } = req.body;
+        const { agencyId } = req.params;
 
         if (!agencyId) {
             return res.status(400).json({ success: false, message: "L'ID de l'agence est requis" });

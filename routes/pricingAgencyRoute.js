@@ -11,7 +11,7 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- *   name: Pricing (Tarification)
+ *   name: Tarification
  *   description: API pour gérer les plans tarifaires des agences
  */
 
@@ -66,24 +66,17 @@ router.post('/', createPricingController);
 
 /**
  * @swagger
- * /api/pricing:
+ * /api/pricing/{agencyId}:
  *   get:
  *     summary: Récupérer tous les plans tarifaires d'une agence
  *     tags: [Tarification]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - agencyId
- *             properties:
- *               agencyId:
- *                 type: string
- *                 description: ID de l'agence
- *             example:
- *               agencyId: 64f7a1b23456789abcdef123
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de l'agence
  *     responses:
  *       200:
  *         description: Liste des plans tarifaires
@@ -92,7 +85,7 @@ router.post('/', createPricingController);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/', getPricingsController);
+router.get('/:agencyId', getPricingsController);
 
 /**
  * @swagger
