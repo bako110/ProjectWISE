@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AgencyValidationController = require('../controllers/superAdminValidateAgency');
-// const authMiddleware = require('../middlewares/auth'); // ✅ import direct
+const { authMiddleware } = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ const AgencyValidationController = require('../controllers/superAdminValidateAge
  *       500:
  *         description: Erreur serveur
  */
-router.patch('/:id/validate', AgencyValidationController.validateAgency);
+router.patch('/:id/validate', authMiddleware(['super_admin']), AgencyValidationController.validateAgency);
 
 module.exports = router;
 
