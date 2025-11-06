@@ -11,16 +11,16 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- *   name: Pricing
- *   description: API for managing agency pricing plans
+ *   name: Tarification
+ *   description: API pour gérer les plans tarifaires des agences
  */
 
 /**
  * @swagger
  * /api/pricing:
  *   post:
- *     summary: Create a new pricing plan for an agency
- *     tags: [Pricing]
+ *     summary: Créer un nouveau plan tarifaire pour une agence
+ *     tags: [Tarification]
  *     requestBody:
  *       required: true
  *       content:
@@ -34,29 +34,33 @@ const router = express.Router();
  *             properties:
  *               agencyId:
  *                 type: string
- *                 description: ID of the agency
+ *                 description: ID de l'agence
  *               planType:
  *                 type: string
  *                 enum: [standard, premium, enterprise]
+ *                 description: Type de plan
  *               price:
  *                 type: number
+ *                 description: Prix du plan
  *               description:
  *                 type: string
+ *                 description: Description du plan
  *               numberOfPasses:
  *                 type: number
+ *                 description: Nombre de passes inclus
  *             example:
  *               agencyId: 64f7a1b23456789abcdef123
  *               planType: premium
  *               price: 1000
- *               description: Premium plan
+ *               description: Plan premium
  *               numberOfPasses: 5
  *     responses:
  *       201:
- *         description: Pricing created successfully
+ *         description: Plan tarifaire créé avec succès
  *       400:
- *         description: Bad request (missing agency)
+ *         description: Requête incorrecte (agence manquante)
  *       500:
- *         description: Server error
+ *         description: Erreur serveur
  */
 router.post('/', createPricingController);
 
@@ -64,8 +68,8 @@ router.post('/', createPricingController);
  * @swagger
  * /api/pricing:
  *   get:
- *     summary: Get all pricing plans of an agency
- *     tags: [Pricing]
+ *     summary: Récupérer tous les plans tarifaires d'une agence
+ *     tags: [Tarification]
  *     requestBody:
  *       required: true
  *       content:
@@ -77,16 +81,16 @@ router.post('/', createPricingController);
  *             properties:
  *               agencyId:
  *                 type: string
- *                 description: ID of the agency
+ *                 description: ID de l'agence
  *             example:
  *               agencyId: 64f7a1b23456789abcdef123
  *     responses:
  *       200:
- *         description: List of pricing plans
+ *         description: Liste des plans tarifaires
  *       400:
- *         description: Bad request (missing agency)
+ *         description: Requête incorrecte (agence manquante)
  *       500:
- *         description: Server error
+ *         description: Erreur serveur
  */
 router.get('/', getPricingsController);
 
@@ -94,23 +98,21 @@ router.get('/', getPricingsController);
  * @swagger
  * /api/pricing/{id}:
  *   put:
- *     summary: Update an existing pricing plan
- *     tags: [Pricing]
+ *     summary: Mettre à jour un plan tarifaire existant
+ *     tags: [Tarification]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: ID of the pricing plan
+ *         description: ID du plan tarifaire
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - agencyId
  *             properties:
  *               agencyId:
  *                 type: string
@@ -127,17 +129,17 @@ router.get('/', getPricingsController);
  *               agencyId: 64f7a1b23456789abcdef123
  *               planType: premium
  *               price: 1200
- *               description: Updated plan
+ *               description: Plan mis à jour
  *               numberOfPasses: 6
  *     responses:
  *       200:
- *         description: Pricing updated
+ *         description: Plan tarifaire mis à jour
  *       400:
- *         description: Bad request (missing agency)
+ *         description: Requête incorrecte (agence manquante)
  *       404:
- *         description: Pricing not found
+ *         description: Plan tarifaire introuvable
  *       500:
- *         description: Server error
+ *         description: Erreur serveur
  */
 router.put('/:id', updatePricingController);
 
@@ -145,15 +147,15 @@ router.put('/:id', updatePricingController);
  * @swagger
  * /api/pricing/{id}:
  *   delete:
- *     summary: Delete an existing pricing plan
- *     tags: [Pricing]
+ *     summary: Supprimer un plan tarifaire existant
+ *     tags: [Tarification]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: ID of the pricing plan
+ *         description: ID du plan tarifaire
  *     requestBody:
  *       required: true
  *       content:
@@ -169,13 +171,13 @@ router.put('/:id', updatePricingController);
  *               agencyId: 64f7a1b23456789abcdef123
  *     responses:
  *       200:
- *         description: Pricing deleted
+ *         description: Plan tarifaire supprimé
  *       400:
- *         description: Bad request (missing agency)
+ *         description: Requête incorrecte (agence manquante)
  *       404:
- *         description: Pricing not found
+ *         description: Plan tarifaire introuvable
  *       500:
- *         description: Server error
+ *         description: Erreur serveur
  */
 router.delete('/:id', deletePricingController);
 
