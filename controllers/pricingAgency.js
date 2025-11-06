@@ -5,7 +5,7 @@ import * as pricingService from '../services/pricingAgency.js';
  */
 export const createPricingController = async (req, res) => {
     try {
-        const agencyId = req.user.id; // supposons que tu as middleware auth
+        const agencyId = req.user.agencyId;
         const pricing = await pricingService.createPricing(agencyId, req.body);
         res.status(201).json(pricing);
     } catch (err) {

@@ -5,11 +5,11 @@ const {
     updatePricingController,
     deletePricingController
 } = require('../controllers/pricingAgency.js');
-// const { authMiddleware } = require('../middleware/auth.js');
+const { authMiddleware } = require('../middlewares/auth.js');
 
 const router = express.Router();
 
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 /**
  * @swagger
