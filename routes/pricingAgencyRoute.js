@@ -5,11 +5,8 @@ const {
     updatePricingController,
     deletePricingController
 } = require('../controllers/pricingAgency.js');
-const { authMiddleware } = require('../middlewares/auth.js');
 
 const router = express.Router();
-
-router.use(authMiddleware);
 
 /**
  * @swagger
@@ -22,17 +19,22 @@ router.use(authMiddleware);
  * @swagger
  * /api/pricing:
  *   post:
- *     summary: Create a new pricing plan for the authenticated agency
+ *     summary: Create a new pricing plan for an agency
  *     tags: [Pricing]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - agencyId
+ *               - planType
+ *               - price
  *             properties:
+ *               agencyId:
+ *                 type: string
+ *                 description: ID of the agency
  *               planType:
  *                 type: string
  *                 enum: [standard, premium, enterprise]
@@ -43,6 +45,7 @@ router.use(authMiddleware);
  *               numberOfPasses:
  *                 type: number
  *             example:
+ *               agencyId: 64f7a1b23456789abcdef123
  *               planType: premium
  *               price: 1000
  *               description: Premium plan
@@ -50,6 +53,8 @@ router.use(authMiddleware);
  *     responses:
  *       201:
  *         description: Pricing created successfully
+ *       400:
+ *         description: Bad request (missing agency)
  *       500:
  *         description: Server error
  */
@@ -59,13 +64,27 @@ router.post('/', createPricingController);
  * @swagger
  * /api/pricing:
  *   get:
- *     summary: Get all pricing plans of the authenticated agency
+ *     summary: Get all pricing plans of an agency
  *     tags: [Pricing]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agencyId
+ *             properties:
+ *               agencyId:
+ *                 type: string
+ *                 description: ID of the agency
+ *             example:
+ *               agencyId: 64f7a1b23456789abcdef123
  *     responses:
  *       200:
  *         description: List of pricing plans
+ *       400:
+ *         description: Bad request (missing agency)
  *       500:
  *         description: Server error
  */
@@ -77,8 +96,6 @@ router.get('/', getPricingsController);
  *   put:
  *     summary: Update an existing pricing plan
  *     tags: [Pricing]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -92,7 +109,11 @@ router.get('/', getPricingsController);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - agencyId
  *             properties:
+ *               agencyId:
+ *                 type: string
  *               planType:
  *                 type: string
  *                 enum: [standard, premium, enterprise]
@@ -102,9 +123,17 @@ router.get('/', getPricingsController);
  *                 type: string
  *               numberOfPasses:
  *                 type: number
+ *             example:
+ *               agencyId: 64f7a1b23456789abcdef123
+ *               planType: premium
+ *               price: 1200
+ *               description: Updated plan
+ *               numberOfPasses: 6
  *     responses:
  *       200:
  *         description: Pricing updated
+ *       400:
+ *         description: Bad request (missing agency)
  *       404:
  *         description: Pricing not found
  *       500:
@@ -118,8 +147,6 @@ router.put('/:id', updatePricingController);
  *   delete:
  *     summary: Delete an existing pricing plan
  *     tags: [Pricing]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -127,9 +154,24 @@ router.put('/:id', updatePricingController);
  *           type: string
  *         required: true
  *         description: ID of the pricing plan
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agencyId
+ *             properties:
+ *               agencyId:
+ *                 type: string
+ *             example:
+ *               agencyId: 64f7a1b23456789abcdef123
  *     responses:
  *       200:
  *         description: Pricing deleted
+ *       400:
+ *         description: Bad request (missing agency)
  *       404:
  *         description: Pricing not found
  *       500:

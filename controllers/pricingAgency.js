@@ -5,24 +5,34 @@ import * as pricingService from '../services/pricingAgency.js';
  */
 export const createPricingController = async (req, res) => {
     try {
-        const agencyId = req.user.agencyId;
-        const pricing = await pricingService.createPricing(agencyId, req.body);
-        res.status(201).json(pricing);
+        const { agencyId, ...pricingData } = req.body;
+
+        if (!agencyId) {
+            return res.status(400).json({ message: 'L’ID de l’agence est requis' });
+        }
+
+        const pricing = await pricingService.createPricing(agencyId, pricingData);
+        res.status(201).json({ success: true, data: pricing });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
 /**
- * Récupérer tous les tarifs d'une agence
+ * Récupérer tous les tarifs d’une agence
  */
 export const getPricingsController = async (req, res) => {
     try {
-        const agencyId = req.user.id;
+        const { agencyId } = req.body;
+
+        if (!agencyId) {
+            return res.status(400).json({ message: 'L’ID de l’agence est requis' });
+        }
+
         const pricings = await pricingService.getAgencyPricings(agencyId);
-        res.status(200).json(pricings);
+        res.status(200).json({ success: true, data: pricings });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -31,16 +41,25 @@ export const getPricingsController = async (req, res) => {
  */
 export const updatePricingController = async (req, res) => {
     try {
-        const agencyId = req.user.id;
+        const { agencyId } = req.body;
+
+        if (!agencyId) {
+            return res.status(400).json({ message: 'L’ID de l’agence est requis' });
+        }
+
         const updatedPricing = await pricingService.updatePricing(
             req.params.id,
             agencyId,
             req.body
         );
-        if (!updatedPricing) return res.status(404).json({ message: 'Pricing not found' });
-        res.status(200).json(updatedPricing);
+
+        if (!updatedPricing) {
+            return res.status(404).json({ success: false, message: 'Pricing non trouvé' });
+        }
+
+        res.status(200).json({ success: true, data: updatedPricing });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -49,11 +68,20 @@ export const updatePricingController = async (req, res) => {
  */
 export const deletePricingController = async (req, res) => {
     try {
-        const agencyId = req.user.id;
+        const { agencyId } = req.body;
+
+        if (!agencyId) {
+            return res.status(400).json({ message: 'L’ID de l’agence est requis' });
+        }
+
         const deletedPricing = await pricingService.deletePricing(req.params.id, agencyId);
-        if (!deletedPricing) return res.status(404).json({ message: 'Pricing not found' });
-        res.status(200).json({ message: 'Pricing deleted successfully' });
+
+        if (!deletedPricing) {
+            return res.status(404).json({ success: false, message: 'Pricing non trouvé' });
+        }
+
+        res.status(200).json({ success: true, message: 'Pricing supprimé avec succès' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };

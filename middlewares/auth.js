@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 export const authMiddleware = (roles = []) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -11,22 +12,26 @@ export const authMiddleware = (roles = []) => {
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      // Récupérer l'utilisateur depuis la DB pour info à jour
+      const user = await User.findById(decoded.id);
+      if (!user) return res.status(401).json({ message: 'Utilisateur non trouvé' });
+
       req.user = {
-        id: decoded.id,
-        role: decoded.role,
-        email: decoded.email,
-        agencyId: decoded.agencyId,
-        isOwnerAgency: decoded.isOwnerAgency
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        agencyId: user.agencyId,          // récupéré depuis la DB
+        isOwnerAgency: user.isOwnerAgency // récupéré depuis la DB
       };
 
-      // Vérification du rôle si des rôles sont spécifiés
-      if (roles.length && !roles.includes(decoded.role)) {
+      // Vérification du rôle si nécessaire
+      if (roles.length && !roles.includes(user.role)) {
         return res.status(403).json({ message: 'Accès non autorisé' });
       }
 
       next();
     } catch (err) {
-      return res.status(401).json({ message: 'Token invalide' });
+      return res.status(401).json({ message: 'Token invalide ou expiré' });
     }
   };
 };
