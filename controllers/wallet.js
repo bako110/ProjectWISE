@@ -30,8 +30,8 @@ const getWalletController = async (req, res) => {
 
 const addBalanceController = async (req, res) => {
   try {
-    const { userId, amount } = req.body;
-    const wallet = await addBalanceService(userId, amount);
+    const { userId, amount } = req.params;
+    const wallet = await addBalanceService(userId, parseFloat(amount));
     res.status(200).json({ success: true, wallet });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -40,8 +40,8 @@ const addBalanceController = async (req, res) => {
 
 const removeBalanceController = async (req, res) => {
   try {
-    const { userId, amount } = req.body;
-    const wallet = await removeBalanceService(userId, amount);
+    const { userId, amount } = req.params;
+    const wallet = await removeBalanceService(userId, parseFloat(amount));
     res.status(200).json({ success: true, wallet });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });

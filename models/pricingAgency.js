@@ -24,6 +24,6 @@ const pricingSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-});
+}, { timestamps: true });
 
 export default mongoose.model('Pricing', pricingSchema); // anciennement "Tarif"
