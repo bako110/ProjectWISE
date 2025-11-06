@@ -21,7 +21,6 @@ const subscriptionSchema = new mongoose.Schema({
         required: true,
         default: Date.now
     },  
-    
     endDate: {
         type: Date,
         required: true          
@@ -32,4 +31,4 @@ const subscriptionSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-export default mongoose.model('Subscription', subscriptionSchema);
+module.exports = mongoose.model('Subscription', subscriptionSchema);
