@@ -7,7 +7,7 @@ const SubscriptionController = require('../controllers/subscription.js');
 /**
  * @swagger
  * tags:
- *   name: Abonnement
+ *   name: Subscription
  *   description: API pour gérer les abonnements des clients
  */
 

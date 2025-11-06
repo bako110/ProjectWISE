@@ -11,7 +11,7 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- *   name: Tarification
+ *   name: Pricing (Tarification)
  *   description: API pour gérer les plans tarifaires des agences
  */
 
