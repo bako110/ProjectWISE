@@ -49,6 +49,12 @@ const addBalanceService = async (userId, amount) => {
   if (amount <= 0) throw new Error('Le montant doit être positif');
 
   const wallet = await getWalletByUserIdService(userId);
+  if (!wallet) {
+    wallet = new Wallet({
+      userId: new mongoose.Types.ObjectId(userId),
+      kind: 'standard',
+    })
+  }
   wallet.balance += amount;
   return await wallet.save();
 };

@@ -8,14 +8,14 @@ class SubscriptionController {
    */
   static async subscribe(req, res) {
     try {
-      const { clientId, pricingId } = req.params;
+      const { clientId, pricingId, nomberOfMonths } = req.params;
 
       if (!clientId || !pricingId) {
         return res.status(400).json({ message: 'Missing required fields' });
       }
 
       // Crée l'abonnement via le service
-      const subscription = await SubscriptionService.createSubscription({ clientId, pricingId });
+      const subscription = await SubscriptionService.createSubscription({ clientId, pricingId, nomberOfMonths });
 
       return res.status(201).json({
         message: 'Subscription created successfully',

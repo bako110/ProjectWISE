@@ -12,8 +12,11 @@ class SubscriptionService {
    * @param {string} param0.pricingId - ID du plan tarifaire
    * @param {Date} param0.endDate - Date de fin de l'abonnement
    */
-  static async createSubscription({ clientId, pricingId, endDate }) {
+  static async createSubscription({ clientId, pricingId, nomberOfMonths }) {
     try {
+      month = parseInt(nomberOfMonths);
+      const startDate = new Date();
+      const endDate = new Date(new Date().setMonth(startDate.getMonth() + month));
       if (!clientId) throw new Error('Client not found');
       if (!pricingId) throw new Error('Pricing plan not found');
 
@@ -35,13 +38,20 @@ class SubscriptionService {
       // Ajouter le montant dans le wallet de l'agence
       await WalletService.addBalanceService(agencyId, pricing.amount);
 
+      const existingSubscription = await Subscription.findOne({ clientId: mongoose.Types.ObjectId(clientId), isActive: true });
+      if (existingSubscription) {
+        startDate = existingSubscription.endDate;
+        endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + month));
+      };
+
       // Créer l'abonnement
       const subscription = new Subscription({
         clientId: mongoose.Types.ObjectId(clientId),
         agencyId: mongoose.Types.ObjectId(agencyId),
         pricingId: mongoose.Types.ObjectId(pricingId),
-        startDate: new Date(),
+        startDate,
         endDate,
+        numberMonths: month,
         amount: pricing.amount,
         isActive: true
       });

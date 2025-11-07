@@ -28,6 +28,10 @@ const subscriptionSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    nomberMonths: {
+        type: Number,
+        required: true
     }
 }, { timestamps: true });
 

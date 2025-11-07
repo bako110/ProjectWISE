@@ -28,3 +28,8 @@ export const updatePricing = async (id, agencyId, data) => {
 export const deletePricing = async (id, agencyId) => {
     return await Pricing.findOneAndDelete({ _id: id, agencyId });
 };
+
+
+export const getPricingById = async (id) => {
+    return await Pricing.findById(id);
+};
