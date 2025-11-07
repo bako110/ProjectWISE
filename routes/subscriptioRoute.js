@@ -13,10 +13,17 @@ const SubscriptionController = require('../controllers/subscription.js');
 
 /**
  * @swagger
- * /subscription/subscribe:
+ * /subscription/subscribe/{clientId}:
  *   post:
  *     summary: Permet à un client de s'abonner à un plan tarifaire d'une agence
  *     tags: [Abonnement]
+ *     parameters:
+ *       - in: path
+ *         name: clientId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du client
  *     requestBody:
  *       required: true
  *       content:
@@ -54,7 +61,7 @@ const SubscriptionController = require('../controllers/subscription.js');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe', SubscriptionController.subscribe);
+router.post('/subscribe/:clientId', SubscriptionController.subscribe);
 
 /**
  * @swagger

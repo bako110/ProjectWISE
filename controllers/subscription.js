@@ -5,11 +5,15 @@ class SubscriptionController {
   // Créer un abonnement
   static async subscribe(req, res) {
     try {
-      const { clientId, agencyId, pricingId, endDate } = req.body;
+      const { clientId } = req.params; // <== depuis l'URL
+      const { agencyId, pricingId, endDate } = req.body;
+
+      // Vérification des champs obligatoires
       if (!clientId || !agencyId || !pricingId || !endDate) {
         return res.status(400).json({ message: 'Missing required fields' });
       }
 
+      // Créer l'abonnement via le service (solde et validations incluses)
       const subscription = await SubscriptionService.createSubscription({
         clientId,
         agencyId,
@@ -17,8 +21,25 @@ class SubscriptionController {
         endDate
       });
 
-      res.status(201).json(subscription);
+      res.status(201).json({
+        message: 'Subscription created successfully',
+        subscription
+      });
+
     } catch (error) {
+      // Gestion des erreurs spécifiques
+      if (
+        error.message === 'Pricing plan not found' ||
+        error.message === 'Agency not found'
+      ) {
+        return res.status(404).json({ message: error.message });
+      }
+
+      if (error.message === 'Insufficient balance') {
+        return res.status(400).json({ message: error.message });
+      }
+
+      // Erreur serveur générale
       res.status(500).json({ message: error.message });
     }
   }
@@ -49,12 +70,17 @@ class SubscriptionController {
     try {
       const { subscriptionId } = req.params;
       const subscription = await SubscriptionService.cancelSubscription(subscriptionId);
-      res.status(200).json(subscription);
+      res.status(200).json({
+        message: 'Subscription canceled successfully',
+        subscription
+      });
     } catch (error) {
+      if (error.message === 'Subscription not found') {
+        return res.status(404).json({ message: error.message });
+      }
       res.status(500).json({ message: error.message });
     }
   }
-
 }
 
 module.exports = SubscriptionController;
