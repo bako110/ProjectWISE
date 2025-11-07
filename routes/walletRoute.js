@@ -12,7 +12,7 @@ const { authMiddleware } = require('../middlewares/auth.js');
 
 /**
  * @swagger
- * /wallet/create:
+ * /api/wallet/create:
  *   post:
  *     summary: Créer un wallet pour un utilisateur
  *     tags: [Wallet]
@@ -38,7 +38,7 @@ router.post('/create', authMiddleware(), WalletController.createWalletController
 
 /**
  * @swagger
- * /wallet/{userId}:
+ * /api/wallet/{userId}:
  *   get:
  *     summary: Récupérer le wallet d'un utilisateur
  *     tags: [Wallet]
@@ -65,7 +65,7 @@ router.get('/:userId', authMiddleware(), WalletController.getWalletController);
 
 /**
  * @swagger
- * /wallet/add/{userId}/{amount}:
+ * /api/wallet/add/{userId}/{amount}:
  *   post:
  *     summary: Ajouter du solde au wallet
  *     tags: [Wallet]
@@ -106,7 +106,7 @@ router.post('/add/:userId/:amount', authMiddleware(), WalletController.addBalanc
 
 /**
  * @swagger
- * /wallet/remove/{userId}/{amount}:
+ * /api/wallet/remove/{userId}/{amount}:
  *   post:
  *     summary: Retirer du solde du wallet
  *     tags: [Wallet]
