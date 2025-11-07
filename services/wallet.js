@@ -1,12 +1,19 @@
 const Wallet = require('../models/wallet');
 const mongoose = require('mongoose');
 
+/**
+ * Crée un wallet pour un utilisateur
+ */
 const createWalletService = async (userId, kind = 'standard') => {
-  const existingWallet = await Wallet.findOne({ userId });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Error("ID utilisateur invalide");
+  }
+
+  const existingWallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
   if (existingWallet) throw new Error("L'utilisateur a déjà un wallet");
 
   const wallet = new Wallet({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     kind,
   });
 
@@ -14,16 +21,19 @@ const createWalletService = async (userId, kind = 'standard') => {
 };
 
 /**
- * Récupère un wallet par userId.
- * Si le wallet n'existe pas, il est créé automatiquement avec type "standard".
+ * Récupère un wallet par userId
+ * Si inexistant, crée un wallet standard automatiquement
  */
 const getWalletByUserIdService = async (userId) => {
-  let wallet = await Wallet.findOne({ userId: mongoose.Types.ObjectId(userId) });
-  
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Error("ID utilisateur invalide");
+  }
+
+  let wallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+
   if (!wallet) {
-    // Création automatique d'un wallet standard
     wallet = new Wallet({
-      userId: mongoose.Types.ObjectId(userId),
+      userId: new mongoose.Types.ObjectId(userId),
       kind: 'standard',
     });
     await wallet.save();
@@ -32,6 +42,9 @@ const getWalletByUserIdService = async (userId) => {
   return wallet;
 };
 
+/**
+ * Ajoute un montant au solde du wallet
+ */
 const addBalanceService = async (userId, amount) => {
   if (amount <= 0) throw new Error('Le montant doit être positif');
 
@@ -40,6 +53,9 @@ const addBalanceService = async (userId, amount) => {
   return await wallet.save();
 };
 
+/**
+ * Retire un montant du solde du wallet
+ */
 const removeBalanceService = async (userId, amount) => {
   if (amount <= 0) throw new Error('Le montant doit être positif');
 

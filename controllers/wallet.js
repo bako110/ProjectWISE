@@ -5,6 +5,9 @@ const {
   removeBalanceService
 } = require('../services/wallet');
 
+/**
+ * Crée un wallet
+ */
 const createWalletController = async (req, res) => {
   try {
     const { userId, kind } = req.body;
@@ -15,19 +18,22 @@ const createWalletController = async (req, res) => {
   }
 };
 
+/**
+ * Récupère un wallet par userId
+ */
 const getWalletController = async (req, res) => {
   try {
     const { userId } = req.params;
     const wallet = await getWalletByUserIdService(userId);
-    if (!wallet) {
-      return res.status(404).json({ success: false, message: 'Wallet non trouvé' });
-    }
     res.status(200).json({ success: true, wallet });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
+/**
+ * Ajoute un montant au wallet
+ */
 const addBalanceController = async (req, res) => {
   try {
     const { userId, amount } = req.params;
@@ -38,6 +44,9 @@ const addBalanceController = async (req, res) => {
   }
 };
 
+/**
+ * Retire un montant du wallet
+ */
 const removeBalanceController = async (req, res) => {
   try {
     const { userId, amount } = req.params;
