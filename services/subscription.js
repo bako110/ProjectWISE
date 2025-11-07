@@ -19,18 +19,21 @@ class SubscriptionService {
 
       // Récupérer le pricing
       const pricing = await PricingService.getPricingById(pricingId);
-      if (!pricing) throw new Error('Pricing plan not f ound');
+      if (!pricing) throw new Error('Pricing plan not found');
 
       // Récupérer l'agence associée
       const agencyId = pricing.agencyId;
       if (!agencyId) throw new Error('Agency not found');
 
       // Vérifier le wallet du client
-      const wallet = await WalletService.getWalletByUserIdService(clientId);
-      if (wallet.balance < pricing.amount) throw new Error('Insufficient balance');
+      const clientWallet = await WalletService.getWalletByUserIdService(clientId);
+      if (clientWallet.balance < pricing.amount) throw new Error('Insufficient balance');
 
-      // Déduire le montant du wallet
+      // Déduire le montant du wallet du client
       await WalletService.removeBalanceService(clientId, pricing.amount);
+
+      // Ajouter le montant dans le wallet de l'agence
+      await WalletService.addBalanceService(agencyId, pricing.amount);
 
       // Créer l'abonnement
       const subscription = new Subscription({
