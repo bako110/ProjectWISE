@@ -44,7 +44,7 @@ const SubscriptionController = require('../controllers/subscription.js');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe/:clientId/pricing/:pricingId', SubscriptionController.subscribe);
+router.post('/subscribe/:clientId/pricing/:pricingId/:month', SubscriptionController.subscribe);
 
 /**
  * @swagger
