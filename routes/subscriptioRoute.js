@@ -13,10 +13,10 @@ const SubscriptionController = require('../controllers/subscription.js');
 
 /**
  * @swagger
- * /subscription/subscribe/{clientId}/{pricingId}:
+ * /subscription/subscribe/{clientId}/pricing/{pricingId}:
  *   post:
  *     summary: Permet à un client de s'abonner à un plan tarifaire d'une agence
- *     tags: [Abonnement]
+ *     tags: [Subscription]
  *     parameters:
  *       - in: path
  *         name: clientId
@@ -44,14 +44,14 @@ const SubscriptionController = require('../controllers/subscription.js');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe/:clientId/:pricingId', SubscriptionController.subscribe);
+router.post('/subscribe/:clientId/pricing/:pricingId', SubscriptionController.subscribe);
 
 /**
  * @swagger
  * /subscription/client/{clientId}:
  *   get:
  *     summary: Récupérer tous les abonnements d'un client
- *     tags: [Abonnement]
+ *     tags: [Subscription]
  *     parameters:
  *       - in: path
  *         name: clientId
@@ -78,7 +78,7 @@ router.get('/client/:clientId', SubscriptionController.getClientSubscriptions);
  * /subscription/all:
  *   get:
  *     summary: Récupérer tous les abonnements (admin seulement)
- *     tags: [Abonnement]
+ *     tags: [Subscription]
  *     responses:
  *       200:
  *         description: Liste de tous les abonnements
@@ -98,7 +98,7 @@ router.get('/all', SubscriptionController.getAllSubscriptions);
  * /subscription/cancel/{subscriptionId}:
  *   patch:
  *     summary: Annuler un abonnement
- *     tags: [Abonnement]
+ *     tags: [Subscription]
  *     parameters:
  *       - in: path
  *         name: subscriptionId

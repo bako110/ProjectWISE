@@ -19,7 +19,7 @@ class SubscriptionService {
 
       // Récupérer le pricing
       const pricing = await PricingService.getPricingById(pricingId);
-      if (!pricing) throw new Error('Pricing plan not found');
+      if (!pricing) throw new Error('Pricing plan not f ound');
 
       // Récupérer l'agence associée
       const agencyId = pricing.agencyId;

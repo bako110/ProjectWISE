@@ -4,7 +4,7 @@ class SubscriptionController {
 
   /**
    * Créer un abonnement
-   * @route POST /subscription/subscribe/:clientId/:pricingId
+   * @route POST /subscription/subscribe/:clientId/pricing/:pricingId
    */
   static async subscribe(req, res) {
     try {
