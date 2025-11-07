@@ -4,23 +4,18 @@ class SubscriptionController {
 
   /**
    * Créer un abonnement
-   * @route POST /subscription/subscribe/:clientId
+   * @route POST /subscription/subscribe/:clientId/:pricingId
    */
   static async subscribe(req, res) {
     try {
-      const { clientId } = req.params;
-      const { pricingId, endDate } = req.body;
+      const { clientId, pricingId } = req.params;
 
-      if (!clientId || !pricingId || !endDate) {
+      if (!clientId || !pricingId) {
         return res.status(400).json({ message: 'Missing required fields' });
       }
 
-      // Créer l'abonnement via le service
-      const subscription = await SubscriptionService.createSubscription({
-        clientId,
-        pricingId,
-        endDate
-      });
+      // Crée l'abonnement via le service
+      const subscription = await SubscriptionService.createSubscription({ clientId, pricingId });
 
       return res.status(201).json({
         message: 'Subscription created successfully',
@@ -35,6 +30,7 @@ class SubscriptionController {
       if (error.message === 'Insufficient balance') {
         return res.status(400).json({ message: error.message });
       }
+      // Erreur serveur générale
       return res.status(500).json({ message: error.message });
     }
   }

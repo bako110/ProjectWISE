@@ -13,7 +13,7 @@ const SubscriptionController = require('../controllers/subscription.js');
 
 /**
  * @swagger
- * /subscription/subscribe/{clientId}:
+ * /subscription/subscribe/{clientId}/{pricingId}:
  *   post:
  *     summary: Permet à un client de s'abonner à un plan tarifaire d'une agence
  *     tags: [Abonnement]
@@ -24,31 +24,12 @@ const SubscriptionController = require('../controllers/subscription.js');
  *         schema:
  *           type: string
  *         description: ID du client
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - agencyId
- *               - pricingId
- *               - endDate
- *             properties:
- *               agencyId:
- *                 type: string
- *                 description: ID de l'agence
- *               pricingId:
- *                 type: string
- *                 description: ID du plan tarifaire
- *               endDate:
- *                 type: string
- *                 format: date
- *                 description: Date de fin de l'abonnement
- *             example:
- *               agencyId: 64f7a1b23456789abcdef123
- *               pricingId: 64f7a1b23456789abcdef456
- *               endDate: 2025-12-31
+ *       - in: path
+ *         name: pricingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du plan tarifaire
  *     responses:
  *       201:
  *         description: Abonnement créé avec succès
@@ -57,11 +38,13 @@ const SubscriptionController = require('../controllers/subscription.js');
  *             schema:
  *               $ref: '#/components/schemas/Subscription'
  *       400:
- *         description: Champs obligatoires manquants
+ *         description: Champs obligatoires manquants ou solde insuffisant
+ *       404:
+ *         description: Pricing ou agence introuvable
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe/:clientId', SubscriptionController.subscribe);
+router.post('/subscribe/:clientId/:pricingId', SubscriptionController.subscribe);
 
 /**
  * @swagger
