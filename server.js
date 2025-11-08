@@ -15,6 +15,7 @@ const agencyEmployeeRoute = require('./routes/agencyEmployeeRoute.js');
 const pricingAgencyRoute = require('./routes/pricingAgencyRoute.js');
 const walletRoute = require('./routes/walletRoute.js');
 const subscriptionRoute = require('./routes/subscriptioRoute.js');
+const planning = require('./routes/planning.js');
 
 dotenv.config();
 connectDB();
@@ -38,6 +39,7 @@ app.use('/api/agency_employees', agencyEmployeeRoute);
 app.use('/api/pricing',pricingAgencyRoute); 
 app.use('/api/wallet', walletRoute);
 app.use('/api/subscription', subscriptionRoute);
+app.use('/api/planning', planning);
 
 // ✅ Swagger (documentation)
 swaggerDocs(app);

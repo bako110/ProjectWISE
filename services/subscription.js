@@ -78,7 +78,7 @@ class SubscriptionService {
     try {
       return await Subscription.find({clientId})
         .populate('agencyId', 'name')
-        .populate('pricingId', 'name price');
+        .populate('pricingId', 'price numberOfPasses planType');
     } catch (error) {
       throw new Error(error.message);
     }
@@ -88,9 +88,10 @@ class SubscriptionService {
   static async getAllSubscriptions() {
     try {
       return await Subscription.find()
-        .populate('clientId', 'name email')
-        .populate('agencyId', 'name')
-        .populate('pricingId', 'name price');
+        .populate('clientId', 'lastName email')
+        .populate('pricingId', 'price numberOfPasses planType')
+        .populate('agencyId', 'name');
+        // .populate('pricingId', 'price');
     } catch (error) {
       throw new Error(error.message);
     }
