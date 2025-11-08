@@ -1,4 +1,5 @@
 const SubscriptionService = require('../services/subscription.js');
+const logger = require('../utils/logger.js');
 
 class SubscriptionController {
 
@@ -9,8 +10,8 @@ class SubscriptionController {
   static async subscribe(req, res) {
     try {
       const { clientId, pricingId, month } = req.params;
-
-      if (!clientId || !pricingId) {
+      logger.info(`Création de l'abonnement pour le client ${clientId} et le plan tarifaire ${pricingId} et le nombre de mmoi ${month}`);
+      if (!clientId || !pricingId || !month) {
         return res.status(400).json({ message: 'Missing required fields' });
       }
 

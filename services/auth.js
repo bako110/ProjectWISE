@@ -1,8 +1,6 @@
 const User = require('../models/User.js');
 const Agency = require('../models/agency.js');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const { sendResetPasswordEmail } = require('../utils/sendResetCodeMail.js');
 
 const registerUser = async (userData) => {
@@ -12,7 +10,9 @@ const registerUser = async (userData) => {
   }
   const user = new User(userData);
   await user.save();
-  return user;
+  const newUser = user.toObject();
+  delete newUser.password;
+  return newUser;
 }
 
 const createAgency = async (agencyData) => {
@@ -38,50 +38,6 @@ const loginUser = async (login, password) => {
     const userObject = user.toObject();
     delete userObject.password;
     return userObject;
-}
-
-const getUserById = async (userId) => {
-    const user = await User.findById(userId);
-    if (!user) {
-        throw new Error('Utilisateur non rencontré');
-    }
-    return user;
-}
-
-const getUsers = async (filtre = {}, pagination = {}) => {
-    const users = await User.find(filtre)
-        .skip(pagination.skip || 0)
-        .limit(pagination.limit || 10);
-
-    const total = await User.countDocuments(filtre);
-
-    return { users, total };
-};
-
-const updateUser = async (userId, updateData) => {
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
-    if (!user) {
-        throw new Error('Utilisateur non rencontré');
-    }
-    return user;
-};
-
-const deleteUser = async (userId) => {
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-        throw new Error('Utilisateur non rencontré');
-    }
-    return user;
-};
-
-const getUserByRole = async (role) => {
-    const users = await User.find({ role });
-    return users;
-}
-
-const getUsersByAgency = async (agencyId) => {
-    const users = await User.find({ agencyId , $or: [ { role: 'manager' }, { role: 'collector' } ] });
-    return users;
 }
 
 const genererateToken = async (user) => {
@@ -176,12 +132,6 @@ module.exports = {
   registerUser, 
   createAgency, 
   loginUser, 
-  getUserById, 
-  getUsers, 
-  updateUser, 
-  deleteUser, 
-  getUserByRole, 
-  getUsersByAgency,
   requestPasswordReset,
   resetPasswordWithCode,
   verifyResetCode,

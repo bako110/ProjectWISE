@@ -1,5 +1,6 @@
 const Wallet = require('../models/wallet');
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 /**
  * Crée un wallet pour un utilisateur
@@ -45,10 +46,12 @@ const getWalletByUserIdService = async (userId) => {
 /**
  * Ajoute un montant au solde du wallet
  */
-const addBalanceService = async (userId, amount) => {
+const addBalanceService = async (userId, amounts) => {
+  const amount = parseFloat(amounts);
   if (amount <= 0) throw new Error('Le montant doit être positif');
 
   const wallet = await getWalletByUserIdService(userId);
+  logger.info(wallet);
   if (!wallet) {
     wallet = new Wallet({
       userId: new mongoose.Types.ObjectId(userId),
@@ -62,7 +65,8 @@ const addBalanceService = async (userId, amount) => {
 /**
  * Retire un montant du solde du wallet
  */
-const removeBalanceService = async (userId, amount) => {
+const removeBalanceService = async (userId, amounts) => {
+  amount = parseFloat(amounts);
   if (amount <= 0) throw new Error('Le montant doit être positif');
 
   const wallet = await getWalletByUserIdService(userId);

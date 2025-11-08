@@ -34,7 +34,7 @@ const { authMiddleware } = require('../middlewares/auth.js');
  *       400:
  *         description: Erreur de création
  */
-router.post('/create', authMiddleware(), WalletController.createWalletController);
+router.post('/create', WalletController.createWalletController);
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ router.post('/create', authMiddleware(), WalletController.createWalletController
  *       404:
  *         description: Wallet non trouvé
  */
-router.get('/:userId', authMiddleware(), WalletController.getWalletController);
+router.get('/:userId', WalletController.getWalletController);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ router.get('/:userId', authMiddleware(), WalletController.getWalletController);
  *       400:
  *         description: Erreur lors de l'ajout
  */
-router.post('/add/:userId/:amount', authMiddleware(), WalletController.addBalanceController);
+router.post('/add/:userId/:amount', WalletController.addBalanceController);
 
 /**
  * @swagger
@@ -143,6 +143,6 @@ router.post('/add/:userId/:amount', authMiddleware(), WalletController.addBalanc
  *       400:
  *         description: Erreur lors du retrait
  */
-router.post('/remove/:userId/:amount', authMiddleware(), WalletController.removeBalanceController);
+router.post('/remove/:userId/:amount', WalletController.removeBalanceController);
 
 module.exports = router;

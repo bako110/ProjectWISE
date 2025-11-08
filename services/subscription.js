@@ -1,6 +1,7 @@
 const Subscription = require('../models/subscription.js');
 const PricingService = require('../services/pricingAgency.js');
 const WalletService = require('../services/wallet.js');
+const logger = require('../utils/logger.js');
 const mongoose = require('mongoose');
 
 class SubscriptionService {
@@ -12,17 +13,22 @@ class SubscriptionService {
    * @param {string} param0.pricingId - ID du plan tarifaire
    * @param {Date} param0.endDate - Date de fin de l'abonnement
    */
-  static async createSubscription({ clientId, pricingId, nomberOfMonths }) {
+
+
+  //il faudra revenir voir pour utilisateurs qui ferons plusieurs fois pour que le temps soit bien defini après son deuxieme abonnement
+  static async createSubscription({ clientId, pricingId, month }) {
     try {
-      month = parseInt(nomberOfMonths);
-      const startDate = new Date();
-      const endDate = new Date(new Date().setMonth(startDate.getMonth() + month));
+      month = parseInt(month);
+      logger.info(`Création de l'abonnement pour le client ${clientId} et le plan tarifaire ${pricingId} et le nombre de mmoi ${month}`);
+      let startDate = new Date();
+      let endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + month));
       if (!clientId) throw new Error('Client not found');
       if (!pricingId) throw new Error('Pricing plan not found');
 
       // Récupérer le pricing
       const pricing = await PricingService.getPricingById(pricingId);
       if (!pricing) throw new Error('Pricing plan not found');
+      const amountSubscription = pricing.price * month;
 
       // Récupérer l'agence associée
       const agencyId = pricing.agencyId;
@@ -30,15 +36,17 @@ class SubscriptionService {
 
       // Vérifier le wallet du client
       const clientWallet = await WalletService.getWalletByUserIdService(clientId);
-      if (clientWallet.balance < pricing.amount) throw new Error('Insufficient balance');
+      logger.info(clientWallet._doc.balance);
+      const userBalance = clientWallet._doc.balance;
+      if (userBalance < amountSubscription) throw new Error('Insufficient balance');
 
       // Déduire le montant du wallet du client
-      await WalletService.removeBalanceService(clientId, pricing.amount);
+      await WalletService.removeBalanceService(clientId, amountSubscription);
 
       // Ajouter le montant dans le wallet de l'agence
-      await WalletService.addBalanceService(agencyId, pricing.amount);
+      await WalletService.addBalanceService(agencyId, amountSubscription);
 
-      const existingSubscription = await Subscription.findOne({ clientId: mongoose.Types.ObjectId(clientId), isActive: true });
+      const existingSubscription = await Subscription.findOne({ clientId, isActive: true });
       if (existingSubscription) {
         startDate = existingSubscription.endDate;
         endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + month));
@@ -46,13 +54,13 @@ class SubscriptionService {
 
       // Créer l'abonnement
       const subscription = new Subscription({
-        clientId: mongoose.Types.ObjectId(clientId),
-        agencyId: mongoose.Types.ObjectId(agencyId),
-        pricingId: mongoose.Types.ObjectId(pricingId),
+        clientId,
+        agencyId,
+        pricingId,
         startDate,
         endDate,
         numberMonths: month,
-        amount: pricing.amount,
+        amount: amountSubscription,
         isActive: true
       });
 
@@ -60,6 +68,7 @@ class SubscriptionService {
       return subscription;
 
     } catch (error) {
+      logger.error(error);
       throw new Error(error.message);
     }
   }

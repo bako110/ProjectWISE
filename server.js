@@ -7,6 +7,7 @@ const swaggerDocs = require('./swagger.js');
 
 // Import des routes
 const authRoute = require('./routes/auth.route.js');
+const userRoute = require('./routes/userRoute.js');
 const agencyRoute = require('./routes/agencyRoute.js');
 const agencySearchRoute = require('./routes/agencySearchRoute.js');
 const agencyValidationRoute = require('./routes/superAdminValidateAgencyRoutes.js');
@@ -29,6 +30,7 @@ app.use(express.json());
 
 // ✅ Routes principales
 app.use('/api', authRoute);
+app.use('/api', userRoute);
 app.use('/api/agencies', agencyRoute);
 app.use('/api/search/agencies', agencySearchRoute);
 app.use('/api/agencies_validation', agencyValidationRoute);

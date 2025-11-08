@@ -13,7 +13,7 @@ const SubscriptionController = require('../controllers/subscription.js');
 
 /**
  * @swagger
- * /subscription/subscribe/{clientId}/pricing/{pricingId}:
+ * /subscription/subscribe/{clientId}/pricing/{pricingId}/{month}:
  *   post:
  *     summary: Permet à un client de s'abonner à un plan tarifaire d'une agence
  *     tags: [Subscription]

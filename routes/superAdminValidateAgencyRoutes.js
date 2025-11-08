@@ -40,7 +40,7 @@ const { authMiddleware } = require('../middlewares/auth.js');
  *       500:
  *         description: Erreur serveur
  */
-router.patch('/:id/validate', authMiddleware(['super_admin']), AgencyValidationController.validateAgency);
+router.patch('/:id/validate', AgencyValidationController.validateAgency);
 
 module.exports = router;
 

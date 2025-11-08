@@ -29,7 +29,7 @@ const subscriptionSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    nomberMonths: {
+    numberMonths: {
         type: Number,
         required: true
     }
