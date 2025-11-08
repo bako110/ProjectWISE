@@ -1,4 +1,5 @@
 const SubscriptionService = require('../services/subscription.js');
+const { getUserById } = require('../services/user.js');
 const logger = require('../utils/logger.js');
 
 class SubscriptionController {
@@ -17,6 +18,11 @@ class SubscriptionController {
 
       // Crée l'abonnement via le service
       const subscription = await SubscriptionService.createSubscription({ clientId, pricingId, month });
+
+      const user = await getUserById(clientId);
+      logger.info(user);
+      user.agencyId = subscription.agencyId;
+      user.save();
 
       return res.status(201).json({
         message: 'Subscription created successfully',
