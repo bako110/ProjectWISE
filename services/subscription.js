@@ -76,7 +76,7 @@ class SubscriptionService {
   // Récupérer tous les abonnements d'un client
   static async getSubscriptionsByClient(clientId) {
     try {
-      return await Subscription.find(clientId)
+      return await Subscription.find({clientId})
         .populate('agencyId', 'name')
         .populate('pricingId', 'name price');
     } catch (error) {
