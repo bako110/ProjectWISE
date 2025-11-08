@@ -124,6 +124,25 @@ class AgencyService {
             .sort({ createdAt: -1 });
         return agencies;
     }
+
+    async updateAgencyZone(agencyId, newZones) {
+        const agency = await Agency.findById(agencyId);
+        if (!agency) {
+            throw new Error('Agence non trouvée');
+        }
+
+        // Si zoneActivite est un tableau, on ajoute sans remplacer
+        if (!Array.isArray(agency.zoneActivite)) {
+            agency.zoneActivite = [];
+        }
+
+        // Ajoute les nouveaux éléments sans doublons (facultatif)
+        agency.zoneActivite = [...new Set([...agency.zoneActivite, ...newZones])];
+
+        await agency.save();
+        return agency;
+    }
+
 }
 
 module.exports = new AgencyService();

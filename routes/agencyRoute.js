@@ -228,4 +228,46 @@ router.put('/:id', agencyController.updateAgency);
  */
 router.delete('/:id',  agencyController.deleteAgency);
 
+/**
+ * @swagger
+ * /api/agencies/{id}/zone:
+ *   patch:
+ *     summary: Mettre à jour la zone d'une agence
+ *     tags: [Agencies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/schemas/Agency/agencyId'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               zoneActivite:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Zone mise à jour avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Agency'
+ *                 message:
+ *                   type: string
+ *                   example: "Zone mise à jour avec succès"
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Agence non trouvée
+ */
+router.patch('/:id/zone',  agencyController.upadateZone);
+
 module.exports = router;

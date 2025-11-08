@@ -76,9 +76,9 @@ class SubscriptionService {
   // Récupérer tous les abonnements d'un client
   static async getSubscriptionsByClient(clientId) {
     try {
-      return await Subscription.find({ clientId: mongoose.Types.ObjectId(clientId) })
+      return await Subscription.find(clientId)
         .populate('agencyId', 'name')
-        .populate('pricingId', 'name amount');
+        .populate('pricingId', 'name price');
     } catch (error) {
       throw new Error(error.message);
     }
@@ -90,7 +90,7 @@ class SubscriptionService {
       return await Subscription.find()
         .populate('clientId', 'name email')
         .populate('agencyId', 'name')
-        .populate('pricingId', 'name amount');
+        .populate('pricingId', 'name price');
     } catch (error) {
       throw new Error(error.message);
     }
