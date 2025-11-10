@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+
   nbGestionnaires: {
     type: Number,
     default: null,
