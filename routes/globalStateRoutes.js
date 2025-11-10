@@ -47,9 +47,18 @@ const { getDashboardStats } = require('../controllers/globalSate');
  *                     totalAgencies:
  *                       type: integer
  *                       example: 8
+ *                     totalActiveAgencies:
+ *                       type: integer
+ *                       example: 6
+ *                     totalInactiveAgencies:
+ *                       type: integer
+ *                       example: 2
  *                     monthlyClientSubscriptions:
  *                       type: integer
  *                       example: 21
+ *                     monthlyClientPercentage:
+ *                       type: number
+ *                       example: 8.5
  *       500:
  *         description: Erreur serveur
  */
