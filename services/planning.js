@@ -1,10 +1,42 @@
 const Planning = require('../models/planning.js');
+const Collecte = require('../models/Collecte.js');
+const User = require('../models/User.js');
+const Passge = require('../models/Passage.js');
 const logger = require('../utils/logger.js');
 
 
 const createPlanning = async (planningData) => {
     try {
-        const planning = await Planning.create(planningData);
+        // const planning = await Planning.create(planningData);
+        const planning = new Planning(planningData);
+        const users = await User.find({agencyId: planningData.agencyId, role: 'client', 'address.neighborhood': planningData.zone});
+        planning.numberOfClients = 0;
+
+        for (const user of users) {
+            const passage = await Passge.findOne({agencyId: planningData.agencyId, clientId: user._id, status: true});
+            if (passage) {
+                const collecteData = {
+                    agencyId: planningData.agencyId,
+                    clientId: user._id,
+                    collectorId: planningData.collectorId,
+                    date: planningData.date,
+                    status: 'Scheduled',
+                    code: planningData.code,
+                };
+                if ( passage.passNumber = passage.dayNumber) {
+                    passage.weekNumber += 1;
+                    collecteData.nbCollecte = 1;
+                    passage.passNumber = 0;
+                }else {
+                    passage.passNumber +=1;
+                    collecteData.nbCollecte = passage.passNumber / passage.dayNumber;
+                }
+                await Collecte.create(collecteData);
+                await passage.save();
+                planning.numberOfClients += 1;
+            }
+        }
+        await planning.save();
         logger.info('Planning created successfully');
         return planning;
     } catch (error) {

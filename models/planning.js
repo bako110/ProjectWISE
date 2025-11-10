@@ -6,6 +6,10 @@ const planningSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    zone: {
+        type: String,
+        required: true
+    },
     date: {
         type: Date,
         required: true

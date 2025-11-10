@@ -1,6 +1,7 @@
 const Subscription = require('../models/subscription.js');
 const PricingService = require('../services/pricingAgency.js');
 const WalletService = require('../services/wallet.js');
+const Passage = require('../models/Passage.js');
 const logger = require('../utils/logger.js');
 const mongoose = require('mongoose');
 
@@ -64,7 +65,15 @@ class SubscriptionService {
         isActive: true
       });
 
+      const passage = new Passage({
+        clientId: clientId,
+        agencyId: agencyId,
+        dayNumber: pricing.numberOfPasses,
+      });
+
       await subscription.save();
+      await passage.save();
+      logger.info('Subscription created successfully');
       return subscription;
 
     } catch (error) {
