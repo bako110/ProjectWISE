@@ -23,6 +23,7 @@ exports.getUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
     try {
+        logger.info(req); 
         const {term, role, agencyId, neighborhood} = req.query;
         const page = Math.max(1, parseInt(req.query.page) || 1);
         const limit = Math.max(1, parseInt(req.query.limit) || 10);

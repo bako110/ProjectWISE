@@ -18,7 +18,7 @@ const subscriptionRoute = require('./routes/subscriptioRoute.js');
 const planning = require('./routes/planning.js');
 const messageRoute = require('./routes/message.js');
 const notificationRoute = require('./routes/notification.js');
-
+const globalStateRoutes = require('./routes/globalStateRoutes.js');
 dotenv.config();
 connectDB();
 
@@ -44,6 +44,8 @@ app.use('/api/subscription', subscriptionRoute);
 app.use('/api/planning', planning);
 app.use('/api/messages', messageRoute);
 app.use('/api/notifications', notificationRoute);
+app.use('/api/statistics', globalStateRoutes);
+
 
 // ✅ Swagger (documentation)
 swaggerDocs(app);
