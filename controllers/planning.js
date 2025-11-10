@@ -3,7 +3,16 @@ const {createPlanning, getPlanningById, updatePlanning, deletePlanning, getAllPl
 
 exports.createPlanning = async (req, res) => {
     try {
-        const planning = await createPlanning(req.body);
+        console.log(req.body);
+        const {managerId, agencyId, startTime, endTime, collectorId, zone, date} = req.body;
+        
+        if (!managerId || !agencyId || !startTime || !endTime || !collectorId || !zone || !date) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const data = req.body;
+        
+        const planning = await createPlanning(data);
         logger.info('Planning created successfully');
         res.status(201).json(planning);
     } catch (error) {

@@ -1,4 +1,4 @@
-const {createPlanning, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../services/planning');
+const {createPlanning, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../controllers/planning');
 const express = require('express');
 const router = express.Router();
 

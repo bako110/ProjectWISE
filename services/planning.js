@@ -15,15 +15,15 @@ const createPlanning = async (planningData) => {
         for (const user of users) {
             const passage = await Passge.findOne({agencyId: planningData.agencyId, clientId: user._id, status: true});
             if (passage) {
-                const collecteData = {
+                const collecteData = new Collecte({
                     agencyId: planningData.agencyId,
                     clientId: user._id,
                     collectorId: planningData.collectorId,
                     date: planningData.date,
                     status: 'Scheduled',
                     code: planningData.code,
-                };
-                if ( passage.passNumber = passage.dayNumber) {
+                });
+                if ( passage.passNumber === passage.dayNumber) {
                     passage.weekNumber += 1;
                     collecteData.nbCollecte = 1;
                     passage.passNumber = 0;
@@ -31,7 +31,8 @@ const createPlanning = async (planningData) => {
                     passage.passNumber +=1;
                     collecteData.nbCollecte = passage.passNumber / passage.dayNumber;
                 }
-                await Collecte.create(collecteData);
+                // await Collecte.create(collecteData);
+                await collecteData.save();
                 await passage.save();
                 planning.numberOfClients += 1;
             }
