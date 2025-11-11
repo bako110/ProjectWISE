@@ -4,6 +4,7 @@ const WalletService = require('../services/wallet.js');
 const Passage = require('../models/Passage.js');
 const User = require('../models/User.js');
 const logger = require('../utils/logger.js');
+const Agency = require('../models/agency.js');
 const QRCode = require('qrcode');
 const mongoose = require('mongoose');
 
@@ -69,16 +70,13 @@ class SubscriptionService {
       await subscription.save();
       await passage.save();
 
-      // 🔹 Génération du QR Code
+      // 🔹 Génération du QR Code (avec agencyId correct et infos supplémentaires)
       const qrData = JSON.stringify({
         subscriptionId: subscription._id,
         clientId,
-        pricingId: pricing._id,
-        planType: pricing.planType,
-        price: amountSubscription,
-        numberOfPasses: pricing.numberOfPasses,
-        startDate,
-        endDate
+        agencyId,         // ✅ ID correct de l'agence
+        pricingId,        // plan utilisé
+        endDate           // pour vérifier la validité
       });
 
       const qrCodeUrl = await QRCode.toDataURL(qrData);
