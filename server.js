@@ -49,8 +49,8 @@ app.use('/api/planning', planning);
 app.use('/api/messages', messageRoute);
 app.use('/api/notifications', notificationRoute);
 app.use('/api/statistics', globalStateRoutes);
-app.use('/api/qr_validation', qrValidationRoute);
-app.use('/api/collecte', stateForAgencyRoute)
+app.use('/api/collecte', qrValidationRoute);
+app.use('/api/State_agencies', stateForAgencyRoute)
 
 
 // ✅ Swagger (documentation)
