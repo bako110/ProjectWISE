@@ -119,23 +119,34 @@ exports.getAgenciesByStatus = async (req, res) => {
 
 exports.upadateZone = async (req, res) => {
     try {
-        const { id } = req.params;
-        const newZones = req.body.zones;
-        
-        const updatedAgency = await agencyService.updateAgencyZone(id, newZones);
-        
-        logger.info(`Agence ${id} mise à jour avec succès`);
-        
-        res.status(200).json({
-            success: true,
-            data: updatedAgency,
-            message: 'Agence mise à jour avec succès'
-        });
-    } catch (error) {
-        logger.error(`Erreur lors de la mise à jour de l'agence ${req.params.id}:`, error);
-        res.status(404).json({ 
-            success: false,
-            error: error.message 
-        });
+    const { id } = req.params;
+    const { delete: isDelete = false } = req.query; // récupère ?delete=true
+    const newZones = req.body.zones;
+
+    let updatedAgency;
+
+    if (isDelete === 'true' || isDelete === true) {
+        // Supprimer les zones spécifiées
+        updatedAgency = await agencyService.removeAgencyZones(id, newZones);
+        logger.info(`Zones supprimées pour l'agence ${id}`);
+    } else {
+        // Mettre à jour les zones
+        updatedAgency = await agencyService.updateAgencyZone(id, newZones);
+        logger.info(`Zones mises à jour pour l'agence ${id}`);
     }
+
+    res.status(200).json({
+        success: true,
+        data: updatedAgency,
+        message: "Agence mise à jour avec succès"
+    });
+
+} catch (error) {
+    logger.error(`Erreur lors de la mise à jour de l'agence ${req.params.id}:`, error);
+    res.status(500).json({
+        success: false,
+        message: error.message
+    });
+}
+
 }

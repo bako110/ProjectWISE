@@ -143,6 +143,31 @@ class AgencyService {
         return agency;
     }
 
+    async removeAgencyZones(agencyId, zonesToRemove) {
+        // 1️⃣ Vérifie que l'agence existe
+        const agency = await Agency.findById(agencyId);
+        if (!agency) {
+            throw new Error("Agence non trouvée");
+        }
+
+        // 2️⃣ Vérifie que la propriété zoneActivite existe bien
+        if (!Array.isArray(agency.zoneActivite)) {
+            agency.zoneActivite = [];
+        }
+
+        // 3️⃣ Supprime les zones demandées
+        agency.zoneActivite = agency.zoneActivite.filter(
+            zone => !zonesToRemove.includes(zone)
+        );
+
+        // 4️⃣ Sauvegarde les changements
+        await agency.save();
+
+        // 5️⃣ Retourne le résultat
+        return agency;
+    }
+
+
 }
 
 module.exports = new AgencyService();
