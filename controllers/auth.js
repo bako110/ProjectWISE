@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { genererateToken, registerUser, createAgency, loginUser, requestPasswordReset, resetPasswordWithCode, verifyResetCode } = require('../services/auth.js');
+const { genererateToken, registerUser, createAgency, loginUser, requestPasswordReset, resetPasswordWithCode, verifyResetCode, getProfile } = require('../services/auth.js');
 const { sendPasswordResetConfirmation, sendWelcomeEmail } = require('../utils/sendResetCodeMail.js');
 const logger = require('./../utils/logger');
 
@@ -240,5 +240,16 @@ exports.resetPassword = async (req, res) => {
             success: false,
             message: error.message
         });
+    }
+};
+
+exports.getProfile = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        // const userId = req.user._id; // Supposant que l'ID utilisateur est dans req.user._id
+        const profile = await getProfile(userId);
+        res.json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

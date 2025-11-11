@@ -6,7 +6,8 @@ const {
   login,
   forgotPassword,
   resetPassword,
-  verifyResetCode
+  verifyResetCode,
+  getProfile
 } = require('../controllers/auth.js');
 
 /**
@@ -201,6 +202,33 @@ const {
  *         description: Token manquant, invalide, expiré ou mot de passe manquant
  *       500:
  *         description: Erreur interne du serveur
+ * 
+ * /api/profile/{userId}:
+ *   get:
+ *     summary: Récupérer le profil d'un utilisateur
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: Profil trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Utilisateur non autorisé
+ *       404:
+ *         description: Utilisateur non trouvé
+ *       500:
+ *        description: Erreur interne du serveur
  */
 
 
@@ -212,6 +240,7 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-reset-code', verifyResetCode);
 router.post('/reset-password', resetPassword);
+router.get('/profile/:userId', getProfile);
 
 
 module.exports = router;

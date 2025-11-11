@@ -127,6 +127,20 @@ const requestPasswordReset = async (email) => {
   }
 }
 
+
+const getProfile = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('Utilisateur non trouvé');
+  }
+  const userObject = user.toObject();
+  delete userObject.password;
+  if (user.role == "manager") {
+    const agency = await Agency.findById(user.agencyId);
+    return { ...userObject, agency: agency };
+  }
+  return userObject;
+}
 module.exports = { 
   genererateToken, 
   registerUser, 
@@ -135,5 +149,6 @@ module.exports = {
   requestPasswordReset,
   resetPasswordWithCode,
   verifyResetCode,
-  resetPassword
+  resetPassword,
+  getProfile
 };
