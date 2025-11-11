@@ -1,35 +1,50 @@
-const QRValidationService = require('../services/qrValidation');
+const CollecteService = require('../services/qrValidation');
 
-class QRValidationController {
+class CollecteController {
 
-  // Marquer une collecte
-  static async collect(req, res) {
+  static async scanCollecte(req, res) {
     try {
-      const { qrData, collectorId } = req.body;
-      if (!qrData || !collectorId) {
-        return res.status(400).json({ message: 'Missing QR data or collector ID' });
+      const { code, collectorId } = req.body;
+      if (!code || !collectorId) {
+        return res.status(400).json({ message: 'Code and collectorId are required' });
       }
 
-      const result = await QRValidationService.collectSubscription(qrData, collectorId);
-      res.status(200).json(result);
+      const collecte = await CollecteService.markCollected({ code, collectorId });
+      return res.status(200).json({ message: 'Collecte marked as collected', collecte });
+
     } catch (error) {
-      if (['Subscription not found', 'Subscription is not active', 'User not found'].includes(error.message)) {
-        return res.status(404).json({ message: error.message });
-      }
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
-  // Récupérer l'historique des collectes pour un collecteur
-  static async history(req, res) {
+  static async getCollectesByAgency(req, res) {
+    try {
+      const { agencyId } = req.params;
+      const collectes = await CollecteService.getCollectesByAgency(agencyId);
+      return res.status(200).json(collectes);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  static async getCollectesByCollector(req, res) {
     try {
       const { collectorId } = req.params;
-      const history = await QRValidationService.getCollectorHistory(collectorId);
-      res.status(200).json(history);
+      const collectes = await CollecteService.getCollectesByCollector(collectorId);
+      return res.status(200).json(collectes);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  static async getAllCollectes(req, res) {
+    try {
+      const collectes = await CollecteService.getAllCollectes();
+      return res.status(200).json(collectes);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
     }
   }
 }
 
-module.exports = QRValidationController;
+module.exports = CollecteController;

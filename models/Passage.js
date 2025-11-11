@@ -7,6 +7,7 @@ const passageSchema = new mongoose.Schema({
     dayNumber : { type: Number, required: true },
     passNumber : { type: Number, default: 0 },
     status: { type: Boolean, default: true },
+    collectorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true
 });
 

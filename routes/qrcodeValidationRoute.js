@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const QRValidationController = require('../controllers/qrValidation');
+const CollecteController = require('../controllers/qrValidation');
 
 /**
  * @swagger
  * tags:
- *   name: QRCollection
- *   description: Gestion des collectes via QR Code
+ *   name: Collectes
+ *   description: Gestion des collectes et QR codes
  */
 
 /**
  * @swagger
- * /qr/qr_validation/collect:
+ * /api/collecte/scan:
  *   post:
- *     summary: Marquer une collecte via QR Code
- *     tags: [QRCollection]
+ *     summary: Scanner un QR code et marquer la collecte comme collected
+ *     tags: [Collectes]
  *     requestBody:
  *       required: true
  *       content:
@@ -22,37 +22,71 @@ const QRValidationController = require('../controllers/qrValidation');
  *           schema:
  *             type: object
  *             properties:
- *               qrData:
+ *               code:
  *                 type: string
  *               collectorId:
  *                 type: string
+ *             required:
+ *               - code
+ *               - collectorId
  *     responses:
  *       200:
- *         description: Collecte enregistrée
+ *         description: Collecte marquée comme collected
  *       400:
- *         description: Données manquantes
- *       404:
- *         description: Abonnement ou utilisateur non trouvé
+ *         description: Paramètres manquants
+ *       500:
+ *         description: Erreur serveur
  */
-router.post('/qr_validation/collect', QRValidationController.collect);
+router.post('/scan', CollecteController.scanCollecte);
 
 /**
  * @swagger
- * /qr/qr_validation/history/{collectorId}:
+ * /api/collecte/agency/{agencyId}:
  *   get:
- *     summary: Récupérer l'historique des collectes d'un collecteur
- *     tags: [QRCollection]
+ *     summary: Récupérer toutes les collectes d'une agence
+ *     tags: [Collectes]
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         description: Liste des collectes
+ */
+router.get('/agency/:agencyId', CollecteController.getCollectesByAgency);
+
+/**
+ * @swagger
+ * /api/collecte/collector/{collectorId}:
+ *   get:
+ *     summary: Récupérer toutes les collectes d'un collecteur
+ *     tags: [Collectes]
  *     parameters:
  *       - in: path
  *         name: collectorId
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: ID du collecteur
  *     responses:
  *       200:
- *         description: Historique des collectes
+ *         description: Liste des collectes
  */
-router.get('/qr_validation/history/:collectorId', QRValidationController.history);
+router.get('/collector/:collectorId', CollecteController.getCollectesByCollector);
+
+/**
+ * @swagger
+ * /api/collecte/all:
+ *   get:
+ *     summary: Récupérer toutes les collectes
+ *     tags: [Collectes]
+ *     responses:
+ *       200:
+ *         description: Liste de toutes les collectes
+ */
+router.get('/all', CollecteController.getAllCollectes);
 
 module.exports = router;

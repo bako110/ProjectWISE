@@ -1,65 +1,50 @@
-const Subscription = require('../models/subscription');
-const User = require('../models/User');
-const QRHistory = require('../models/QRHistory');
+const Collecte = require('../models/Collecte');
 const logger = require('../utils/logger');
 
-class QRValidationService {
+class CollecteService {
 
-  /**
-   * Marque une collecte à partir du QR Code scanné par le collecteur
-   * @param {string} qrData - Données du QR Code
-   * @param {string} collectorId - ID du collecteur
-   */
-  static async collectSubscription(qrData, collectorId) {
+  static async markCollected({ code, collectorId }) {
     try {
-      const data = JSON.parse(qrData);
-      const { subscriptionId, clientId } = data;
+      const collecte = await Collecte.findOne({ code });
+      if (!collecte) throw new Error('Collecte not found');
 
-      // Vérifier l'abonnement
-      const subscription = await Subscription.findById(subscriptionId);
-      if (!subscription) throw new Error('Subscription not found');
-      if (!subscription.isActive) throw new Error('Subscription is not active');
+      // Vérifier si la collecte a déjà été marquée
+      if (collecte.status === 'collected') {
+        throw new Error('Collecte already collected');
+      }
 
-      // Vérifier le client
-      const client = await User.findById(clientId);
-      if (!client) throw new Error('User not found');
+      collecte.status = 'collected';
+      collecte.collectorId = collectorId;
+      collecte.nbCollecte = (collecte.nbCollecte || 0) + 1;
+      collecte.date = new Date();
 
-      // Créer l'entrée historique de collecte
-      const history = new QRHistory({
-        subscriptionId,
-        clientId,
-        collectorId
-      });
-      await history.save();
-
-      return {
-        message: 'Collection recorded successfully',
-        clientName: client.lastName,
-        subscriptionId,
-        collectedAt: history.collectedAt
-      };
+      await collecte.save();
+      logger.info(`Collecte ${collecte._id} marquée comme collected par ${collectorId}`);
+      return collecte;
     } catch (error) {
       logger.error(error);
       throw new Error(error.message);
     }
   }
 
-  /**
-   * Récupérer toutes les collectes d'un collecteur
-   * @param {string} collectorId
-   */
-  static async getCollectorHistory(collectorId) {
-    try {
-      const history = await QRHistory.find({ collectorId })
-        .populate('clientId', 'lastName firstName email')
-        .populate('subscriptionId', 'startDate endDate')
-        .sort({ collectedAt: -1 });
-      return history;
-    } catch (error) {
-      logger.error(error);
-      throw new Error(error.message);
-    }
+  static async getCollectesByAgency(agencyId) {
+    return await Collecte.find({ agencyId })
+      .populate('clientId', 'lastName email qrCode')
+      .populate('collectorId', 'lastName email');
+  }
+
+  static async getCollectesByCollector(collectorId) {
+    return await Collecte.find({ collectorId })
+      .populate('clientId', 'lastName email qrCode')
+      .populate('agencyId', 'name');
+  }
+
+  static async getAllCollectes() {
+    return await Collecte.find()
+      .populate('clientId', 'lastName email qrCode')
+      .populate('collectorId', 'lastName email')
+      .populate('agencyId', 'name');
   }
 }
 
-module.exports = QRValidationService;
+module.exports = CollecteService;
