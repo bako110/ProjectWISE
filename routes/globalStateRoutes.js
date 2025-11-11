@@ -13,7 +13,7 @@ const { getDashboardStats } = require('../controllers/globalSate');
  * @swagger
  * /api/statistics:
  *   get:
- *     summary: Récupère les statistiques globales (agents, clients, agences, adhésions mensuelles)
+ *     summary: Récupère les statistiques globales (agents, clients, agences, adhésions mensuelles, collectes)
  *     tags: [Statistiques]
  *     responses:
  *       200:
@@ -53,12 +53,57 @@ const { getDashboardStats } = require('../controllers/globalSate');
  *                     totalInactiveAgencies:
  *                       type: integer
  *                       example: 2
+ *                     totalDeletedAgencies:
+ *                       type: integer
+ *                       example: 0
+ *                     agenciesByCity:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           city:
+ *                             type: string
+ *                             example: "Ouagadougou"
+ *                           numberOfAgencies:
+ *                             type: integer
+ *                             example: 3
+ *                     clientsByCity:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           city:
+ *                             type: string
+ *                             example: "Ouagadougou"
+ *                           numberOfClients:
+ *                             type: integer
+ *                             example: 120
+ *                     collectionsByCity:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           city:
+ *                             type: string
+ *                             example: "Ouagadougou"
+ *                           numberOfCollections:
+ *                             type: integer
+ *                             example: 250
  *                     monthlyClientSubscriptions:
  *                       type: integer
  *                       example: 21
  *                     monthlyClientPercentage:
  *                       type: number
  *                       example: 8.5
+ *                     totalCollections:
+ *                       type: integer
+ *                       example: 450
+ *                     dailyCollections:
+ *                       type: integer
+ *                       example: 15
+ *                     monthlyCollections:
+ *                       type: integer
+ *                       example: 120
  *       500:
  *         description: Erreur serveur
  */

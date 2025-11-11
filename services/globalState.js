@@ -1,6 +1,6 @@
 const User = require('../models/User');
-const Agency = require('../models/agency'); // Vérifie si ton fichier s’appelle bien agency.js ou agence.js
-const Collecte = require('../models/Collecte'); // Ton modèle de collecte
+const Agency = require('../models/agency'); // Vérifie bien le nom du fichier
+const Collecte = require('../models/Collecte');
 
 const getDashboardStats = async () => {
   // --- 🔹 Statistiques sur les utilisateurs ---
@@ -10,10 +10,37 @@ const getDashboardStats = async () => {
   const totalClients = await User.countDocuments({ role: 'client' });
 
   // --- 🔹 Statistiques sur les agences ---
-  const totalAgencies = await Agency.countDocuments({ status: { $in: ['active', 'inactive'] } }); // exclut deleted
+  const totalAgencies = await Agency.countDocuments({ status: { $in: ['active', 'inactive'] } });
   const totalActiveAgencies = await Agency.countDocuments({ status: 'active' });
   const totalInactiveAgencies = await Agency.countDocuments({ status: 'inactive' });
   const totalDeletedAgencies = await Agency.countDocuments({ status: 'deleted' });
+
+  // --- 🔹 Nombre d'agences par ville ---
+  const agenciesByCity = await Agency.aggregate([
+    { $match: { status: { $in: ['active', 'inactive'] } } },
+    { $group: { _id: '$address.city', numberOfAgencies: { $sum: 1 } } },
+    { $project: { _id: 0, city: '$_id', numberOfAgencies: 1 } }
+  ]);
+
+  // --- 🔹 Nombre de clients par ville ---
+  const clientsByCity = await User.aggregate([
+    { $match: { role: 'client', status: 'active' } },
+    { $group: { _id: '$address.city', numberOfClients: { $sum: 1 } } },
+    { $project: { _id: 0, city: '$_id', numberOfClients: 1 } }
+  ]);
+
+  // --- 🔹 Nombre de collectes par ville ---
+  const collectionsByCity = await Collecte.aggregate([
+    { $lookup: {
+        from: 'users',
+        localField: 'clientId',
+        foreignField: '_id',
+        as: 'client'
+    }},
+    { $unwind: '$client' },
+    { $group: { _id: '$client.address.city', numberOfCollections: { $sum: 1 } } },
+    { $project: { _id: 0, city: '$_id', numberOfCollections: 1 } }
+  ]);
 
   // --- 🔹 Statistiques sur les clients mensuels ---
   const now = new Date();
@@ -29,9 +56,7 @@ const getDashboardStats = async () => {
     totalClients > 0 ? ((monthlyClientSubscriptions / totalClients) * 100).toFixed(2) : 0;
 
   // --- 🔹 Statistiques sur les collectes ---
-  const totalCollections = await Collecte.countDocuments(); // toutes les collectes
-
-  // Collectes du jour
+  const totalCollections = await Collecte.countDocuments();
   const startOfDay = new Date(now.setHours(0, 0, 0, 0));
   const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
@@ -39,30 +64,29 @@ const getDashboardStats = async () => {
     date: { $gte: startOfDay, $lte: endOfDay },
   });
 
-  // Collectes du mois
   const monthlyCollections = await Collecte.countDocuments({
     date: { $gte: firstDay, $lte: lastDay },
   });
 
   // --- 🔹 Retour des statistiques combinées ---
   return {
-    // Utilisateurs
     totalMunicipalityAgents,
     totalManagers,
     totalCollectors,
     totalClients,
 
-    // Agences
     totalAgencies,
     totalActiveAgencies,
     totalInactiveAgencies,
     totalDeletedAgencies,
 
-    // Clients mensuels
+    agenciesByCity,
+    clientsByCity,
+    collectionsByCity, // 🔹 Ajouté ici
+
     monthlyClientSubscriptions,
     monthlyClientPercentage: Number(monthlyClientPercentage),
 
-    // Collectes
     totalCollections,
     dailyCollections,
     monthlyCollections,

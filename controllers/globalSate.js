@@ -15,19 +15,24 @@ exports.getDashboardStats = async (req, res) => {
         totalClients: stats.totalClients,
 
         // 🏢 Agences
-        totalAgencies: stats.totalAgencies,               // Toutes les agences (actives + inactives)
-        totalActiveAgencies: stats.totalActiveAgencies,   // Agences actives
-        totalInactiveAgencies: stats.totalInactiveAgencies, // Agences inactives
-        totalDeletedAgencies: stats.totalDeletedAgencies, // Agences supprimées
+        totalAgencies: stats.totalAgencies,
+        totalActiveAgencies: stats.totalActiveAgencies,
+        totalInactiveAgencies: stats.totalInactiveAgencies,
+        totalDeletedAgencies: stats.totalDeletedAgencies,
+        agenciesByCity: stats.agenciesByCity,       // 🔹 Nombre d’agences par ville
+
+        // 👥 Clients
+        clientsByCity: stats.clientsByCity,         // 🔹 Nombre de clients par ville
+
+        // 💰 Collectes
+        collectionsByCity: stats.collectionsByCity, // 🔹 Nombre de collectes par ville
+        totalCollections: stats.totalCollections,
+        dailyCollections: stats.dailyCollections,
+        monthlyCollections: stats.monthlyCollections,
 
         // 👥 Clients mensuels
         monthlyClientSubscriptions: stats.monthlyClientSubscriptions,
         monthlyClientPercentage: stats.monthlyClientPercentage,
-
-        // 💰 Collectes
-        totalCollections: stats.totalCollections,   // Nombre total de collectes
-        dailyCollections: stats.dailyCollections,   // Collectes du jour
-        monthlyCollections: stats.monthlyCollections // Collectes du mois
       }
     });
   } catch (error) {
