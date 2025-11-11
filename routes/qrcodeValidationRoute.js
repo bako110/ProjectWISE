@@ -5,16 +5,16 @@ const QRValidationController = require('../controllers/qrValidation');
 /**
  * @swagger
  * tags:
- *   name: QR
- *   description: Routes pour la validation des QR Codes
+ *   name: QRCollection
+ *   description: Gestion des collectes via QR Code
  */
 
 /**
  * @swagger
- * /qr/qr_validation/collector:
+ * /qr/qr_validation/collect:
  *   post:
- *     summary: Valider un abonnement via QR Code
- *     tags: [QR]
+ *     summary: Marquer une collecte via QR Code
+ *     tags: [QRCollection]
  *     requestBody:
  *       required: true
  *       content:
@@ -24,31 +24,35 @@ const QRValidationController = require('../controllers/qrValidation');
  *             properties:
  *               qrData:
  *                 type: string
- *                 description: Données du QR Code scanné
- *                 example: '{"subscriptionId":"64f...","clientId":"64f..."}'
+ *               collectorId:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Abonnement validé avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 clientName:
- *                   type: string
- *                 startDate:
- *                   type: string
- *                 endDate:
- *                   type: string
+ *         description: Collecte enregistrée
  *       400:
  *         description: Données manquantes
  *       404:
  *         description: Abonnement ou utilisateur non trouvé
- *       500:
- *         description: Erreur serveur
  */
-router.post('/collector', QRValidationController.validate);
+router.post('/qr_validation/collect', QRValidationController.collect);
+
+/**
+ * @swagger
+ * /qr/qr_validation/history/{collectorId}:
+ *   get:
+ *     summary: Récupérer l'historique des collectes d'un collecteur
+ *     tags: [QRCollection]
+ *     parameters:
+ *       - in: path
+ *         name: collectorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du collecteur
+ *     responses:
+ *       200:
+ *         description: Historique des collectes
+ */
+router.get('/qr_validation/history/:collectorId', QRValidationController.history);
 
 module.exports = router;

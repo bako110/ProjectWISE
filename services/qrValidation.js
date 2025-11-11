@@ -1,40 +1,60 @@
-// services/qrValidationService.js
 const Subscription = require('../models/subscription');
 const User = require('../models/User');
+const QRHistory = require('../models/QRHistory');
 const logger = require('../utils/logger');
 
 class QRValidationService {
 
   /**
-   * Valide un abonnement à partir du QR Code
-   * @param {string} qrData - Les données du QR Code scanné
+   * Marque une collecte à partir du QR Code scanné par le collecteur
+   * @param {string} qrData - Données du QR Code
+   * @param {string} collectorId - ID du collecteur
    */
-  static async validateSubscription(qrData) {
+  static async collectSubscription(qrData, collectorId) {
     try {
       const data = JSON.parse(qrData);
-
       const { subscriptionId, clientId } = data;
 
-      // Vérifier que l'abonnement existe et est actif
+      // Vérifier l'abonnement
       const subscription = await Subscription.findById(subscriptionId);
       if (!subscription) throw new Error('Subscription not found');
       if (!subscription.isActive) throw new Error('Subscription is not active');
 
-      // Vérifier que le client existe
-      const user = await User.findById(clientId);
-      if (!user) throw new Error('User not found');
+      // Vérifier le client
+      const client = await User.findById(clientId);
+      if (!client) throw new Error('User not found');
 
-      // Ici, tu peux ajouter une logique pour enregistrer le passage du client
-      // Par exemple, incrémenter un compteur de passages ou enregistrer la validation
-      subscription.lastValidatedAt = new Date();
-      await subscription.save();
+      // Créer l'entrée historique de collecte
+      const history = new QRHistory({
+        subscriptionId,
+        clientId,
+        collectorId
+      });
+      await history.save();
 
       return {
-        message: 'Subscription validated successfully',
-        clientName: user.lastName,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate
+        message: 'Collection recorded successfully',
+        clientName: client.lastName,
+        subscriptionId,
+        collectedAt: history.collectedAt
       };
+    } catch (error) {
+      logger.error(error);
+      throw new Error(error.message);
+    }
+  }
+
+  /**
+   * Récupérer toutes les collectes d'un collecteur
+   * @param {string} collectorId
+   */
+  static async getCollectorHistory(collectorId) {
+    try {
+      const history = await QRHistory.find({ collectorId })
+        .populate('clientId', 'lastName firstName email')
+        .populate('subscriptionId', 'startDate endDate')
+        .sort({ collectedAt: -1 });
+      return history;
     } catch (error) {
       logger.error(error);
       throw new Error(error.message);
