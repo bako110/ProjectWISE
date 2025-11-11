@@ -1,4 +1,4 @@
-const  {createNotification, getUserNotifications, markNotificationAsRead, deleteNotification} = require('../controllers/notification');
+const  {notificationController} = require('../controllers/notification.controller.js');
 
 const express = require('express');
 const router = express.Router(); 
@@ -33,7 +33,7 @@ const router = express.Router();
  *      500:
  *        description: Erreur serveur
  */
-router.post('/create', createNotification);
+router.post('/create', notificationController.createNotification);
 
 /** * @swagger
  * /api/notifications/get/{id}:
@@ -58,7 +58,7 @@ router.post('/create', createNotification);
  *      500:
  *        description: Erreur serveur
  */
-router.get('/get/:id', getUserNotifications);
+router.get('/get/:id', notificationController.getNotifications);
 
 /** * @swagger
  * /api/notifications/update/{id}:
@@ -77,13 +77,20 @@ router.get('/get/:id', getUserNotifications);
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/schemas/Notification'
+ *              type: object
+ *              properties:
+ *                data:
+ *                  type: boolean
+ *                  example: true
+ *                message:
+ *                  type: string
+ *                  example: notification mise à jour avec succès
  *      404:    
  *        description: Notification non trouvée
  *      500:
  *        description: Erreur serveur
  */
-router.put('/update/:id', markNotificationAsRead);
+router.put('/update/:id', notificationController.markNotificationAsRead);
 
 /** 
  * @swagger
@@ -102,13 +109,20 @@ router.put('/update/:id', markNotificationAsRead);
  *      200:
  *        content:
  *          application/json:
- *            schema:
- *              $ref: '#/components/schemas/Notification'
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: notification supprimé avec succès
  *      404:    
  *        description: Notification non trouvée
  *      500:
  *        description: Erreur serveur
  */
-router.delete('/delete/:id', deleteNotification);
+router.delete('/delete/:id', notificationController.deleteNotification);
 
 module.exports = router;
