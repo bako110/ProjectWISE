@@ -21,6 +21,7 @@ const messageRoute = require('./routes/message.route.js');
 const notificationRoute = require('./routes/notification.js');
 const globalStateRoutes = require('./routes/globalStateRoutes.js');
 const qrValidationRoute = require('./routes/qrcodeValidationRoute.js');
+const stateForAgencyRoute = require ('./routes/stateForAgencyRoute.js')
 
 dotenv.config();
 connectDB();
@@ -49,6 +50,7 @@ app.use('/api/messages', messageRoute);
 app.use('/api/notifications', notificationRoute);
 app.use('/api/statistics', globalStateRoutes);
 app.use('/api/qr_validation', qrValidationRoute);
+app.use('/api/State_agencies', stateForAgencyRoute)
 
 
 // ✅ Swagger (documentation)
