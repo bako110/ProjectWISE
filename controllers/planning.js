@@ -1,5 +1,5 @@
 const logger = require('../utils/logger.js');
-const {createPlanning, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../services/planning.js');
+const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../services/planning.js');
 
 exports.createPlanning = async (req, res) => {
     try {
@@ -61,6 +61,21 @@ exports.deletePlanning = async (req, res) => {
 exports.getAllPlannings = async (req, res) => {
     try {
         const plannings = await getAllPlannings();
+        logger.info('Plannings retrieved successfully');
+        res.status(200).json(plannings);
+    } catch (error) {
+        logger.error('Error retrieving plannings:', error);
+        res.status(500).json({ error: 'Error retrieving plannings' });
+    }
+};
+
+exports.getPlanningsByAgency = async (req, res) => {
+    try {
+        const agencyId = req.params.agencyId;
+        if (!agencyId) {
+            return res.status(400).json({ error: 'Missing agencyId parameter' });
+        }
+        const plannings = await getPlanningsByAgency(agencyId);
         logger.info('Plannings retrieved successfully');
         res.status(200).json(plannings);
     } catch (error) {

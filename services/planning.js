@@ -99,10 +99,22 @@ const getAllPlannings = async () => {
     }
 };
 
+const getPlanningsByAgency = async (agencyId) => {
+    try {
+        const plannings = await Planning.find({ agencyId, status:true });
+        logger.info('Plannings retrieved successfully');
+        return plannings;
+    } catch (error) {
+        logger.error('Error retrieving plannings:', error);
+        throw error;
+    }
+};
+
 module.exports = {
     createPlanning,
     getPlanningById,
     updatePlanning,
     deletePlanning,
-    getAllPlannings
+    getAllPlannings,
+    getPlanningsByAgency
 };

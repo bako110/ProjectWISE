@@ -2,12 +2,13 @@ const Message = require('../models/Message.js');
 const User = require('../models/User.js');
 
 // Envoyer un message
-exports.sendMessage = async (req, res) => {
-  const { sender, receiver, content } = req.body;
-  if (!sender || !receiver || !content) {
-    return res.status(400).json({ error: "Champs obligatoires manquants" });
+exports.sendMessage = async (data) => {
+  // const { sender, receiver, content } = req.body;
+  if (!data) {
+    return res.status(400).json({ error: "les information sont necessaire" });
   }
   try {
+  const { sender, receiver, content } = data;
     const message = new Message({ sender, receiver, content });
     await message.save();
     res.status(201).json({ message: "Message envoyé avec succès", data: message });

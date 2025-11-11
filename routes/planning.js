@@ -1,4 +1,4 @@
-const {createPlanning, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../controllers/planning');
+const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../controllers/planning');
 const express = require('express');
 const router = express.Router();
 
@@ -118,6 +118,28 @@ const router = express.Router();
  *                 $ref: '#/components/schemas/Planning'
  *       500:
  *         description: Erreur serveur
+ * 
+ * /api/planning/agency/{agencyId}:
+ *   get:
+ *     summary: Récupérer les plannings par agence
+ *     tags: [Planning]
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Planning'
+ *       500:
+ *         description: Erreur serveur
  */
 
 router.post('/create', createPlanning);
@@ -125,5 +147,6 @@ router.get('/get/:id', getPlanningById);
 router.put('/update/:id', updatePlanning);
 router.delete('/delete/:id', deletePlanning);
 router.get('/getAll', getAllPlannings);
+router.get('/agency/:agencyId', getPlanningsByAgency);
 
 module.exports = router;
