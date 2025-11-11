@@ -4,6 +4,7 @@ const logger = require('./utils/logger.js');
 const cors = require('cors');
 const connectDB = require('./config/db.js');
 const swaggerDocs = require('./swagger.js');
+const scheduleSubscriptionCancellation = require('./services/subscriptionScheduler.js');
 
 // Import des routes
 const authRoute = require('./routes/auth.route.js');
@@ -63,6 +64,10 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Erreur serveur', details: err.message });
 });
+
+
+// Lancer le scheduler pour annuler automatiquement les abonnements expirés
+scheduleSubscriptionCancellation();
 
 // ✅ Lancement du serveur
 const PORT = process.env.PORT || 3000;
