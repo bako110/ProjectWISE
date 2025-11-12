@@ -63,5 +63,12 @@ exports.messageService = {
     const ids = Array.from(interlocutorIds);
     const users = await User.find({ _id: { $in: ids } });
     return users;
+  },
+
+  async getUserMessages(userId) {
+    if (!userId) throw new Error('ID utilisateur manquant');
+    const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] })
+      .sort({ createdAt: -1 });
+    return messages;
   }
 };

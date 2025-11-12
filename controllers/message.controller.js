@@ -69,5 +69,18 @@ exports.messageController = {
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
-    }
+    },
+
+    async getUserMessages(req, res) {
+        try {
+            const { userId } = req.params;
+            if (!userId) {
+                return res.status(400).json({ error: 'ID utilisateur manquant' });
+            }
+            const messages = await messageService.getUserMessages(userId);
+            return res.status(200).json(messages);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }   
 };

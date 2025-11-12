@@ -108,6 +108,56 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  */
+
+/**
+ * @Swagger
+ * api/messages/{userId}/all
+ * get:
+ *   summary: Récupérer tous les messages d'un utilisateur
+ *   tags: [Message]
+ *   parameters:
+ *     - in: path
+ *       name: userId
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: ID de l'utilisateur
+ *   responses:
+ *     200:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Message'
+ *    500:
+ *      description: Erreur serveur
+ * 
+ * 
+ * api/messages/groups/{userId}
+ * get:
+ *   summary: Obtenir les noms des groupes de discussion d'un utilisateur
+ *   tags: [Message]
+ *   parameters:
+ *     - in: path
+ *       name: userId
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: ID de l'utilisateur
+ *   responses:
+ *     200:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/User'
+ *     500:
+ *       description: Erreur serveur
+ */
+
+router.get('/:userId/all', messageController.getUserMessages);
 router.post('/send', messageController.sendMessage);
 
 router.get('/:userId/:receiverId', messageController.getMessages);
