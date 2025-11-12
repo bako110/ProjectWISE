@@ -5,8 +5,10 @@ const collecteSchema = new mongoose.Schema({
     collectorId : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     clientId : { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     date: { type: Date, required: true },
-    status: { type: String, enum: ['collected', 'Scheduled', 'Completed', 'Cancelled','reported' ], default: 'Scheduled' },
+    status: { type: String, enum: ['Collected', 'Scheduled', 'Completed', 'Cancelled','Reported' ], default: 'Scheduled' },
     code : { type: String},
+    photos : { type: [String] },
+    comment : { type: String },
     nbCollecte : { type: Number },
 }, { timestamps: true
 });
