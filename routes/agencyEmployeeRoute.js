@@ -12,7 +12,7 @@ const AgencyEmployeeController = require('../controllers/agencyEmployee');
 
 /**
  * @swagger
- * /api/agencies/{agencyId}/employees:
+ * /api/agency_employees/{agencyId}/employees:
  *   get:
  *     summary: Récupérer la liste des employés d'une agence
  *     description: |
@@ -72,7 +72,7 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
 
 /**
  * @swagger
- * /api/agencies/{agencyId}/collectors:
+ * /api/agency_employees/{agencyId}/collectors:
  *   get:
  *     summary: Récupérer les collectors d'une agence
  *     description: Renvoie la liste de tous les collectors actifs liés à une agence.
