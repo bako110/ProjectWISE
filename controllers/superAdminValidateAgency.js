@@ -1,4 +1,6 @@
 const AgencyValidationService = require('../services/superAdminValidateAgency');
+const {notificationService} = require('../services/notification.service.js');
+const logger = require('../utils/logger');
 
 class AgencyValidationController {
 
@@ -26,6 +28,13 @@ class AgencyValidationController {
             }
 
             const result = await AgencyValidationService.changeStatus(id, action);
+
+            const message = `L'agence ${result.name} a été ${action === 'activate' ? 'activée' : 'désactivée'} avec succès.`;
+            await notificationService.createNotification({
+                user: result._id,
+                message: message,
+                type: 'AgencyAdd'
+            });
 
             res.status(200).json(result);
 

@@ -13,6 +13,12 @@ exports.createPlanning = async (req, res) => {
         const data = req.body;
         
         const planning = await createPlanning(data);
+        const message = `Un nouveau planning a été créé pour le ${date}.`;
+        await notificationService.createNotification({
+            user: collectorId,
+            message: message,
+            type: 'Planning'
+        });
         logger.info('Planning created successfully');
         res.status(201).json(planning);
     } catch (error) {
