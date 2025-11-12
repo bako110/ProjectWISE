@@ -32,7 +32,7 @@ const router = express.Router();
  *      500:
  *        description: Erreur serveur
  * 
- * /api/messages/{userId}/{receiverId}:
+ * /api/messages/{userId}/inbox/{receiverId}:
  *  get:
  *    summary: Récupérer tous les messages entre deux utilisateurs
  *    tags: [Message]
@@ -185,7 +185,7 @@ router.get('/unread/:userId', messageController.getUserMessagesUnread);
 router.get('/:userId/all', messageController.getUserMessages);
 router.post('/send', messageController.sendMessage);
 
-router.get('/:userId/:receiverId', messageController.getMessages);
+router.get('/:userId/inbox/:receiverId', messageController.getMessages);
 
 router.get('/groups/:userId', messageController.getGroupeName);
 router.put('/markAsRead/:messageId', messageController.markMessagesAsRead);
