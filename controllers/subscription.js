@@ -1,5 +1,6 @@
 const SubscriptionService = require('../services/subscription.js');
 const { getUserById } = require('../services/user.js');
+const {notificationService} = require('../services/notification.service.js');
 const logger = require('../utils/logger.js');
 
 class SubscriptionController {
@@ -23,6 +24,20 @@ class SubscriptionController {
       logger.info(user);
       user.agencyId = subscription.agencyId;
       user.save();
+
+      const message = `Vous êtes abonné avec succès pour ${month} mois.`;
+      await notificationService.createNotification({
+          user: clientId,
+          message: message,
+          type: 'Subscribed'
+      });
+
+      const messageAgency = `Un nouveau client s'est abonné à votre agence pour ${month} mois.`;
+      await notificationService.createNotification({
+          user: subscription.agencyId,
+          message: messageAgency,
+          type: 'Subscribed'
+      });
 
       return res.status(201).json({
         message: 'Subscription created successfully',
@@ -68,6 +83,13 @@ class SubscriptionController {
     try {
       const { subscriptionId } = req.params;
       const subscription = await SubscriptionService.cancelSubscription(subscriptionId);
+
+      const message = `L'abonnement a été annuler avec succès.`;
+      await notificationService.createNotification({
+          user: subscription.clientId,
+          message: message,
+          type: 'Subscribed'
+      });
       res.status(200).json({
         message: 'Subscription canceled successfully',
         subscription

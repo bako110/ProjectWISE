@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const {notoficationService} = require('../services/notification.service.js');
 const { genererateToken, registerUser, createAgency, loginUser, requestPasswordReset, resetPasswordWithCode, verifyResetCode, getProfile } = require('../services/auth.js');
 const { sendPasswordResetConfirmation, sendWelcomeEmail } = require('../utils/sendResetCodeMail.js');
 const logger = require('./../utils/logger');
@@ -35,6 +36,13 @@ exports.register = async (req, res) => {
                     newAgency = await createAgency(agencyData);
                     data.agencyId = newAgency._id;
                     data.isOwnerAgency = true;
+
+                    // const message = `Agence ${agencyData.name} créée avec succès.`;
+                    // await notoficationService.createNotification({
+                    //     user: data.agencyId,
+                    //     message: message,
+                    //     type: 'AgencyAdd'
+                    // });
                 }
                 break;
             case 'collector':

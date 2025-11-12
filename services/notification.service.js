@@ -19,5 +19,10 @@ exports.notificationService = {
     }
 };
 
-exports.notificationCreateByRole = {
-};
+// exports.notificationCreateByRole = {
+//     async createNotificationSubscribed(data) {
+//         data.type = 'Subscribed';
+//         data.message = 'Vous êtes abonné avec succès.';
+//         return await Notification.create(data);
+//     },
+// };
