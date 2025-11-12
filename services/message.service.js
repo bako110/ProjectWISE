@@ -70,5 +70,12 @@ exports.messageService = {
     const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] })
       .sort({ createdAt: -1 });
     return messages;
+  },
+
+  async getUserMessagesUnread(userId) {
+    if (!userId) throw new Error('ID utilisateur manquant');
+    const messages = await Message.find({ receiver: userId, read: false })
+      .sort({ createdAt: -1 });
+    return messages;
   }
 };

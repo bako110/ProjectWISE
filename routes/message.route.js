@@ -155,8 +155,33 @@ const router = express.Router();
  *               $ref: '#/components/schemas/User'
  *     500:
  *       description: Erreur serveur
+ * 
+ * 
+ * 
+ * /api/messages/unread/{userId}:
+ *  get:
+ *    summary: Récupérer tous les messages non lus d'un utilisateur
+ *    tags: [Message]
+ *    parameters:
+ *      - in: path
+ *        name: userId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: ID de l'utilisateur
+ *    responses:
+ *      200:
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Message'
+ *      500:
+ *        description: Erreur serveur
  */
 
+router.get('/unread/:userId', messageController.getUserMessagesUnread);
 router.get('/:userId/all', messageController.getUserMessages);
 router.post('/send', messageController.sendMessage);
 
