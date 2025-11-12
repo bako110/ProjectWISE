@@ -37,7 +37,7 @@ const CollecteController = require('../controllers/qrValidation');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan', CollecteController.scanCollecte);
+router.post('/scan', CollecteController.updateStatus);
 
 /**
  * @swagger
