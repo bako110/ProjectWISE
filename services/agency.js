@@ -1,22 +1,23 @@
 const Agency = require('../models/agency');
 
 class AgencyService {
-    // Récupérer toutes les agences avec pagination et filtres
+    /**
+     * 🔹 Récupérer toutes les agences avec pagination et filtres
+     */
     async getAllAgencies({ status, search, page = 1, limit = 10 }) {
         const filter = {};
-        
+
         if (status) {
             filter.status = status;
         }
 
-        let result;
         if (search) {
             const searchFilter = {
                 $or: [
                     { name: { $regex: search, $options: 'i' } },
                     { agencyDescription: { $regex: search, $options: 'i' } },
-                    { slogan: { $regex: search, $options: 'i' } }
-                ]
+                    { slogan: { $regex: search, $options: 'i' } },
+                ],
             };
             Object.assign(filter, searchFilter);
         }
@@ -39,135 +40,153 @@ class AgencyService {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 total,
-                totalPages: Math.ceil(total / limit)
-            }
+                totalPages: Math.ceil(total / limit),
+            },
         };
     }
 
-    // Récupérer une agence par ID
+    /**
+     * 🔹 Récupérer les zones d'activité d'une agence
+     */
+    async getAgencyZones(agencyId) {
+        if (!agencyId) throw new Error('L’identifiant de l’agence est requis');
+
+        const agency = await Agency.findById(agencyId).select('zoneActivite');
+        if (!agency) throw new Error('Agence non trouvée');
+
+        return agency.zoneActivite || [];
+    }
+
+    /**
+     * 🔹 Récupérer une agence par ID
+     */
     async getAgencyById(agencyId) {
-        if (!agencyId) {
-            throw new Error('L\'identifiant de l\'agence est requis');
-        }
+        if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
         const agency = await Agency.findById(agencyId)
             .populate('owner', 'firstName lastName email phone')
             .populate('gestionnaires', 'firstName lastName email phone role')
             .populate('client', 'firstName lastName email phone')
             .populate('collector', 'firstName lastName email phone');
-        
-        if (!agency) {
-            throw new Error('Agence non trouvée');
-        }
+
+        if (!agency) throw new Error('Agence non trouvée');
+
         return agency;
     }
 
-    // Mettre à jour une agence
+    /**
+     * 🔹 Mettre à jour une agence
+     */
     async updateAgency(agencyId, updateData) {
-        if (!agencyId) {
-            throw new Error('L\'identifiant de l\'agence est requis');
-        }
+        if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-        const allowedFields = ['name', 'agencyDescription', 'zoneActivite', 'slogan', 'documents', 'status', 'location'];
+        const allowedFields = [
+            'name',
+            'agencyDescription',
+            'zoneActivite',
+            'slogan',
+            'documents',
+            'status',
+            'location',
+        ];
+
         const filteredUpdateData = {};
-        
-        Object.keys(updateData).forEach(key => {
+        Object.keys(updateData).forEach((key) => {
             if (allowedFields.includes(key)) {
                 filteredUpdateData[key] = updateData[key];
             }
         });
 
-        const agency = await Agency.findByIdAndUpdate(
-            agencyId, 
-            filteredUpdateData, 
-            { new: true, runValidators: true }
-        )
-        .populate('owner', 'firstName lastName email phone')
-        .populate('gestionnaires', 'firstName lastName email phone role');
-        
-        if (!agency) {
-            throw new Error('Agence non trouvée');
-        }
+        const agency = await Agency.findByIdAndUpdate(agencyId, filteredUpdateData, {
+            new: true,
+            runValidators: true,
+        })
+            .populate('owner', 'firstName lastName email phone')
+            .populate('gestionnaires', 'firstName lastName email phone role');
+
+        if (!agency) throw new Error('Agence non trouvée');
+
         return agency;
     }
 
-    // Supprimer une agence (soft delete)
+    /**
+     * 🔹 Supprimer une agence (soft delete)
+     */
     async deleteAgency(agencyId) {
-        if (!agencyId) {
-            throw new Error('L\'identifiant de l\'agence est requis');
-        }
+        if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
         const agency = await Agency.findByIdAndUpdate(
             agencyId,
-            { 
+            {
                 status: 'deleted',
-                deletedate: new Date()
+                deletedAt: new Date(),
             },
             { new: true }
         );
-        
-        if (!agency) {
-            throw new Error('Agence non trouvée');
-        }
+
+        if (!agency) throw new Error('Agence non trouvée');
+
         return agency;
     }
 
-    // Récupérer les agences par statut
+    /**
+     * 🔹 Récupérer les agences par statut
+     */
     async getAgenciesByStatus(status) {
-        if (!status) {
-            throw new Error('Le statut est requis');
-        }
+        if (!status) throw new Error('Le statut est requis');
 
         const agencies = await Agency.find({ status })
             .populate('owner', 'firstName lastName email phone')
             .populate('gestionnaires', 'firstName lastName email phone role')
             .sort({ createdAt: -1 });
+
         return agencies;
     }
 
+    /**
+     * 🔹 Ajouter ou mettre à jour les zones d'activité
+     */
     async updateAgencyZone(agencyId, newZones) {
-        const agency = await Agency.findById(agencyId);
-        if (!agency) {
-            throw new Error('Agence non trouvée');
-        }
+        if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-        // Si zoneActivite est un tableau, on ajoute sans remplacer
+        const agency = await Agency.findById(agencyId);
+        if (!agency) throw new Error('Agence non trouvée');
+
         if (!Array.isArray(agency.zoneActivite)) {
             agency.zoneActivite = [];
         }
 
-        // Ajoute les nouveaux éléments sans doublons (facultatif)
+        // Empêcher les doublons
         agency.zoneActivite = [...new Set([...agency.zoneActivite, ...newZones])];
 
         await agency.save();
         return agency;
     }
 
+    /**
+     * 🔹 Supprimer certaines zones d'une agence
+     */
     async removeAgencyZones(agencyId, zonesToRemove) {
-        // 1️⃣ Vérifie que l'agence existe
-        const agency = await Agency.findById(agencyId);
-        if (!agency) {
-            throw new Error("Agence non trouvée");
+        if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
+        if (!Array.isArray(zonesToRemove)) {
+            throw new Error('zonesToRemove doit être un tableau');
         }
 
-        // 2️⃣ Vérifie que la propriété zoneActivite existe bien
+        const agency = await Agency.findById(agencyId);
+        if (!agency) throw new Error('Agence non trouvée');
+
         if (!Array.isArray(agency.zoneActivite)) {
             agency.zoneActivite = [];
         }
 
-        // 3️⃣ Supprime les zones demandées
+        // Supprime les zones demandées
         agency.zoneActivite = agency.zoneActivite.filter(
-            zone => !zonesToRemove.includes(zone)
+            (zone) => !zonesToRemove.includes(zone)
         );
 
-        // 4️⃣ Sauvegarde les changements
         await agency.save();
-
-        // 5️⃣ Retourne le résultat
         return agency;
     }
-
-
 }
 
 module.exports = new AgencyService();

@@ -230,6 +230,39 @@ router.delete('/:id',  agencyController.deleteAgency);
 
 /**
  * @swagger
+ * /api/agencies/{agencyId}/zones:
+ *   get:
+ *     summary: Récupérer uniquement les zones d'activité d'une agence
+ *     tags: [Agencies]
+ *     parameters:
+ *       - name: agencyId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         description: Zones d'activité récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       404:
+ *         description: Agence non trouvée
+ */
+router.get('/:agencyId/zones', agencyController.getZones);
+
+/**
+ * @swagger
  * /api/agencies/{id}/zone:
  *   patch:
  *     summary: Mettre à jour la zone d'une agence
