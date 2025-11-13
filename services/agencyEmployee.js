@@ -13,7 +13,7 @@ class AgencyEmployeeService {
             const agency = await Agence.findById(agencyId)
                 .populate('owner', 'firstName lastName email phone role')
                 .populate('collector', 'firstName lastName email phone role')
-                .populate('gestionnaires', 'firstName lastName email phone role');
+                .populate('manager', 'firstName lastName email phone role');
 
             if (!agency) {
                 throw new Error('Agence non trouvée');
@@ -22,8 +22,8 @@ class AgencyEmployeeService {
             const employees = [];
             if (agency.owner) employees.push(agency.owner);
             if (agency.collector) employees.push(agency.collector);
-            if (agency.gestionnaires && agency.gestionnaires.length > 0) {
-                employees.push(...agency.gestionnaires);
+            if (agency.manager && agency.manager.length > 0) {
+                employees.push(...agency.manager);
             }
 
             return employees;
