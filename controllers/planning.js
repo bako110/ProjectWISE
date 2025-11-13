@@ -90,3 +90,20 @@ exports.getPlanningsByAgency = async (req, res) => {
         res.status(500).json({ error: 'Error retrieving plannings' });
     }
 };
+
+exports.getPlanningsByCollector = async (req, res) => {
+    try {
+        const { collectorId } = req.params;
+
+        if (!collectorId) {
+            return res.status(400).json({ error: 'collectorId manquant' });
+        }
+
+        const plannings = await getPlanningsByCollector(collectorId);
+        logger.info(`Plannings du collecteur ${collectorId} récupérés avec succès`);
+        res.status(200).json(plannings);
+    } catch (error) {
+        logger.error('Erreur lors de la récupération des plannings du collecteur:', error);
+        res.status(500).json({ error: 'Erreur interne lors de la récupération du planning du collecteur' });
+    }
+};

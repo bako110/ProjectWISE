@@ -1,4 +1,13 @@
-const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../controllers/planning');
+const {
+  createPlanning,
+  getPlanningsByAgency,
+  getPlanningById,
+  updatePlanning,
+  deletePlanning,
+  getAllPlannings,
+  getPlanningsByCollector, // <-- ajouté
+} = require('../controllers/planning');
+
 const express = require('express');
 const router = express.Router();
 
@@ -8,6 +17,7 @@ const router = express.Router();
  *   name: Planning
  *   description: API pour gérer les plannings
  */
+
 /**
  * @swagger
  * /api/planning/create:
@@ -54,7 +64,6 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  * 
- * 
  * /api/planning/update/{id}:
  *   put:
  *     summary: Mettre à jour un planning par ID
@@ -83,7 +92,6 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  * 
- * 
  * /api/planning/delete/{id}:
  *   delete:
  *     summary: Supprimer un planning par ID
@@ -102,7 +110,6 @@ const router = express.Router();
  *         description: Planning non rencontré
  *       500:
  *         description: Erreur serveur
- * 
  * 
  * /api/planning/getAll:
  *   get:
@@ -140,6 +147,31 @@ const router = express.Router();
  *                 $ref: '#/components/schemas/Planning'
  *       500:
  *         description: Erreur serveur
+ *
+ * /api/planning/collector/{collectorId}:
+ *   get:
+ *     summary: Récupérer les plannings d’un collecteur spécifique
+ *     tags: [Planning]
+ *     parameters:
+ *       - in: path
+ *         name: collectorId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID du collecteur
+ *     responses:
+ *       200:
+ *         description: Liste des plannings du collecteur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Planning'
+ *       400:
+ *         description: Paramètre collectorId manquant
+ *       500:
+ *         description: Erreur serveur
  */
 
 router.post('/create', createPlanning);
@@ -148,5 +180,6 @@ router.put('/update/:id', updatePlanning);
 router.delete('/delete/:id', deletePlanning);
 router.get('/getAll', getAllPlannings);
 router.get('/agency/:agencyId', getPlanningsByAgency);
+router.get('/collector/:collectorId', getPlanningsByCollector); // ✅ Nouvelle route
 
 module.exports = router;

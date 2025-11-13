@@ -116,11 +116,28 @@ const getPlanningsByAgency = async (agencyId) => {
     }
 };
 
+const getPlanningsByCollector = async (collectorId) => {
+    try {
+        const plannings = await Planning.find({ collectorId }).populate('agencyId collectorId');
+        if (!plannings || plannings.length === 0) {
+            logger.warn(`Aucun planning trouvé pour le collecteur ${collectorId}`);
+            return [];
+        }
+        logger.info('Plannings du collecteur récupérés avec succès');
+        return plannings;
+    } catch (error) {
+        logger.error('Erreur lors de la récupération des plannings du collecteur:', error);
+        throw error;
+    }
+};
+
+
 module.exports = {
     createPlanning,
     getPlanningById,
     updatePlanning,
     deletePlanning,
     getAllPlannings,
-    getPlanningsByAgency
+    getPlanningsByAgency,
+    getPlanningsByCollector
 };
