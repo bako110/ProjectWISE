@@ -27,7 +27,7 @@ const createPlanning = async (planningData) => {
                     collectorId: planningData.collectorId,
                     date: planningData.date,
                     status: 'Scheduled',
-                    code: planningData.code,
+                    code: planningData._id,
                 });
                 if ( passage.passNumber === passage.dayNumber) {
                     passage.weekNumber += 1;
@@ -118,13 +118,17 @@ const getPlanningsByAgency = async (agencyId) => {
 
 const getPlanningsByCollector = async (collectorId) => {
     try {
-        const plannings = await Planning.find({ collectorId }).populate('agencyId collectorId');
-        if (!plannings || plannings.length === 0) {
+        const debutJour = new Date(new Date().setHours(0, 0, 0, 0));
+        const finJour = new Date(new Date().setHours(23, 59, 59, 999));
+        const planning = await Planning.find({ collectorId, date: { $gte: debutJour, $lte: finJour } }).populate('agencyId name');
+        if (!planning || planning.length === 0) {
             logger.warn(`Aucun planning trouvé pour le collecteur ${collectorId}`);
             return [];
         }
+        const collectes = await Collecte.find({ collectorId, date: { $gte: debutJour, $lte: finJour }, status: 'Scheduled' });
         logger.info('Plannings du collecteur récupérés avec succès');
-        return plannings;
+        const result = { planning, collectes };
+        return result;
     } catch (error) {
         logger.error('Erreur lors de la récupération des plannings du collecteur:', error);
         throw error;
