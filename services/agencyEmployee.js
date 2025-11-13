@@ -4,32 +4,34 @@ const User = require('../models/User');
 class AgencyEmployeeService {
 
     /**
-     * Récupère tous les employés d'une agence (collectors et managers)
+     * Récupère tous les employés d'une agence (collectors et gestionnaires)
      * @param {String} agencyId - ID de l'agence
      * @returns {Array} Liste des employés
      */
     async getEmployees(agencyId) {
         try {
-            // Vérifier que l'ID est valide
             if (!agencyId || !agencyId.match(/^[0-9a-fA-F]{24}$/)) {
                 throw new Error('ID d’agence invalide');
             }
 
-            // Récupérer l’agence avec ses relations
             const agency = await Agence.findById(agencyId)
                 .populate('collector', 'firstName lastName email phone role')
                 .populate('gestionnaires', 'firstName lastName email phone role');
 
-            if (!agency) {
-                throw new Error('Agence introuvable');
-            }
+            if (!agency) throw new Error('Agence introuvable');
 
             const employees = [];
 
-            // Ajouter le collector s'il existe
-            if (agency.collector) employees.push(agency.collector);
+            // Ajouter le collector (si c'est un objet ou tableau)
+            if (agency.collector) {
+                if (Array.isArray(agency.collector)) {
+                    employees.push(...agency.collector);
+                } else {
+                    employees.push(agency.collector);
+                }
+            }
 
-            // Ajouter les gestionnaires s'ils existent
+            // Ajouter les gestionnaires
             if (agency.gestionnaires && agency.gestionnaires.length > 0) {
                 employees.push(...agency.gestionnaires);
             }

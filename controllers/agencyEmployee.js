@@ -3,9 +3,7 @@ const AgencyEmployeeService = require('../services/agencyEmployee');
 class AgencyEmployeeController {
 
     /**
-     * Récupérer la liste des employés d'une agence
-     * @param {Object} req - requête Express
-     * @param {Object} res - réponse Express
+     * Récupérer tous les employés d'une agence
      */
     async getEmployees(req, res) {
         try {
@@ -37,9 +35,7 @@ class AgencyEmployeeController {
     }
 
     /**
-     * Récupérer la liste des collecteurs d'une agence
-     * @param {Object} req - requête Express
-     * @param {Object} res - réponse Express
+     * Récupérer uniquement les collectors actifs d'une agence
      */
     async getCollectorsByAgency(req, res) {
         try {
@@ -52,7 +48,6 @@ class AgencyEmployeeController {
                 });
             }
 
-            // Utilisation de AgencyEmployeeService pour récupérer les collecteurs
             const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
 
             return res.status(200).json({
@@ -62,7 +57,7 @@ class AgencyEmployeeController {
             });
 
         } catch (error) {
-            console.error("❌ Erreur récupération collectors :", error);
+            console.error('❌ Erreur récupération collectors:', error);
             return res.status(500).json({
                 success: false,
                 message: "Erreur lors de la récupération des collectors",
