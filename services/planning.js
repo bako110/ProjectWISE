@@ -12,6 +12,12 @@ const createPlanning = async (planningData) => {
         const users = await User.find({agencyId: planningData.agencyId, role: 'client', 'address.neighborhood': planningData.zone});
         planning.numberOfClients = 0;
 
+        if (!users || users.length === 0) {
+            logger.warn('No clients found for the specified agency and zone');
+            await planning.save();
+            // throw new Error('No clients found for the specified agency and zone');
+            return planning;
+        }
         for (const user of users) {
             const passage = await Passge.findOne({agencyId: planningData.agencyId, clientId: user._id, status: true});
             if (passage) {

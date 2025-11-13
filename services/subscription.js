@@ -42,7 +42,7 @@ class SubscriptionService {
       await WalletService.addBalanceService(agencyId, amountSubscription);
 
       // Vérifier s'il y a un abonnement actif
-      const existingSubscription = await Subscription.findOne({ clientId, isActive: true });
+      const existingSubscription = await Subscription.findOne({ clientId, isActive: true }).sort({ createdAt: -1 });
       let startDate = new Date();
       if (existingSubscription) {
         startDate = existingSubscription.endDate;

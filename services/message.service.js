@@ -1,5 +1,6 @@
 const Message = require('../models/Message.js');
 const User = require('../models/User.js');
+const Agency = require('../models/agency.js');
 
 
 //exports des fonctions de service de message dans un seul objet
@@ -62,7 +63,9 @@ exports.messageService = {
     });
     const ids = Array.from(interlocutorIds);
     const users = await User.find({ _id: { $in: ids } });
-    return users;
+    const agency = await Agency.find({ _id: { $in: ids } });
+    const all = {...users, ...agency};
+    return all;
   },
 
   async getUserMessages(userId) {
