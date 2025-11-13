@@ -65,7 +65,7 @@ exports.messageService = {
     const users = await User.find({ _id: { $in: ids } });
     const agency = await Agency.find({ _id: { $in: ids } });
     // const all = {...users, ...agency};
-    const all = [users, agency];
+    const all = [...users, ...agency];
     return all;
   },
 
