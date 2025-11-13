@@ -4,26 +4,34 @@ const User = require('../models/User');
 class AgencyEmployeeService {
 
     /**
-     * Récupère la liste des employés d'une agence
+     * Récupère tous les employés d'une agence (collectors et managers)
      * @param {String} agencyId - ID de l'agence
-     * @returns {Object} Liste des employés
+     * @returns {Array} Liste des employés
      */
     async getEmployees(agencyId) {
         try {
+            // Vérifier que l'ID est valide
+            if (!agencyId || !agencyId.match(/^[0-9a-fA-F]{24}$/)) {
+                throw new Error('ID d’agence invalide');
+            }
+
+            // Récupérer l’agence avec ses relations
             const agency = await Agence.findById(agencyId)
-                .populate('owner', 'firstName lastName email phone role')
                 .populate('collector', 'firstName lastName email phone role')
-                .populate('manager', 'firstName lastName email phone role');
+                .populate('gestionnaires', 'firstName lastName email phone role');
 
             if (!agency) {
-                throw new Error('Agence non trouvée');
+                throw new Error('Agence introuvable');
             }
 
             const employees = [];
-            if (agency.owner) employees.push(agency.owner);
+
+            // Ajouter le collector s'il existe
             if (agency.collector) employees.push(agency.collector);
-            if (agency.manager && agency.manager.length > 0) {
-                employees.push(...agency.manager);
+
+            // Ajouter les gestionnaires s'ils existent
+            if (agency.gestionnaires && agency.gestionnaires.length > 0) {
+                employees.push(...agency.gestionnaires);
             }
 
             return employees;
@@ -35,14 +43,15 @@ class AgencyEmployeeService {
     }
 
     /**
-     * Récupère tous les collectors d'une agence
-     * @param {String} agencyId - ID de l'agence
+     * Récupérer uniquement les collectors actifs d'une agence
+     * @param {String} agencyId 
      * @returns {Array} Liste des collectors
      */
     async getCollectorsByAgency(agencyId) {
         try {
-            const agency = await Agence.findById(agencyId);
-            if (!agency) throw new Error('Agence introuvable');
+            if (!agencyId || !agencyId.match(/^[0-9a-fA-F]{24}$/)) {
+                throw new Error('ID d’agence invalide');
+            }
 
             const collectors = await User.find({
                 role: 'collector',
