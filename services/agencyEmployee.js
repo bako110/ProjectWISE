@@ -1,4 +1,4 @@
-const Agence = require('../models/agency');
+const Agence = require('../models/Agence');
 const User = require('../models/User');
 
 exports.agencyEmployeeService = {
