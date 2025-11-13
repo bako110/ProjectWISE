@@ -42,6 +42,7 @@ const createPlanning = async (planningData) => {
                 await passage.save();
                 planning.numberOfClients += 1;
             }
+            
         }
         await planning.save();
         logger.info('Planning created successfully');
