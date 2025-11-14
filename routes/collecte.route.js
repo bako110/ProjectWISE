@@ -172,7 +172,7 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
 
 /**
  * @swagger
- * /api/collecte/{collecteId}/report:
+ * /api/collectes/{collecteId}/report:
  *   patch:
  *     summary: Signaler une collecte et changer son statut à "Reported"
  *     tags: 
