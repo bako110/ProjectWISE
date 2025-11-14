@@ -1,4 +1,4 @@
-const AgencyEmployeeService = require('../services/agencyEmployeeService');
+const AgencyEmployeeService = require('../services/agencyEmployee');
 
 class AgencyEmployeeController {
   /**
@@ -7,6 +7,14 @@ class AgencyEmployeeController {
   static async getEmployees(req, res) {
     try {
       const { agencyId } = req.params;
+
+      if (!agencyId) {
+        return res.status(400).json({
+          success: false,
+          message: "L'identifiant de l'agence est requis",
+        });
+      }
+
       const employees = await AgencyEmployeeService.getAgencyEmployees(agencyId);
 
       return res.status(200).json({
@@ -29,6 +37,7 @@ class AgencyEmployeeController {
   static async getCollectorsByAgency(req, res) {
     try {
       const { agencyId } = req.params;
+
       if (!agencyId) {
         return res.status(400).json({
           success: false,
@@ -43,6 +52,7 @@ class AgencyEmployeeController {
         message: `Collecteurs de l'agence ${agencyId} récupérés avec succès`,
         data: collectors
       });
+
     } catch (error) {
       console.error('❌ Erreur récupération collecteurs:', error);
       return res.status(500).json({
