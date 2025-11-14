@@ -1,51 +1,57 @@
-const Agence = require('../models/Agence');
-const User = require('../models/User');
+const AgencyEmployeeService = require('../services/agencyEmployeeService');
 
-class AgencyEmployeeService {
-
+class AgencyEmployeeController {
   /**
-   * Récupérer tous les employés, gestionnaires et manager d'une agence
+   * 🔹 Récupérer tous les employés (managers, gestionnaires, collecteurs) d'une agence
    */
-  static async getAgencyEmployees(agencyId) {
-    const agency = await Agence.findById(agencyId)
-      .populate('gestionnaires', 'firstName lastName email role status')
-      .populate('owner', 'firstName lastName email role status')
-      .populate('collector', 'firstName lastName email role status')
-      .populate('client', 'firstName lastName email role status');
+  static async getEmployees(req, res) {
+    try {
+      const { agencyId } = req.params;
+      const employees = await AgencyEmployeeService.getAgencyEmployees(agencyId);
 
-    if (!agency) {
-      throw new Error('Agence non trouvée');
+      return res.status(200).json({
+        success: true,
+        message: 'Liste des employés récupérée avec succès',
+        data: employees
+      });
+    } catch (error) {
+      console.error('❌ Erreur récupération employés:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
-
-    return {
-      id: agency._id,
-      name: agency.name,
-      owner: agency.owner,
-      gestionnaires: agency.gestionnaires,
-      collectors: agency.collector,
-      clients: agency.client
-    };
   }
 
   /**
-   * Récupérer uniquement les collecteurs actifs d'une agence
+   * 🔹 Récupérer uniquement les collecteurs actifs d'une agence
    */
-  static async getCollectorsByAgency(agencyId) {
-    const agency = await Agence.findById(agencyId).populate('collector', 'firstName lastName email role status');
-    
-    if (!agency) {
-      throw new Error('Agence non trouvée');
+  static async getCollectorsByAgency(req, res) {
+    try {
+      const { agencyId } = req.params;
+      if (!agencyId) {
+        return res.status(400).json({
+          success: false,
+          message: "ID de l'agence requis"
+        });
+      }
+
+      const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
+
+      return res.status(200).json({
+        success: true,
+        message: `Collecteurs de l'agence ${agencyId} récupérés avec succès`,
+        data: collectors
+      });
+    } catch (error) {
+      console.error('❌ Erreur récupération collecteurs:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Erreur lors de la récupération des collecteurs",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
-
-    // On filtre uniquement les collecteurs actifs
-    const collectors = Array.isArray(agency.collector)
-      ? agency.collector.filter(c => c.status === 'active')
-      : agency.collector && agency.collector.status === 'active'
-        ? [agency.collector]
-        : [];
-
-    return collectors;
   }
 }
 
-module.exports = AgencyEmployeeService;
+module.exports = AgencyEmployeeController;
