@@ -172,7 +172,7 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
 
 /**
  * @swagger
- * /api/collectes/{collecteId}/report:
+ * /api/collectes/{collecteId/report:
  *   patch:
  *     summary: Signaler une collecte et changer son statut à "Reported"
  *     tags: 
@@ -221,7 +221,7 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
  *       500:
  *         description: Erreur serveur
  */
-router.patch('/:RepporterId/report', collecteController.reportCollecte);
+router.patch('/:collecteId/report', collecteController.reportCollecte);
 
 
 /**
