@@ -78,7 +78,7 @@ exports.messageService = {
 
   async getUserMessagesUnread(userId) {
     if (!userId) throw new Error('ID utilisateur manquant');
-    const messages = await Message.find({ receiver: userId, read: false })
+    const messages = await Message.countDocuments({ receiver: userId, read: false })
       .sort({ createdAt: -1 });
     return messages;
   }

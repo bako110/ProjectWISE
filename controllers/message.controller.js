@@ -90,8 +90,8 @@ exports.messageController = {
             if (!userId) {
                 return res.status(400).json({ error: 'ID utilisateur manquant' });
             }
-            const messages = await messageService.getUserMessagesUnread(userId);
-            return res.status(200).json(messages);
+            const count = await messageService.getUserMessagesUnread(userId);
+            return res.status(200).json({unreadCount: count});
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

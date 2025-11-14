@@ -158,7 +158,7 @@ const router = express.Router();
  * 
  * 
  * 
- * /api/messages/unread/{userId}:
+ * /api/messages/unread-count/{userId}:
  *  get:
  *    summary: Récupérer tous les messages non lus d'un utilisateur
  *    tags: [Message]
@@ -181,7 +181,7 @@ const router = express.Router();
  *        description: Erreur serveur
  */
 
-router.get('/unread/:userId', messageController.getUserMessagesUnread);
+router.get('/unread-count/:userId', messageController.getUserMessagesUnread);
 router.get('/:userId/all', messageController.getUserMessages);
 router.post('/send', messageController.sendMessage);
 
