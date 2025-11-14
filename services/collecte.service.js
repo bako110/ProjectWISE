@@ -104,7 +104,7 @@ exports.collecteService = {
     }
 
     // Vérifier l'existence de la collecte
-    const collecte = await Collecte.findById(collecteId);
+    const collecte = await Collecte.findById(RepporterId);
     if (!collecte) {
         throw new Error("Collecte introuvable");
     }
