@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 
 class AgencyEmployeeService {
@@ -5,31 +6,29 @@ class AgencyEmployeeService {
    * 🔹 Récupérer tous les employés d'une agence (managers, gestionnaires, collecteurs)
    * @param {String} agencyId
    */
-    async getAgencyEmployees(agencyId) {
-      if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
+  async getAgencyEmployees(agencyId) {
+    if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-      // Conversion sécurisée en ObjectId
-      let agencyObjectId;
-      try {
-        agencyObjectId = mongoose.Types.ObjectId(agencyId);
-      } catch (err) {
-        throw new Error("L'identifiant de l'agence est invalide");
-      }
-
-      // Cherche tous les utilisateurs actifs qui sont des employés
-      const users = await User.find({
-        agencyId: agencyObjectId,
-        status: 'active',
-        role: { $in: ['manager', 'gestionnaire', 'collector'] }
-      }).select('firstName lastName email phone role');
-
-      // Grouper par rôle
-      const managers = users.filter(u => u.role === 'manager');
-      const gestionnaires = users.filter(u => u.role === 'gestionnaire');
-      const collectors = users.filter(u => u.role === 'collector');
-
-      return { managers, gestionnaires, collectors };
+    // Vérification et conversion sécurisée en ObjectId
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      throw new Error("L'identifiant de l'agence est invalide");
     }
+    const agencyObjectId = mongoose.Types.ObjectId(agencyId);
+
+    // Cherche tous les utilisateurs actifs qui sont des employés
+    const users = await User.find({
+      agencyId: agencyObjectId,
+      status: 'active',
+      role: { $in: ['manager', 'gestionnaire', 'collector'] }
+    }).select('firstName lastName email phone role');
+
+    // Grouper par rôle
+    const managers = users.filter(u => u.role === 'manager');
+    const gestionnaires = users.filter(u => u.role === 'gestionnaire');
+    const collectors = users.filter(u => u.role === 'collector');
+
+    return { managers, gestionnaires, collectors };
+  }
 
   /**
    * 🔹 Récupérer uniquement les collecteurs actifs d'une agence
@@ -38,11 +37,16 @@ class AgencyEmployeeService {
   async getCollectorsByAgency(agencyId) {
     if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
+    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
+      throw new Error("L'identifiant de l'agence est invalide");
+    }
+    const agencyObjectId = mongoose.Types.ObjectId(agencyId);
+
     const collectors = await User.find({
-      agencyId: agencyId,
+      agencyId: agencyObjectId,
       role: 'collector',
       status: 'active'
-    }).select('firstName lastName email phone');
+    }).select('firstName lastName email phone role');
 
     return collectors;
   }
