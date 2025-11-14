@@ -124,6 +124,45 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  *       500:
  *         description: Erreur serveur
  */
-// router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
+router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
+
+/**
+ * @swagger
+ * /api/agency_employees/{agencyId}/clients:
+ *   get:
+ *     summary: Récupérer les clients d'une agence
+ *     description: Renvoie la liste de tous les clients actifs liés à une agence.
+ *     tags: [Agency Employees]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: agencyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'agence
+ *     responses:
+ *       200:
+ *         description: Liste des clients récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *       400:
+ *         description: ID de l'agence manquant
+ *       500:
+ *         description: Erreur serveur  
+ */
+router.get('/:agencyId/clients', AgencyEmployeeController.getClientsByAgency);
 
 module.exports = router;

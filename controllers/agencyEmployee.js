@@ -62,6 +62,35 @@ class AgencyEmployeeController {
       });
     }
   }
+
+    static async getClientsByAgency(req, res) {
+    try {
+      const { agencyId } = req.params;
+
+      if (!agencyId) {
+        return res.status(400).json({
+          success: false,
+          message: "L'identifiant de l'agence est requis"
+        });
+      }
+
+      const clients = await AgencyEmployeeService.getClientsByAgency(agencyId);
+
+      return res.status(200).json({
+        success: true,
+        message: `Clients de l'agence ${agencyId} récupérés avec succès`,
+        data: clients
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur récupération clients:', error.message || error);
+      return res.status(500).json({
+        success: false,
+        message: "Erreur lors de la récupération des clients",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
 }
 
 module.exports = AgencyEmployeeController;

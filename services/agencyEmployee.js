@@ -50,6 +50,18 @@ class AgencyEmployeeService {
 
     return collectors;
   }
+
+  async getClientsByAgency(agencyId) {
+    if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
+
+    const clients = await User.find({
+      agencyId: agencyId,
+      role: 'client',
+      status: 'active'
+    }).select('_id firstName lastName email phone address');
+
+    return clients;
+  }
 }
 
 module.exports = new AgencyEmployeeService();
