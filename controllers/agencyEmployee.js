@@ -41,10 +41,11 @@ class AgencyEmployeeController {
       if (!agencyId) {
         return res.status(400).json({
           success: false,
-          message: "ID de l'agence requis"
+          message: "L'identifiant de l'agence est requis"
         });
       }
 
+      // Appelle le service adapté pour récupérer uniquement les collecteurs
       const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
 
       return res.status(200).json({
