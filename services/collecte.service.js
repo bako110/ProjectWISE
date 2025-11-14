@@ -93,29 +93,18 @@ exports.collecteService = {
     },
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
-async reportCollecte(collecteId, userId, data) {
-    if (!collecteId) {
-        throw new Error("L'ID de la collecte est requis");
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(collecteId)) {
-        throw new Error("ID de collecte invalide");
-    }
-
-    if (!userId) {
-        throw new Error("L'ID de l'utilisateur est requis");
-    }
+async reportCollecte(collecteId, data, reporterId) {
+    if (!collecteId) throw new Error("L'ID de la collecte est requis");
+    if (!mongoose.Types.ObjectId.isValid(collecteId)) throw new Error("ID de collecte invalide");
+    if (!reporterId) throw new Error("L'ID de l'utilisateur est requis");
+    if (!mongoose.Types.ObjectId.isValid(reporterId)) throw new Error("ID utilisateur invalide");
 
     const collecte = await Collecte.findById(collecteId);
-    if (!collecte) {
-        throw new Error("Collecte introuvable");
-    }
+    if (!collecte) throw new Error("Collecte introuvable");
 
-    // Mise à jour du statut et de l'utilisateur ayant signalé
     collecte.status = "Reported";
-    collecte.reportedBy = userId;
+    collecte.reportedBy = reporterId; // Nouvel attribut pour savoir qui a signalé
 
-    // Ajout des commentaires ou photos venant du client/collecteur
     if (data && data.comment) collecte.comment = data.comment;
     if (data && Array.isArray(data.photos)) collecte.photos = data.photos;
 

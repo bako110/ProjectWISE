@@ -170,21 +170,28 @@ router.get('/agency/:agencyId/reporting-collectes', collecteController.AgencyRep
  */
 router.get('/collector/:collectorId/collectes', collecteController.CollectorCollectes);
 
+
 /**
  * @swagger
- * /api/collectes/{collecteId/report:
+ * /api/collectes/{collecteId}/report/{userId}:
  *   patch:
- *     summary: Signaler une collecte et changer son statut à "Reported"
- *     tags: 
- *       - Collectes
+ *     summary: Signaler une collecte (status passe à "Reported")
+ *     tags: [Collectes]
  *     parameters:
  *       - in: path
  *         name: collecteId
  *         required: true
+ *         description: ID de la collecte à signaler
  *         schema:
  *           type: string
- *         description: ID de la collecte à signaler
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID de l'utilisateur qui signale la collecte (client ou collecteur)
+ *         schema:
+ *           type: string
  *     requestBody:
+ *       description: Commentaires et/ou photos pour le signalement
  *       required: false
  *       content:
  *         application/json:
@@ -193,12 +200,12 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
  *             properties:
  *               comment:
  *                 type: string
- *                 example: "Collecteur non venu"
+ *                 example: "Problème constaté lors de la collecte"
  *               photos:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["photo1.jpg", "photo2.png"]
+ *                 example: ["urlPhoto1.jpg", "urlPhoto2.jpg"]
  *     responses:
  *       200:
  *         description: Collecte signalée avec succès
@@ -209,19 +216,28 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 message:
  *                   type: string
- *                   example: Collecte signalée avec succès
+ *                   example: "La collecte a été signalée avec succès"
  *                 data:
  *                   $ref: '#/components/schemas/Collecte'
  *       400:
- *         description: Données invalides
- *       404:
- *         description: Collecte non trouvée
- *       500:
- *         description: Erreur serveur
+ *         description: Erreur lors du signalement
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "L'ID de la collecte est requis"
  */
-router.patch('/:collecteId/report', collecteController.reportCollecte);
+
+router.patch('/:collecteId/report/:userId', collecteController.reportCollecte);
 
 
 /**

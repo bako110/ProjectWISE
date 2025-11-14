@@ -96,20 +96,13 @@ exports.collecteController = {
     },
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
+/** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
 async reportCollecte(req, res) {
     try {
-        const { collecteId } = req.params; // l'ID de la collecte
-        const userId = req.user._id;        // ID de l'utilisateur connecté
-        const data = req.body;              // { comment, photos }
+        const { collecteId, userId } = req.params; // collecteId et userId dans l'URL
+        const data = req.body;  // comment, photos
 
-        if (!userId) {
-            return res.status(401).json({
-                success: false,
-                message: "Utilisateur non authentifié"
-            });
-        }
-
-        const collecte = await collecteService.reportCollecte(collecteId, userId, data);
+        const collecte = await collecteService.reportCollecte(collecteId, data, userId);
 
         return res.status(200).json({
             success: true,
@@ -124,6 +117,7 @@ async reportCollecte(req, res) {
         });
     }
 }
+
 
 
 };
