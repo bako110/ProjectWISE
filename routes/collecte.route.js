@@ -221,7 +221,7 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
  *       500:
  *         description: Erreur serveur
  */
-router.patch('/collecte/:collecteId/report', collecteController.reportCollecte);
+router.patch('/:collecteId/report', collecteController.reportCollecte);
 
 
 /**
