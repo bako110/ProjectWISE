@@ -1,6 +1,8 @@
-const {collecteService} = require('../services/collecte.service.js');
+const { collecteService } = require('../services/collecte.service.js');
 
 exports.collecteController = {
+
+    /** 🔹 HISTORIQUES UTILISATEUR */
     async UserCollecteHistory(req, res) {
         try {
             const { userId } = req.params;
@@ -11,19 +13,14 @@ exports.collecteController = {
         }
     },
 
-    async userCollecteReporting (req, res) {
+    async userCollecteReporting(req, res) {
         try {
             const { userId } = req.params;
-            
-            if (!userId) {
-                return res.status(400).json({ message: 'Collecte ID is required' });
-            }
             const collecte = await collecteService.UserReportingHistory(userId);
             res.status(200).json(collecte);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
-
     },
 
     async UserScheduledCollectes(req, res) {
@@ -36,6 +33,7 @@ exports.collecteController = {
         }
     },
 
+    /** 🔹 AGENCE */
     async AgencyCollectes(req, res) {
         try {
             const { agencyId } = req.params;
@@ -66,6 +64,7 @@ exports.collecteController = {
         }
     },
 
+    /** 🔹 COLLECTEUR */
     async CollectorCollectes(req, res) {
         try {
             const { collectorId } = req.params;
@@ -95,4 +94,26 @@ exports.collecteController = {
             res.status(500).json({ message: error.message });
         }
     },
+
+    /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
+    async reportCollecte(req, res) {
+        try {
+            const { collecteId } = req.params;
+            const { comment, photos } = req.body;
+
+            const updated = await collecteService.reportCollecte(collecteId, {
+                comment,
+                photos
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "Collecte signalée et statut mis à 'Reported'",
+                data: updated
+            });
+
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 };

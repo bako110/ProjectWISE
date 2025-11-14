@@ -172,6 +172,60 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
 
 /**
  * @swagger
+ * /api/collecte/{collecteId}/report:
+ *   patch:
+ *     summary: Signaler une collecte et changer son statut à "Reported"
+ *     tags: 
+ *       - Collectes
+ *     parameters:
+ *       - in: path
+ *         name: collecteId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la collecte à signaler
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               comment:
+ *                 type: string
+ *                 example: "Collecteur non venu"
+ *               photos:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["photo1.jpg", "photo2.png"]
+ *     responses:
+ *       200:
+ *         description: Collecte signalée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: Collecte signalée avec succès
+ *                 data:
+ *                   $ref: '#/components/schemas/Collecte'
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Collecte non trouvée
+ *       500:
+ *         description: Erreur serveur
+ */
+router.patch('/collecte/:collecteId/report', collecteController.reportCollecte);
+
+
+/**
+ * @swagger
  * api/collectes/collector/{collectorId}/reporting-collectes:
  *   get:
  *     summary: Récupérer toutes les collectes en reporting d'un collecteur
