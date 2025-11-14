@@ -31,7 +31,7 @@ exports.messageService = {
   // Fonction pour marquer les messages comme lus
   async markMessagesAsRead (messageId) {
     if (!messageId) throw new Error('IDs utilisateur manquants');
-    const result = await Message.findAndUpdate(
+    const result = await Message.findByIdAndUpdate(
       { _id: messageId, read: false },
       { $set: { read: true } },
       { new: true }
