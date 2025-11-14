@@ -23,10 +23,10 @@ class AgencyEmployeeController {
         data: employees
       });
     } catch (error) {
-      console.error('❌ Erreur récupération employés:', error);
+      console.error('❌ Erreur récupération employés:', error.message || error);
       return res.status(500).json({
         success: false,
-        message: error.message
+        message: error.message || 'Erreur serveur'
       });
     }
   }
@@ -45,7 +45,6 @@ class AgencyEmployeeController {
         });
       }
 
-      // Appelle le service adapté pour récupérer uniquement les collecteurs
       const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
 
       return res.status(200).json({
@@ -55,7 +54,7 @@ class AgencyEmployeeController {
       });
 
     } catch (error) {
-      console.error('❌ Erreur récupération collecteurs:', error);
+      console.error('❌ Erreur récupération collecteurs:', error.message || error);
       return res.status(500).json({
         success: false,
         message: "Erreur lors de la récupération des collecteurs",

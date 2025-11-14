@@ -13,14 +13,14 @@ class AgencyEmployeeService {
     if (!mongoose.Types.ObjectId.isValid(agencyId)) {
       throw new Error("L'identifiant de l'agence est invalide");
     }
-    const agencyObjectId = mongoose.Types.ObjectId(agencyId);
+    const agencyObjectId = new mongoose.Types.ObjectId(agencyId);
 
-    // Cherche tous les utilisateurs actifs qui sont des employés
+    // Cherche tous les utilisateurs actifs qui sont des employés pour cette agence
     const users = await User.find({
       agencyId: agencyObjectId,
       status: 'active',
       role: { $in: ['manager', 'gestionnaire', 'collector'] }
-    }).select('firstName lastName email phone role');
+    }).select('_id firstName lastName email phone role agencyId isOwnerAgency');
 
     // Grouper par rôle
     const managers = users.filter(u => u.role === 'manager');
@@ -40,13 +40,13 @@ class AgencyEmployeeService {
     if (!mongoose.Types.ObjectId.isValid(agencyId)) {
       throw new Error("L'identifiant de l'agence est invalide");
     }
-    const agencyObjectId = mongoose.Types.ObjectId(agencyId);
+    const agencyObjectId = new mongoose.Types.ObjectId(agencyId);
 
     const collectors = await User.find({
       agencyId: agencyObjectId,
       role: 'collector',
       status: 'active'
-    }).select('firstName lastName email phone role');
+    }).select('_id firstName lastName email phone role agencyId isOwnerAgency');
 
     return collectors;
   }
