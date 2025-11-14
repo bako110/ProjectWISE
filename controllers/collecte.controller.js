@@ -98,10 +98,10 @@ exports.collecteController = {
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
     async reportCollecte(req, res) {
     try {
-        const { collecteId } = req.params;
+        const { RepporterId } = req.params;
         const data = req.body;  // comment, photos
 
-        const collecte = await collecteService.reportCollecte(collecteId, data);
+        const collecte = await collecteService.reportCollecte(RepporterId, data);
 
         return res.status(200).json({
             success: true,

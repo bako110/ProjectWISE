@@ -93,13 +93,13 @@ exports.collecteService = {
     },
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
-    async reportCollecte(collecteId, data) {
-    if (!collecteId) {
+    async reportCollecte(RepporterId, data) {
+    if (!RepporterId) {
         throw new Error("L'ID de la collecte est requis");
     }
 
     // Vérification de validité MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(collecteId)) {
+    if (!mongoose.Types.ObjectId.isValid(RepporterId)) {
         throw new Error("ID de collecte invalide");
     }
 
