@@ -97,23 +97,24 @@ exports.collecteController = {
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
     async reportCollecte(req, res) {
-        try {
-            const { collecteId } = req.params;
-            const { comment, photos } = req.body;
+    try {
+        const { collecteId } = req.params;
+        const data = req.body;  // comment, photos
 
-            const updated = await collecteService.reportCollecte(collecteId, {
-                comment,
-                photos
-            });
+        const collecte = await collecteService.reportCollecte(collecteId, data);
 
-            res.status(200).json({
-                success: true,
-                message: "Collecte signalée et statut mis à 'Reported'",
-                data: updated
-            });
+        return res.status(200).json({
+            success: true,
+            message: "La collecte a été signalée avec succès",
+            data: collecte
+        });
 
-        } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
-        }
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
+}
+
 };

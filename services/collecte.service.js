@@ -94,22 +94,36 @@ exports.collecteService = {
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */
     async reportCollecte(collecteId, data) {
-        if (!collecteId) {
-            throw new Error("L'ID de la collecte est requis");
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(collecteId)) {
-            throw new Error("ID de collecte invalide");
-        }
-
-        const collecte = await Collecte.findById(collecteId);
-        if (!collecte) throw new Error("Collecte introuvable");
-
-        collecte.status = "Reported";
-        if (data.comment) collecte.comment = data.comment;
-        if (data.photos) collecte.photos = data.photos;
-
-        await collecte.save();
-        return collecte;
+    if (!collecteId) {
+        throw new Error("L'ID de la collecte est requis");
     }
+
+    // Vérification de validité MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(collecteId)) {
+        throw new Error("ID de collecte invalide");
+    }
+
+    // Vérifier l'existence de la collecte
+    const collecte = await Collecte.findById(collecteId);
+    if (!collecte) {
+        throw new Error("Collecte introuvable");
+    }
+
+    // Mise à jour du statut
+    collecte.status = "Reported";
+
+    // Ajout des commentaires ou photos venant du client/collecteur
+    if (data && data.comment) {
+        collecte.comment = data.comment;
+    }
+
+    if (data && Array.isArray(data.photos)) {
+        collecte.photos = data.photos;
+    }
+
+    await collecte.save();
+
+    return collecte;
+}
+
 };
