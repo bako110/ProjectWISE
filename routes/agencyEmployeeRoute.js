@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AgencyEmployeeController = require('../controllers/agencyEmployee');
+const {AgencyEmployeeController} = require('../controllers/agencyEmployee');
 // const protect = require('../middlewares/auth');
 
 /**
@@ -124,6 +124,6 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
+// router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
 
 module.exports = router;

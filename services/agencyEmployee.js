@@ -1,57 +1,43 @@
-const AgencyEmployeeService = require('../services/agencyEmployeeService');
+const User = require('../models/User');
 
-class AgencyEmployeeController {
+class AgencyEmployeeService {
   /**
-   * 🔹 Récupérer tous les employés (managers, gestionnaires, collecteurs) d'une agence
+   * 🔹 Récupérer tous les employés d'une agence (managers, gestionnaires, collecteurs)
+   * @param {String} agencyId
    */
-  static async getEmployees(req, res) {
-    try {
-      const { agencyId } = req.params;
-      const employees = await AgencyEmployeeService.getAgencyEmployees(agencyId);
+  async getAgencyEmployees(agencyId) {
+    if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-      return res.status(200).json({
-        success: true,
-        message: 'Liste des employés récupérée avec succès',
-        data: employees
-      });
-    } catch (error) {
-      console.error('❌ Erreur récupération employés:', error);
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
+    // Cherche tous les utilisateurs actifs qui sont des employés (manager, gestionnaire, collector)
+    const users = await User.find({
+      agencyId: agencyId,
+      status: 'active',
+      role: { $in: ['manager', 'gestionnaire', 'collector'] }
+    }).select('firstName lastName email phone role');
+
+    // Grouper par rôle
+    const managers = users.filter(u => u.role === 'manager');
+    const gestionnaires = users.filter(u => u.role === 'gestionnaire');
+    const collectors = users.filter(u => u.role === 'collector');
+
+    return { managers, gestionnaires, collectors };
   }
 
   /**
    * 🔹 Récupérer uniquement les collecteurs actifs d'une agence
+   * @param {String} agencyId
    */
-  static async getCollectorsByAgency(req, res) {
-    try {
-      const { agencyId } = req.params;
-      if (!agencyId) {
-        return res.status(400).json({
-          success: false,
-          message: "ID de l'agence requis"
-        });
-      }
+  async getCollectorsByAgency(agencyId) {
+    if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-      const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
+    const collectors = await User.find({
+      agencyId: agencyId,
+      role: 'collector',
+      status: 'active'
+    }).select('firstName lastName email phone');
 
-      return res.status(200).json({
-        success: true,
-        message: `Collecteurs de l'agence ${agencyId} récupérés avec succès`,
-        data: collectors
-      });
-    } catch (error) {
-      console.error('❌ Erreur récupération collecteurs:', error);
-      return res.status(500).json({
-        success: false,
-        message: "Erreur lors de la récupération des collecteurs",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    return collectors;
   }
 }
 
-module.exports = AgencyEmployeeController;
+module.exports = new AgencyEmployeeService();
