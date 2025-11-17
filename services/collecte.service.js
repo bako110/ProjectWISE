@@ -103,10 +103,12 @@ async reportCollecte(collecteId, data, reporterId) {
     if (!collecte) throw new Error("Collecte introuvable");
 
     collecte.status = "Reported";
-    collecte.reportedBy = reporterId; // Nouvel attribut pour savoir qui a signalé
+    collecte.reportedBy = reporterId;
 
-    if (data && data.comment) collecte.comment = data.comment;
-    if (data && Array.isArray(data.photos)) collecte.photos = data.photos;
+    if (data?.comment) collecte.comment = data.comment;
+    if (data?.photos && Array.isArray(data.photos)) collecte.photos = data.photos;
+    if (data?.type) collecte.type = data.type;
+    if (data?.severity) collecte.severity = data.severity;
 
     await collecte.save();
     return collecte;
