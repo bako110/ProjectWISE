@@ -112,5 +112,4 @@ async reportCollecte(collecteId, data, reporterId) {
     return collecte;
 }
 
-
 };

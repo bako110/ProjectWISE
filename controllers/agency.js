@@ -3,31 +3,32 @@ const logger = require('../utils/logger');
 
 // 🔹 Récupérer toutes les agences
 exports.getAllAgencies = async (req, res) => {
-  try {
-    const { status, search, page = 1, limit = 10 } = req.query;
+    try {
+        const { status, term, page = 1, limit = 10 } = req.query;
 
-    const result = await agencyService.getAllAgencies({
-      status,
-      search,
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
+        const result = await agencyService.getAllAgencies({
+            status,
+            term,
+            page: parseInt(page),
+            limit: parseInt(limit),
+        });
 
-    logger.info(`Récupération de ${result.agencies.length} agences sur ${result.total}`);
+        logger.info(`Récupération de ${result.agencies.length} agences sur ${result.total}`);
 
-    res.status(200).json({
-      success: true,
-      data: result.agencies,
-      pagination: result.pagination,
-    });
-  } catch (error) {
-    logger.error('Erreur lors de la récupération des agences:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
+        res.status(200).json({
+            success: true,
+            data: result.agencies,
+            pagination: result.pagination,
+        });
+    } catch (error) {
+        logger.error('Erreur lors de la récupération des agences:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+        });
+    }
 };
+
 
 // 🔹 Récupérer une agence par ID
 exports.getAgency = async (req, res) => {

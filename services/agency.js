@@ -4,22 +4,22 @@ class AgencyService {
     /**
      * 🔹 Récupérer toutes les agences avec pagination et filtres
      */
-    async getAllAgencies({ status, search, page = 1, limit = 10 }) {
+        async getAllAgencies({ status, term, page = 1, limit = 10 }) {
         const filter = {};
 
         if (status) {
             filter.status = status;
         }
 
-        if (search) {
-            const searchFilter = {
+        if (term) {
+            const termFilter = {
                 $or: [
-                    { name: { $regex: search, $options: 'i' } },
-                    { agencyDescription: { $regex: search, $options: 'i' } },
-                    { slogan: { $regex: search, $options: 'i' } },
+                    { name: { $regex: term, $options: 'i' } },
+                    { agencyDescription: { $regex: term, $options: 'i' } },
+                    { slogan: { $regex: term, $options: 'i' } },
                 ],
             };
-            Object.assign(filter, searchFilter);
+            Object.assign(filter, termFilter);
         }
 
         const agencies = await Agency.find(filter)
@@ -44,6 +44,7 @@ class AgencyService {
             },
         };
     }
+
 
     /**
      * 🔹 Récupérer les zones d'activité d'une agence
