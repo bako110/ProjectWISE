@@ -4,13 +4,42 @@ const logger = require('../utils/logger');
 // 🔹 Récupérer toutes les agences
 exports.getAllAgencies = async (req, res) => {
     try {
-        const { status, term, page = 1, limit = 10 } = req.query;
+        const {
+            term,
+            name,
+            neighborhood,
+            activityZone,
+            sector,
+            city,
+            latitude,
+            longitude,
+            radius,
+            hasOwner,
+            minGestionnaires,
+            page = 1,
+            limit = 10,
+            sortBy,
+            sortOrder,
+            getAll
+        } = req.query;
 
         const result = await agencyService.getAllAgencies({
-            status,
             term,
+            name,
+            neighborhood,
+            activityZone,
+            sector,
+            city,
+            latitude: latitude ? parseFloat(latitude) : null,
+            longitude: longitude ? parseFloat(longitude) : null,
+            radius: radius ? parseFloat(radius) : 10,
+            hasOwner: hasOwner !== undefined ? hasOwner === 'true' : null,
+            minGestionnaires: minGestionnaires ? parseInt(minGestionnaires) : 0,
             page: parseInt(page),
             limit: parseInt(limit),
+            sortBy,
+            sortOrder,
+            getAll: getAll === 'true'
         });
 
         logger.info(`Récupération de ${result.agencies.length} agences sur ${result.total}`);
@@ -28,7 +57,6 @@ exports.getAllAgencies = async (req, res) => {
         });
     }
 };
-
 
 // 🔹 Récupérer une agence par ID
 exports.getAgency = async (req, res) => {
