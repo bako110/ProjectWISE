@@ -28,6 +28,39 @@ const AgencyEmployeeController = require('../controllers/agencyEmployee');
  *         schema:
  *           type: string
  *         description: ID de l'agence
+ *
+ *       - in: query
+ *         name: term
+ *         schema:
+ *           type: string
+ *         description: Recherche textuelle (nom, email, téléphone)
+ *
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filtrer par ville
+ *
+ *       - in: query
+ *         name: neighborhood
+ *         schema:
+ *           type: string
+ *         description: Filtrer par quartier
+ *
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Nombre de résultats par page
+ *
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de la page
+ *
  *     responses:
  *       200:
  *         description: Liste des employés récupérée avec succès
@@ -75,7 +108,7 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  * /api/agency_employees/{agencyId}/collectors:
  *   get:
  *     summary: Récupérer les collectors d'une agence
- *     description: Renvoie la liste de tous les collectors actifs liés à une agence.
+ *     description: Renvoie la liste des collectors actifs avec filtres et pagination.
  *     tags: [Agency Employees]
  *     security:
  *       - bearerAuth: []
@@ -86,6 +119,39 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  *         schema:
  *           type: string
  *         description: ID de l'agence
+ *
+ *       - in: query
+ *         name: term
+ *         schema:
+ *           type: string
+ *         description: Recherche textuelle (nom, email, téléphone)
+ *
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filtrer par ville
+ *
+ *       - in: query
+ *         name: neighborhood
+ *         schema:
+ *           type: string
+ *         description: Filtrer par quartier
+ *
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Nombre de résultats par page
+ *
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de la page
+ *
  *     responses:
  *       200:
  *         description: Liste des collectors récupérée avec succès
@@ -124,6 +190,7 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  *       500:
  *         description: Erreur serveur
  */
+
 router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
 
 /**
@@ -131,7 +198,7 @@ router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgen
  * /api/agency_employees/{agencyId}/clients:
  *   get:
  *     summary: Récupérer les clients d'une agence
- *     description: Renvoie la liste de tous les clients actifs liés à une agence.
+ *     description: Renvoie les clients actifs avec filtres et pagination.
  *     tags: [Agency Employees]
  *     security:
  *       - bearerAuth: []
@@ -142,27 +209,42 @@ router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgen
  *         schema:
  *           type: string
  *         description: ID de l'agence
+ *       - in: query
+ *         name: term
+ *         schema:
+ *           type: string
+ *         description: Recherche textuelle (nom, email, téléphone)
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filtrer par ville
+ *       - in: query
+ *         name: neighborhood
+ *         schema:
+ *           type: string
+ *         description: Filtrer par quartier
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Nombre de résultats par page
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page courante
  *     responses:
  *       200:
  *         description: Liste des clients récupérée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
  *       400:
  *         description: ID de l'agence manquant
  *       500:
- *         description: Erreur serveur  
+ *         description: Erreur serveur
  */
+
 router.get('/:agencyId/clients', AgencyEmployeeController.getClientsByAgency);
 
 module.exports = router;

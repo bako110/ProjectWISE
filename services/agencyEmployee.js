@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const logger = require('../utils/logger');
 
 class AgencyEmployeeService {
   /**
@@ -9,59 +10,132 @@ class AgencyEmployeeService {
   async getAgencyEmployees(agencyId) {
     if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-    // Vérification et conversion sécurisée en ObjectId
-    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      throw new Error("L'identifiant de l'agence est invalide");
-    }
-    const agencyObjectId = new mongoose.Types.ObjectId(agencyId);
+     const query = {
+      agencyId,
+      role: { $in: ['manager', 'gestionnaire', 'collector'] },
+      status: 'active'
+    };
 
+    // 🔍 Filtre de recherche textuelle
+    if (filters.term) {
+      query.$or = [
+        { firstName: { $regex: filters.term, $options: 'i' } },
+        { lastName: { $regex: filters.term, $options: 'i' } },
+        { email: { $regex: filters.term, $options: 'i' } },
+        { phone: { $regex: filters.term, $options: 'i' } }
+      ];
+    }
+
+    // 🔍 Autres filtres éventuels (exemple : ville, type, etc.)
+    if (filters.city ) {
+      query["address.city"] = filters.city;
+    }
+
+    if (filters.neighborhood) {
+      query["address.neighborhood"] = filters.neighborhood;
+    }
+
+    const users = await User.find(query).select('_id firstName lastName email phone role agencyId isOwnerAgency');
     // Cherche tous les utilisateurs actifs qui sont des employés pour cette agence
-    const users = await User.find({
-      agencyId: agencyObjectId,
-      status: 'active',
-      role: { $in: ['manager', 'gestionnaire', 'collector'] }
-    }).select('_id firstName lastName email phone role agencyId isOwnerAgency');
+    // const users = await User.find({
+    //   agencyId,
+    //   status: 'active',
+    //   role: { $in: ['manager', 'gestionnaire', 'collector'] }
+    // }).select('_id firstName lastName email phone role agencyId isOwnerAgency');
 
     // Grouper par rôle
     const managers = users.filter(u => u.role === 'manager');
-    const gestionnaires = users.filter(u => u.role === 'gestionnaire');
+    // const gestionnaires = users.filter(u => u.role === 'gestionnaire');
     const collectors = users.filter(u => u.role === 'collector');
 
-    return { managers, gestionnaires, collectors };
+    // return { managers, gestionnaires, collectors };
+    return { managers, collectors };
   }
 
   /**
    * 🔹 Récupérer uniquement les collecteurs actifs d'une agence
    * @param {String} agencyId
    */
-  async getCollectorsByAgency(agencyId) {
+  async getCollectorsByAgency(agencyId, filters = {}) {
     if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-    if (!mongoose.Types.ObjectId.isValid(agencyId)) {
-      throw new Error("L'identifiant de l'agence est invalide");
-    }
-    const agencyObjectId = new mongoose.Types.ObjectId(agencyId);
-
-    const collectors = await User.find({
-      agencyId: agencyObjectId,
+      const query = {
+      agencyId,
       role: 'collector',
       status: 'active'
-    }).select('_id firstName lastName email phone role agencyId isOwnerAgency');
+    };
+
+    // 🔍 Filtre de recherche textuelle
+    if (filters.term) {
+      query.$or = [
+        { firstName: { $regex: filters.term, $options: 'i' } },
+        { lastName: { $regex: filters.term, $options: 'i' } },
+        { email: { $regex: filters.term, $options: 'i' } },
+        { phone: { $regex: filters.term, $options: 'i' } }
+      ];
+    }
+
+    // 🔍 Autres filtres éventuels (exemple : ville, type, etc.)
+    if (filters.city ) {
+      query["address.city"] = filters.city;
+    }
+
+    if (filters.neighborhood) {
+      query["address.neighborhood"] = filters.neighborhood;
+    }
+    
+     const collectors = await User.find(query)
+      .limit(filters.limit)
+      .skip((filters.page - 1) * filters.limit)
+      .select('_id firstName lastName email phone address role agencyId isOwnerAgency')
+      .sort({ createdAt: -1 });
 
     return collectors;
   }
 
-  async getClientsByAgency(agencyId) {
-    if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-    const clients = await User.find({
-      agencyId: agencyId,
-      role: 'client',
-      status: 'active'
-    }).select('_id firstName lastName email phone address');
+  async getClientsByAgency(agencyId, filters = {}) {
+  if (!agencyId) throw new Error("L'identifiant de l'agence est requis");
 
-    return clients;
+  logger.info( filters);
+  const query = {
+    agencyId,
+    role: 'client',
+    status: 'active'
+  };
+
+  // 🔍 Filtre de recherche textuelle
+  if (filters.term) {
+    query.$or = [
+      { firstName: { $regex: filters.term, $options: 'i' } },
+      { lastName: { $regex: filters.term, $options: 'i' } },
+      { email: { $regex: filters.term, $options: 'i' } },
+      { phone: { $regex: filters.term, $options: 'i' } }
+    ];
   }
+
+  // 🔍 Autres filtres éventuels (exemple : ville, type, etc.)
+  if (filters.city ) {
+    query["address.city"] = filters.city;
+  }
+
+  if (filters.neighborhood) {
+    query["address.neighborhood"] = filters.neighborhood;
+  }
+
+  // if (filters.createdAfter) {
+  //   query.createdAt = { $gte: new Date(filters.createdAfter) };
+  // }
+
+  const clients = await User.find(query)
+    .limit(filters.limit)
+    .skip((filters.page - 1) * filters.limit)
+    .select('_id firstName lastName email phone address role agencyId isOwnerAgency')
+    .sort({ createdAt: -1 });
+
+  return clients;
+}
+
 }
 
 module.exports = new AgencyEmployeeService();

@@ -1,4 +1,5 @@
 const AgencyEmployeeService = require('../services/agencyEmployee');
+const logger = require('../utils/logger');
 
 class AgencyEmployeeController {
   /**
@@ -7,6 +8,18 @@ class AgencyEmployeeController {
   static async getEmployees(req, res) {
     try {
       const { agencyId } = req.params;
+      
+      const { neighborhood, city } = req.query;
+      const { term, limit, page } = req.query;
+      const filters = {};
+
+      logger.info('Query parameters received in controller:', req.query);
+      if (neighborhood) filters.neighborhood = neighborhood;
+      if (city) filters.city = city;
+      if (term) filters.term = term;
+      if (limit) filters.limit = parseInt(limit, 10);
+      if (page) filters.page = parseInt(page, 10);
+      logger.info('Filters received in controller:', filters);
 
       if (!agencyId) {
         return res.status(400).json({
@@ -15,7 +28,7 @@ class AgencyEmployeeController {
         });
       }
 
-      const employees = await AgencyEmployeeService.getAgencyEmployees(agencyId);
+      const employees = await AgencyEmployeeService.getAgencyEmployees(agencyId, filters);
 
       return res.status(200).json({
         success: true,
@@ -38,6 +51,18 @@ class AgencyEmployeeController {
     try {
       const { agencyId } = req.params;
 
+      const { neighborhood, city } = req.query;
+      const { term, limit, page } = req.query;
+      const filters = {};
+
+      logger.info('Query parameters received in controller:', req.query);
+      if (neighborhood) filters.neighborhood = neighborhood;
+      if (city) filters.city = city;
+      if (term) filters.term = term;
+      if (limit) filters.limit = parseInt(limit, 10);
+      if (page) filters.page = parseInt(page, 10);
+      logger.info('Filters received in controller:', filters);
+
       if (!agencyId) {
         return res.status(400).json({
           success: false,
@@ -45,7 +70,7 @@ class AgencyEmployeeController {
         });
       }
 
-      const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId);
+      const collectors = await AgencyEmployeeService.getCollectorsByAgency(agencyId, filters);
 
       return res.status(200).json({
         success: true,
@@ -66,7 +91,17 @@ class AgencyEmployeeController {
     static async getClientsByAgency(req, res) {
     try {
       const { agencyId } = req.params;
+      const { neighborhood, city } = req.query;
+      const { term, limit, page } = req.query;
+      const filters = {};
 
+      logger.info('Query parameters received in controller:', req.query);
+      if (neighborhood) filters.neighborhood = neighborhood;
+      if (city) filters.city = city;
+      if (term) filters.term = term;
+      if (limit) filters.limit = parseInt(limit, 10);
+      if (page) filters.page = parseInt(page, 10);
+      logger.info('Filters received in controller:', filters);
       if (!agencyId) {
         return res.status(400).json({
           success: false,
@@ -74,7 +109,7 @@ class AgencyEmployeeController {
         });
       }
 
-      const clients = await AgencyEmployeeService.getClientsByAgency(agencyId);
+      const clients = await AgencyEmployeeService.getClientsByAgency(agencyId, filters);
 
       return res.status(200).json({
         success: true,
