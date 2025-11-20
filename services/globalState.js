@@ -93,4 +93,25 @@ const getDashboardStats = async () => {
   };
 };
 
-module.exports = { getDashboardStats };
+
+const getCollectorStatistics = async (collectorId) => {
+  if (!collectorId) throw new Error("L'identifiant du collecteur est requis");
+
+  const collector = await User.findById(collectorId).select('collectes');
+  if (!collector) throw new Error("Collecteur non trouvé");
+
+  const dateDebut = new Date( new Date().setHours(0,0,0,0) );
+  const dateFin = new Date( new Date().setHours(23,59,59,999) );
+  const totalCollectes = await Collecte.countDocuments({ collectorId, date: { $gte: dateDebut, $lte: dateFin } });
+  const totalScheduledCollectes = await Collecte.countDocuments({ collectorId, status: 'Scheduled' , date: { $gte: dateDebut, $lte: dateFin } });
+  const totalCollectedCollectes = await Collecte.countDocuments({ collectorId, status: 'Collected', date: { $gte: dateDebut, $lte: dateFin } });
+  const totalReportedCollectes = await Collecte.countDocuments({ collectorId, status: 'Reported', date: { $gte: dateDebut, $lte: dateFin } });
+  return {
+    totalCollectes,
+    totalScheduledCollectes,
+    totalCollectedCollectes,
+    totalReportedCollectes,
+  };
+};
+
+module.exports = { getDashboardStats, getCollectorStatistics };

@@ -1,4 +1,4 @@
-const { getDashboardStats } = require('../services/globalState');
+const { getDashboardStats, getCollectorStatistics } = require('../services/globalState');
 
 exports.getDashboardStats = async (req, res) => {
   try {
@@ -33,6 +33,31 @@ exports.getDashboardStats = async (req, res) => {
         // 👥 Clients mensuels
         monthlyClientSubscriptions: stats.monthlyClientSubscriptions,
         monthlyClientPercentage: stats.monthlyClientPercentage,
+      }
+    });
+  } catch (error) {
+    console.error("Erreur statistiques:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur lors du chargement des statistiques",
+      error: error.message,
+    });
+  }
+};
+
+exports.getCollectorStatistics = async (req, res) => {
+  try {
+    const { collectorId } = req.params;
+    const stats = await getCollectorStatistics(collectorId);
+
+    res.status(200).json({
+      success: true,
+      message: "Statistiques du collecteur récupérées avec succès",
+      stats: {
+        totalCollectes: stats.totalCollectes,
+        totalScheduledCollectes: stats.totalScheduledCollectes,
+        totalCollectedCollectes: stats.totalCollectedCollectes,
+        totalReportedCollectes: stats.totalReportedCollectes,
       }
     });
   } catch (error) {
