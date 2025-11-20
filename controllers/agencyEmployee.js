@@ -9,13 +9,16 @@ class AgencyEmployeeController {
     try {
       const { agencyId } = req.params;
       
-      const { neighborhood, city } = req.query;
+      const { neighborhood, city, role, arrondissement, sector } = req.query;
       const { term, limit, page } = req.query;
       const filters = {};
 
       logger.info('Query parameters received in controller:', req.query);
       if (neighborhood) filters.neighborhood = neighborhood;
       if (city) filters.city = city;
+      if (role) filters.role = role;
+      if (arrondissement) filters.arrondissement = arrondissement;
+      if (sector) filters.sector = sector;
       if (term) filters.term = term;
       if (limit) filters.limit = parseInt(limit, 10);
       if (page) filters.page = parseInt(page, 10);

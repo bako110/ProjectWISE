@@ -35,6 +35,17 @@ class AgencyEmployeeService {
       query["address.neighborhood"] = filters.neighborhood;
     }
 
+    if (filters.arrondissement) {
+      query["address.arrondissement"] = filters.arrondissement;
+    }
+    if (filters.sector) {
+      query["address.sector"] = filters.sector;
+    }
+
+    if (filters.role) {
+      query.role = filters.role;
+    }
+
     const users = await User.find(query).select('_id firstName lastName email phone role agencyId isOwnerAgency');
     
 

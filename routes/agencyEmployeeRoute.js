@@ -46,6 +46,24 @@ const AgencyEmployeeController = require('../controllers/agencyEmployee');
  *         schema:
  *           type: string
  *         description: Filtrer par quartier
+ * 
+ *       - in: query
+ *         name: arrondissement
+ *         schema:
+ *           type: string
+ *         description: Filtrer par arrondissement
+ *
+ *       - in: query
+ *         name: sector
+ *         schema:
+ *           type: number
+ *         description: Filtrer par sector
+ * 
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filtrer par role (manager, gestionnaire, collector)
  *
  *       - in: query
  *         name: limit
