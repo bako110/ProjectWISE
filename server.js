@@ -23,6 +23,7 @@ const globalStateRoutes = require('./routes/globalStateRoutes.js');
 const qrValidationRoute = require('./routes/qrcodeValidationRoute.js');
 const stateForAgencyRoute = require ('./routes/stateForAgencyRoute.js');
 const collecteRoute = require ('./routes/collecte.route.js');
+const transactionRoute = require ('./routes/transaction.js');
 
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/statistics', globalStateRoutes);
 app.use('/api/collecte', qrValidationRoute);
 app.use('/api/State_agencies', stateForAgencyRoute);
 app.use('/api/collectes', collecteRoute);
+app.use('/api/transactions', transactionRoute);
 
 // ✅ Swagger (documentation)
 swaggerDocs(app);
