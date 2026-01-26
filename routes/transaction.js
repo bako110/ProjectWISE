@@ -26,6 +26,7 @@ const TransactionController = require('../controllers/transaction.js');
  *               - tarifId
  *               - userId
  *               - walletId
+ *               - operator
  *             properties:
  *               amount:
  *                 type: number
@@ -33,7 +34,7 @@ const TransactionController = require('../controllers/transaction.js');
  *               customerMsisdn:
  *                 type: string
  *                 example: "75612222"
- *               tarifId:
+ *               pricingId:
  *                 type: string
  *                 example: "6650b8e9f4e8d32f9c9d1111"
  *               walletId:
@@ -42,6 +43,13 @@ const TransactionController = require('../controllers/transaction.js');
  *               userId:
  *                 type: string
  *                 example: "6650b8e9f4e8d32f9c9d2222"
+ *               operator:
+ *                 type: string
+ *                 example: "MOOV_MONEY"
+ *                 enum: [ORANGE_MONEY, MOOV_MONEY]
+ *               numberMonths:
+ *                 type: number
+ *                 example: 3
  *     responses:
  *       201:
  *         description: OTP demandé
@@ -49,6 +57,33 @@ const TransactionController = require('../controllers/transaction.js');
  *         description: Erreur métier
  */
 router.post('/initiate', TransactionController.initiate);
+
+/**
+ * @swagger
+ * /api/transactions/resend-otp:
+ *   post:
+ *     summary: Renvoyer l'OTP
+ *     tags: [Transactions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required:
+ *         - reference
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reference:
+ *                 type: string
+ *                 example: "TXN-1710000000000"
+ *     responses:
+ *       200:
+ *         description: OTP renvoyé
+ *       400:
+ *         description: Transaction invalide
+ */
+router.post('/resend-otp', TransactionController.resendOtp);
 
 /**
  * @swagger

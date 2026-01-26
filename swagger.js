@@ -11,6 +11,7 @@ const options = {
     },
     servers: [
       { url: 'http://localhost:3000' },
+      { url: 'http://213.32.120.11:3000' },
       { url: 'https://waste-6k43.onrender.com/' }
     ],
     components: {

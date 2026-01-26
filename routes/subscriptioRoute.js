@@ -13,7 +13,33 @@ const SubscriptionController = require('../controllers/subscription.js');
 
 /**
  * @swagger
- * /subscription/subscribe/{clientId}/pricing/{pricingId}/{month}:
+ * api/subscription/subscribe/payment:
+ *   post:
+ *     summary: S'abonner via Mobile Money
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               clientId:
+ *                 type: string
+ *               pricingId:
+ *                 type: string
+ *               numberMonths:
+ *                 type: number
+ *               operator:
+ *                 type: string
+ *                 enum: [ORANGE_MONEY, MOOV_MONEY]
+ *               customerMsisdn:
+ *                 type: string
+ */
+router.post('/subscribe/payment', SubscriptionController.subscribeWithPayment);
+
+/**
+ * @swagger
+ * api/subscription/subscribe/{clientId}/pricing/{pricingId}/{month}:
  *   post:
  *     summary: Permet à un client de s'abonner à un plan tarifaire d'une agence
  *     tags: [Subscription]
@@ -44,11 +70,11 @@ const SubscriptionController = require('../controllers/subscription.js');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe/:clientId/pricing/:pricingId/:month', SubscriptionController.subscribe);
+router.post('/subscribe/:clientId/pricing/:pricingId/:month', SubscriptionController.subscribeWithWallet);
 
 /**
  * @swagger
- * /subscription/client/{clientId}:
+ * api/subscription/client/{clientId}:
  *   get:
  *     summary: Récupérer tous les abonnements d'un client
  *     tags: [Subscription]
@@ -75,7 +101,7 @@ router.get('/client/:clientId', SubscriptionController.getClientSubscriptions);
 
 /**
  * @swagger
- * /subscription/all:
+ * api/subscription/all:
  *   get:
  *     summary: Récupérer tous les abonnements (admin seulement)
  *     tags: [Subscription]
@@ -95,7 +121,7 @@ router.get('/all', SubscriptionController.getAllSubscriptions);
 
 /**
  * @swagger
- * /subscription/cancel/{subscriptionId}:
+ * api/subscription/cancel/{subscriptionId}:
  *   patch:
  *     summary: Annuler un abonnement
  *     tags: [Subscription]

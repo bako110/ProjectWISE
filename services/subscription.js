@@ -1,6 +1,7 @@
 const Subscription = require('../models/subscription.js');
 const PricingService = require('../services/pricingAgency.js');
 const WalletService = require('../services/wallet.js');
+const TransactionService = require('../services/transaction.js');
 const Passage = require('../models/Passage.js');
 const User = require('../models/User.js');
 const logger = require('../utils/logger.js');
@@ -17,7 +18,102 @@ class SubscriptionService {
    * @param {string} param0.pricingId
    * @param {number} param0.month
    */
-  static async createSubscription({ clientId, pricingId, month }) {
+
+  /**
+   * ✅ NOUVEAU : Créer un abonnement APRÈS paiement validé
+   * (sans débit wallet, déjà fait par la transaction)
+   */
+  static async createSubscriptionAfterPayment({ transactionId }) {
+    try {
+      logger.info(`Création abonnement post-paiement pour transaction ${transactionId}`);
+
+      // 1️⃣ Vérifier que la transaction est valide
+      const transaction = await TransactionService.canCreateSubscription(transactionId);
+
+      const { userId, pricingId, numberMonths, amount } = transaction;
+
+      // 2️⃣ Récupérer le pricing
+      const pricing = await PricingService.getPricingById(pricingId);
+      if (!pricing) throw new Error('Pricing plan not found');
+
+      const agencyId = pricing.agencyId;
+      if (!agencyId) throw new Error('Agency not found');
+
+      // 3️⃣ Calculer dates d'abonnement
+      const existingSubscription = await Subscription.findOne({ 
+        clientId: userId, 
+        isActive: true 
+      }).sort({ createdAt: -1 });
+
+      let startDate = new Date();
+      if (existingSubscription) {
+        startDate = existingSubscription.endDate;
+      }
+      const endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + numberMonths));
+
+      // 4️⃣ Créer l'abonnement
+      const subscription = new Subscription({
+        clientId: userId,
+        agencyId,
+        pricingId,
+        startDate,
+        endDate,
+        numberMonths,
+        isActive: true
+      });
+
+      // 5️⃣ Créer/Mettre à jour le passage
+      let passage = await Passage.findOne({ clientId: userId, agencyId });
+      if (!passage) {
+        passage = new Passage({
+          clientId: userId,
+          agencyId,
+          dayNumber: pricing.numberOfPasses
+        });
+      } else {
+        passage.dayNumber += pricing.numberOfPasses;
+      }
+
+      // 6️⃣ Générer QR Code
+      // const qrData = JSON.stringify({
+      //   subscriptionId: subscription._id,
+      //   clientId: userId,
+      //   agencyId,
+      //   pricingId,
+      //   endDate
+      // });
+      // const qrCodeUrl = await QRCode.toDataURL(qrData);
+
+      // // 7️⃣ Mettre à jour l'utilisateur
+      // const user = await User.findById(userId);
+      // if (user) {
+      //   user.qrCode = qrCodeUrl;
+      //   user.agencyId = agencyId;
+      //   await user.save();
+      // }
+
+      // 8️⃣ Sauvegarder
+      await subscription.save();
+      await passage.save();
+
+      // 9️⃣ Lier à la transaction
+      await TransactionService.linkSubscription(transactionId, subscription._id);
+
+      logger.info(`Subscription ${subscription._id} créé avec succès`);
+      // return subscription;
+      return {
+        subscription,
+        agencyId,
+        amount: transaction.amount, // montant à créditer
+        clientId: userId
+      };
+
+    } catch (error) {
+      logger.error('Erreur création subscription post-paiement:', error);
+      throw error;
+    }
+  }
+  static async createSubscriptionWithWallet({ clientId, pricingId, month }) {
     try {
       month = parseInt(month);
       logger.info(`Création de l'abonnement pour le client ${clientId}, plan ${pricingId}, durée ${month} mois`);

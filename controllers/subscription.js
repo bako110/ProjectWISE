@@ -1,15 +1,44 @@
 const SubscriptionService = require('../services/subscription.js');
 const { getUserById } = require('../services/user.js');
+const PricingService = require('../services/pricingAgency.js');
 const {notificationService} = require('../services/notification.service.js');
 const logger = require('../utils/logger.js');
 
 class SubscriptionController {
 
+
+  /**
+   * 🆕 NOUVEAU : Souscription via paiement mobile
+   * (Redirige vers transaction/initiate)
+   */
+  static async subscribeWithPayment(req, res) {
+    try {
+      const { clientId, pricingId, numberMonths, operator, customerMsisdn } = req.body;
+
+      // Validation
+      const pricing = await PricingService.getPricingById(pricingId);
+      if (!pricing) {
+        return res.status(404).json({ message: 'Plan introuvable' });
+      }
+
+      const amount = pricing.price * numberMonths;
+      const wallet = await WalletService.getWalletByUserIdService(clientId);
+
+      // Créer la transaction
+      const txController = require('./transaction');
+      return txController.initiate(req, res); // délégation
+
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+
   /**
    * Créer un abonnement
    * @route POST /subscription/subscribe/:clientId/pricing/:pricingId
    */
-  static async subscribe(req, res) {
+  static async subscribeWithWallet(req, res) {
     try {
       const { clientId, pricingId, month } = req.params;
       logger.info(`Création de l'abonnement pour le client ${clientId} et le plan tarifaire ${pricingId} et le nombre de mmoi ${month}`);
