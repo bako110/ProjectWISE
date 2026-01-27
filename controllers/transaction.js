@@ -228,6 +228,10 @@ class TransactionController {
           return res.json({ 
             success: true, 
             message: 'Paiement réussi, abonnement activé et wallet crédité',
+            data : {
+              reference: tx.reference,
+              subscription: subscription._id,
+            }
             // data: {
             //   subscription: {
             //     id: subscription._id,

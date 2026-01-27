@@ -84,13 +84,13 @@ class SubscriptionService {
       // });
       // const qrCodeUrl = await QRCode.toDataURL(qrData);
 
-      // // 7️⃣ Mettre à jour l'utilisateur
-      // const user = await User.findById(userId);
-      // if (user) {
-      //   user.qrCode = qrCodeUrl;
-      //   user.agencyId = agencyId;
-      //   await user.save();
-      // }
+      // 7️⃣ Mettre à jour l'utilisateur
+      const user = await User.findById(userId);
+      if (user) {
+        // user.qrCode = qrCodeUrl;
+        user.agencyId = agencyId;
+        await user.save();
+      }
 
       // 8️⃣ Sauvegarder
       await subscription.save();
@@ -167,20 +167,20 @@ class SubscriptionService {
       await passage.save();
 
       // 🔹 Génération du QR Code (avec agencyId correct et infos supplémentaires)
-      const qrData = JSON.stringify({
-        subscriptionId: subscription._id,
-        clientId,
-        agencyId,         // ✅ ID correct de l'agence
-        pricingId,        // plan utilisé
-        endDate           // pour vérifier la validité
-      });
+      // const qrData = JSON.stringify({
+      //   subscriptionId: subscription._id,
+      //   clientId,
+      //   agencyId,         // ✅ ID correct de l'agence
+      //   pricingId,        // plan utilisé
+      //   endDate           // pour vérifier la validité
+      // });
 
-      const qrCodeUrl = await QRCode.toDataURL(qrData);
+      // const qrCodeUrl = await QRCode.toDataURL(qrData);
 
       // 🔹 Stocker ou écraser le QR Code dans l'utilisateur
       const user = await User.findById(clientId);
       if (user) {
-        user.qrCode = qrCodeUrl; // écrase l'ancien QR Code si existant
+        user.agencyId = agencyId; // écrase l'ancien QR Code si existant
         await user.save();
       }
 

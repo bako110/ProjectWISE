@@ -73,9 +73,9 @@ class TransactionService {
       transactionId,
       {
         status: 'COMPLETED',
-        orangeTransactionId: omResponse.orangeTransactionId,
-        orangeResponseCode: omResponse.code,
-        orangeResponseMessage: omResponse.message,
+        operatorTransactionId: omResponse.orangeTransactionId || omResponse["trans-id"],
+        errorCode: omResponse.code || omResponse.status,
+        operatorResponse: omResponse.message,
         completedAt: new Date(),
       },
       { new: true }

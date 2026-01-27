@@ -11,7 +11,7 @@ const { collecteController } = require('../controllers/collecte.controller.js');
 
 /**
  * @swagger
- * api/collectes/user/{userId}/collecte-history:
+ * /api/collectes/user/{userId}/collecte-history:
  *   get:
  *     summary: Récupérer l'historique des collectes d'un utilisateur
  *     tags: [Collectes]
@@ -34,7 +34,7 @@ router.get('/user/:userId/collecte-history', collecteController.UserCollecteHist
 
 /**
  * @swagger
- * api/collectes/user/{userId}/collecte-reporting:
+ * /api/collectes/user/{userId}/collecte-reporting:
  *   get:
  *     summary: Récupérer les collectes en reporting d'un utilisateur
  *     tags: [Collectes]
@@ -57,7 +57,7 @@ router.get('/user/:userId/collecte-reporting', collecteController.userCollecteRe
 
 /**
  * @swagger
- * api/collectes/user/{userId}/scheduled-collectes:
+ * /api/collectes/user/{userId}/scheduled-collectes:
  *   get:
  *     summary: Récupérer les collectes planifiées d'un utilisateur
  *     tags: [Collectes]
@@ -80,7 +80,7 @@ router.get('/user/:userId/scheduled-collectes', collecteController.UserScheduled
 
 /**
  * @swagger
- * api/collectes/agency/{agencyId}/collectes:
+ * /api/collectes/agency/{agencyId}/collectes:
  *   get:
  *     summary: Récupérer toutes les collectes d'une agence
  *     tags: [Collectes]
@@ -103,7 +103,7 @@ router.get('/agency/:agencyId/collectes', collecteController.AgencyCollectes);
 
 /**
  * @swagger
- * api/collectes/agency/{agencyId}/completed-collectes:
+ * /api/collectes/agency/{agencyId}/completed-collectes:
  *   get:
  *     summary: Récupérer toutes les collectes terminées d'une agence
  *     tags: [Collectes]
@@ -126,7 +126,7 @@ router.get('/agency/:agencyId/completed-collectes', collecteController.AgencyCom
 
 /**
  * @swagger
- * api/collectes/agency/{agencyId}/reporting-collectes:
+ * /api/collectes/agency/{agencyId}/reporting-collectes:
  *   get:
  *     summary: Récupérer toutes les collectes en reporting d'une agence
  *     tags: [Collectes]
@@ -149,7 +149,7 @@ router.get('/agency/:agencyId/reporting-collectes', collecteController.AgencyRep
 
 /**
  * @swagger
- * api/collectes/collector/{collectorId}/collectes:
+ * /api/collectes/collector/{collectorId}/collectes:
  *   get:
  *     summary: Récupérer toutes les collectes d'un collecteur
  *     tags: [Collectes]
