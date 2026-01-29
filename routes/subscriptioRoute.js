@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const SubscriptionController = require('../controllers/subscription.js');
-// const { authMiddleware } = require('../middlewares/auth.js'); // sécurité JWT
+const authMiddleware = require('../middlewares/auth.js'); // sécurité JWT
 // router.use(authMiddleware);
 
 /**
@@ -35,7 +35,7 @@ const SubscriptionController = require('../controllers/subscription.js');
  *               customerMsisdn:
  *                 type: string
  */
-router.post('/subscribe/payment', SubscriptionController.subscribeWithPayment);
+router.post('/subscribe/payment', authMiddleware(), SubscriptionController.subscribeWithPayment);
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ router.post('/subscribe/payment', SubscriptionController.subscribeWithPayment);
  *       500:
  *         description: Erreur serveur
  */
-router.post('/subscribe/:clientId/pricing/:pricingId/:month', SubscriptionController.subscribeWithWallet);
+router.post('/subscribe/:clientId/pricing/:pricingId/:month', authMiddleware(), SubscriptionController.subscribeWithWallet);
 
 /**
  * @swagger
@@ -97,7 +97,7 @@ router.post('/subscribe/:clientId/pricing/:pricingId/:month', SubscriptionContro
  *       500:
  *         description: Erreur serveur
  */
-router.get('/client/:clientId', SubscriptionController.getClientSubscriptions);
+router.get('/client/:clientId', authMiddleware(), SubscriptionController.getClientSubscriptions);
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ router.get('/client/:clientId', SubscriptionController.getClientSubscriptions);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/all', SubscriptionController.getAllSubscriptions);
+router.get('/all', authMiddleware(), SubscriptionController.getAllSubscriptions);
 
 /**
  * @swagger
@@ -144,6 +144,6 @@ router.get('/all', SubscriptionController.getAllSubscriptions);
  *       500:
  *         description: Erreur serveur
  */
-router.patch('/cancel/:subscriptionId', SubscriptionController.cancel);
+router.patch('/cancel/:subscriptionId', authMiddleware(), SubscriptionController.cancel);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CollecteController = require('../controllers/qrValidation');
+const authMiddleware = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -37,7 +38,7 @@ const CollecteController = require('../controllers/qrValidation');
  *       500:
  *         description: Erreur serveur
  */
-router.post('/scan', CollecteController.updateStatus);
+router.post('/scan', authMiddleware(), CollecteController.updateStatus);
 
 /**
  * @swagger
@@ -56,7 +57,7 @@ router.post('/scan', CollecteController.updateStatus);
  *       200:
  *         description: Liste des collectes
  */
-router.get('/agency/:agencyId', CollecteController.getCollectesByAgency);
+router.get('/agency/:agencyId', authMiddleware(), CollecteController.getCollectesByAgency);
 
 /**
  * @swagger
@@ -75,7 +76,7 @@ router.get('/agency/:agencyId', CollecteController.getCollectesByAgency);
  *       200:
  *         description: Liste des collectes
  */
-router.get('/collector/:collectorId', CollecteController.getCollectesByCollector);
+router.get('/collector/:collectorId', authMiddleware(), CollecteController.getCollectesByCollector);
 
 /**
  * @swagger
@@ -87,6 +88,6 @@ router.get('/collector/:collectorId', CollecteController.getCollectesByCollector
  *       200:
  *         description: Liste de toutes les collectes
  */
-router.get('/all', CollecteController.getAllCollectes);
+router.get('/all', authMiddleware(), CollecteController.getAllCollectes);
 
 module.exports = router;

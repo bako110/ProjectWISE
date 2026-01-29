@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AgencyEmployeeController = require('../controllers/agencyEmployee');
+const authMiddleware = require('../middlewares/auth');
 // const protect = require('../middlewares/auth');
 
 /**
@@ -119,7 +120,7 @@ const AgencyEmployeeController = require('../controllers/agencyEmployee');
  *       500:
  *         description: Erreur serveur
  */
-router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
+router.get('/:agencyId/employees', authMiddleware(), AgencyEmployeeController.getEmployees);
 
 /**
  * @swagger
@@ -209,7 +210,7 @@ router.get('/:agencyId/employees', AgencyEmployeeController.getEmployees);
  *         description: Erreur serveur
  */
 
-router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgency);
+router.get('/:agencyId/collectors', authMiddleware(), AgencyEmployeeController.getCollectorsByAgency);
 
 /**
  * @swagger
@@ -263,6 +264,6 @@ router.get('/:agencyId/collectors', AgencyEmployeeController.getCollectorsByAgen
  *         description: Erreur serveur
  */
 
-router.get('/:agencyId/clients', AgencyEmployeeController.getClientsByAgency);
+router.get('/:agencyId/clients', authMiddleware(), AgencyEmployeeController.getClientsByAgency);
 
 module.exports = router;

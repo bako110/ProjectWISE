@@ -9,6 +9,7 @@ const {
   verifyResetCode,
   getProfile
 } = require('../controllers/auth.js');
+const authMiddleware = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -240,7 +241,7 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-reset-code', verifyResetCode);
 router.post('/reset-password', resetPassword);
-router.get('/profile/:userId', getProfile);
+router.get('/profile/:userId', authMiddleware(), getProfile);
 
 
 module.exports = router;

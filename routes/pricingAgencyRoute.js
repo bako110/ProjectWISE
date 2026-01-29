@@ -1,4 +1,5 @@
 const express = require('express');
+const authMiddleware = require('../middlewares/auth.js');
 const {
     createPricingController,
     getPricingsController,
@@ -62,7 +63,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur
  */
-router.post('/', createPricingController);
+router.post('/', authMiddleware('manager'), createPricingController);
 
 /**
  * @swagger
@@ -134,7 +135,7 @@ router.get('/:agencyId', getPricingsController);
  *       500:
  *         description: Erreur serveur
  */
-router.put('/:id', updatePricingController);
+router.put('/:id', authMiddleware('manager'), updatePricingController);
 
 /**
  * @swagger
@@ -172,6 +173,6 @@ router.put('/:id', updatePricingController);
  *       500:
  *         description: Erreur serveur
  */
-router.delete('/:id', deletePricingController);
+router.delete('/:id', authMiddleware('manager'), deletePricingController);
 
 module.exports = router;

@@ -7,6 +7,7 @@ const {
   getAllPlannings,
   getPlanningsByCollector, // <-- ajouté
 } = require('../controllers/planning');
+const authMiddleware = require('../middlewares/auth.js');
 
 const express = require('express');
 const router = express.Router();
@@ -174,12 +175,12 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 
-router.post('/create', createPlanning);
-router.get('/get/:id', getPlanningById);
-router.put('/update/:id', updatePlanning);
-router.delete('/delete/:id', deletePlanning);
-router.get('/getAll', getAllPlannings);
-router.get('/agency/:agencyId', getPlanningsByAgency);
-router.get('/collector/:collectorId', getPlanningsByCollector); // ✅ Nouvelle route
+router.post('/create', authMiddleware('manager'), createPlanning);
+router.get('/get/:id', authMiddleware(), getPlanningById);
+router.put('/update/:id', authMiddleware('manager'), updatePlanning);
+router.delete('/delete/:id', authMiddleware('manager'), deletePlanning);
+router.get('/getAll', authMiddleware(), getAllPlannings);
+router.get('/agency/:agencyId', authMiddleware(), getPlanningsByAgency);
+router.get('/collector/:collectorId', authMiddleware(), getPlanningsByCollector); // ✅ Nouvelle route
 
 module.exports = router;

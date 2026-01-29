@@ -31,6 +31,42 @@ connectDB();
 
 const app = express();
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  // Log de la requête entrante
+  logger.info({
+    type: 'request',
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+  });
+
+  // Intercepter la réponse
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const logData = {
+      type: 'response',
+      method: req.method,
+      url: req.url,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+    };
+
+    // Logger selon le statut
+    if (res.statusCode >= 500) {
+      logger.error(logData);
+    } else if (res.statusCode >= 400) {
+      logger.warn(logData);
+    } else {
+      logger.info(logData);
+    }
+  });
+
+  next();
+});
+
 // ✅ Middleware globaux
 app.use(cors({
   origin: '*',
@@ -56,6 +92,19 @@ app.use('/api/collecte', qrValidationRoute);
 app.use('/api/State_agencies', stateForAgencyRoute);
 app.use('/api/collectes', collecteRoute);
 app.use('/api/transactions', transactionRoute);
+
+// ✅ Middleware de gestion d'erreurs
+app.use((err, req, res, next) => {
+  logger.error({
+    type: 'error',
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+  });
+  
+  // res.status(500).json({ error: 'Erreur serveur', details: err.message });
+});
 
 // ✅ Swagger (documentation)
 swaggerDocs(app);

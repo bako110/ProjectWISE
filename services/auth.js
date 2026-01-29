@@ -45,8 +45,8 @@ const genererateToken = async (user) => {
         id: user._id,
         role: user.role,
         email: user.email,
-        agencyId: user.agencyId || null, // <- ajouter ici
-        isOwnerAgency: user.isOwnerAgency || false
+        // agencyId: user.agencyId || null, // <- ajouter ici
+        // isOwnerAgency: user.isOwnerAgency || false
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
     return token;

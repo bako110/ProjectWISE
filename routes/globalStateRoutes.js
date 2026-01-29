@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDashboardStats, getCollectorStatistics } = require('../controllers/globalSate');
+const authMiddleware = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -107,7 +108,7 @@ const { getDashboardStats, getCollectorStatistics } = require('../controllers/gl
  *       500:
  *         description: Erreur serveur
  */
-router.get('/', getDashboardStats);
+router.get('/', authMiddleware(), getDashboardStats);
 
 /**
  * @swagger
@@ -154,6 +155,6 @@ router.get('/', getDashboardStats);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collector/:collectorId', getCollectorStatistics);
+router.get('/collector/:collectorId', authMiddleware(), getCollectorStatistics);
 
 module.exports = router;

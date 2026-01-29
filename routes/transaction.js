@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const TransactionController = require('../controllers/transaction.js');
+const authMiddleware = require('../middlewares/auth.js');
 
 // import TransactionController from '../controllers/transaction.js';
 
@@ -56,7 +57,7 @@ const TransactionController = require('../controllers/transaction.js');
  *       400:
  *         description: Erreur métier
  */
-router.post('/initiate', TransactionController.initiate);
+router.post('/initiate', authMiddleware(), TransactionController.initiate);
 
 /**
  * @swagger
@@ -83,7 +84,7 @@ router.post('/initiate', TransactionController.initiate);
  *       400:
  *         description: Transaction invalide
  */
-router.post('/resend-otp', TransactionController.resendOtp);
+router.post('/resend-otp', authMiddleware(), TransactionController.resendOtp);
 
 /**
  * @swagger
@@ -114,6 +115,6 @@ router.post('/resend-otp', TransactionController.resendOtp);
  *       400:
  *         description: Paiement échoué
  */
-router.post('/confirm', TransactionController.confirm);
+router.post('/confirm', authMiddleware(), TransactionController.confirm);
 
 module.exports = router;

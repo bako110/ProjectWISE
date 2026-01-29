@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const AgencyStatsController = require('../controllers/stateForAgency');
+const authMiddleware = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -87,6 +88,6 @@ const AgencyStatsController = require('../controllers/stateForAgency');
  *                   example: Erreur lors de la récupération des statistiques
  */
 
-router.get('/:agencyId/stats', AgencyStatsController.getStats);
+router.get('/:agencyId/stats', authMiddleware(), AgencyStatsController.getStats);
 
 module.exports = router;

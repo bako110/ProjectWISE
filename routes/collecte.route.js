@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { collecteController } = require('../controllers/collecte.controller.js');
+const authMiddleware = require('../middlewares/auth.js');
 
 /**
  * @swagger
@@ -30,7 +31,7 @@ const { collecteController } = require('../controllers/collecte.controller.js');
  *       500:
  *         description: Erreur serveur
  */
-router.get('/user/:userId/collecte-history', collecteController.UserCollecteHistory);
+router.get('/user/:userId/collecte-history', authMiddleware(), collecteController.UserCollecteHistory);
 
 /**
  * @swagger
@@ -53,7 +54,7 @@ router.get('/user/:userId/collecte-history', collecteController.UserCollecteHist
  *       500:
  *         description: Erreur serveur
  */
-router.get('/user/:userId/collecte-reporting', collecteController.userCollecteReporting);
+router.get('/user/:userId/collecte-reporting', authMiddleware(), collecteController.userCollecteReporting);
 
 /**
  * @swagger
@@ -76,7 +77,7 @@ router.get('/user/:userId/collecte-reporting', collecteController.userCollecteRe
  *       500:
  *         description: Erreur serveur
  */
-router.get('/user/:userId/scheduled-collectes', collecteController.UserScheduledCollectes);
+router.get('/user/:userId/scheduled-collectes', authMiddleware(), collecteController.UserScheduledCollectes);
 
 /**
  * @swagger
@@ -99,7 +100,7 @@ router.get('/user/:userId/scheduled-collectes', collecteController.UserScheduled
  *       500:
  *         description: Erreur serveur
  */
-router.get('/agency/:agencyId/collectes', collecteController.AgencyCollectes);
+router.get('/agency/:agencyId/collectes', authMiddleware(), collecteController.AgencyCollectes);
 
 /**
  * @swagger
@@ -122,7 +123,7 @@ router.get('/agency/:agencyId/collectes', collecteController.AgencyCollectes);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/agency/:agencyId/completed-collectes', collecteController.AgencyCompletedCollectes);
+router.get('/agency/:agencyId/completed-collectes', authMiddleware(), collecteController.AgencyCompletedCollectes);
 
 /**
  * @swagger
@@ -145,7 +146,7 @@ router.get('/agency/:agencyId/completed-collectes', collecteController.AgencyCom
  *       500:
  *         description: Erreur serveur
  */
-router.get('/agency/:agencyId/reporting-collectes', collecteController.AgencyReportingCollectes);
+router.get('/agency/:agencyId/reporting-collectes', authMiddleware(), collecteController.AgencyReportingCollectes);
 
 /**
  * @swagger
@@ -168,7 +169,7 @@ router.get('/agency/:agencyId/reporting-collectes', collecteController.AgencyRep
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collector/:collectorId/collectes', collecteController.CollectorCollectes);
+router.get('/collector/:collectorId/collectes', authMiddleware(), collecteController.CollectorCollectes);
 
 
 /**
@@ -237,7 +238,7 @@ router.get('/collector/:collectorId/collectes', collecteController.CollectorColl
  *                   example: "L'ID de la collecte est requis"
  */
 
-router.patch('/:collecteId/report/:userId', collecteController.reportCollecte);
+router.patch('/:collecteId/report/:userId', authMiddleware(), collecteController.reportCollecte);
 
 
 /**
@@ -261,7 +262,7 @@ router.patch('/:collecteId/report/:userId', collecteController.reportCollecte);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collector/:collectorId/reporting-collectes', collecteController.CollectorReportingCollectes);
+router.get('/collector/:collectorId/reporting-collectes', authMiddleware(), collecteController.CollectorReportingCollectes);
 
 /**
  * @swagger
@@ -284,6 +285,6 @@ router.get('/collector/:collectorId/reporting-collectes', collecteController.Col
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collector/:collectorId/completed-collectes', collecteController.CollectorCompletedCollectes);
+router.get('/collector/:collectorId/completed-collectes', authMiddleware(), collecteController.CollectorCompletedCollectes);
 
 module.exports = router;

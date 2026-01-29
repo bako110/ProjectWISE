@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middlewares/auth.js');
 
 const {  
   getUser,
@@ -145,11 +146,11 @@ const {
  */
 
 // Routes de gestion des utilisateurs
-router.get('/user/:id', getUser);
-router.get('/users', getAllUsers);
-router.put('/user/:id', updateUserById);
-router.delete('/user/:id', deleteUserById);
-router.get('/clients/:agencyId', getClientByAgency);
-router.get('/employees/:agencyId', getUsersByAgency);
+router.get('/user/:id', authMiddleware(), getUser);
+router.get('/users', authMiddleware(), getAllUsers);
+router.put('/user/:id', authMiddleware(), updateUserById);
+router.delete('/user/:id', authMiddleware('admin'), deleteUserById);
+router.get('/clients/:agencyId', authMiddleware(), getClientByAgency);
+router.get('/employees/:agencyId', authMiddleware(), getUsersByAgency);
 
 module.exports = router;

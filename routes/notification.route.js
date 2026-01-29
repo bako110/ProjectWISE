@@ -1,4 +1,5 @@
 const  {notificationController} = require('../controllers/notification.controller.js');
+const authMiddleware = require('../middlewares/auth.js');
 
 const express = require('express');
 const router = express.Router(); 
@@ -33,7 +34,7 @@ const router = express.Router();
  *      500:
  *        description: Erreur serveur
  */
-router.post('/create', notificationController.createNotification);
+router.post('/create', authMiddleware(), notificationController.createNotification);
 
 /** * @swagger
  * /api/notifications/get/{id}:

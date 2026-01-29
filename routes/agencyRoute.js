@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const agencyController = require('../controllers/agency');
+const authMiddleware = require('../middlewares/auth.js');
 // const { authenticate, authorize } = require('../middlewares/auth');
 
 
@@ -106,7 +107,7 @@ router.get('/', agencyController.getAllAgencies);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/status/:status', agencyController.getAgenciesByStatus);
+router.get('/status/:status', authMiddleware(), agencyController.getAgenciesByStatus);
 
 /**
  * @swagger
@@ -193,7 +194,7 @@ router.get('/:id', agencyController.getAgency);
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-router.put('/:id', agencyController.updateAgency);
+router.put('/:id', authMiddleware(), agencyController.updateAgency);
 
 /**
  * @swagger
@@ -226,7 +227,7 @@ router.put('/:id', agencyController.updateAgency);
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
-router.delete('/:id',  agencyController.deleteAgency);
+router.delete('/:id', authMiddleware('admin'),  agencyController.deleteAgency);
 
 /**
  * @swagger
@@ -259,7 +260,7 @@ router.delete('/:id',  agencyController.deleteAgency);
  *       404:
  *         description: Agence non trouvée
  */
-router.get('/:agencyId/zones', agencyController.getZones);
+router.get('/:agencyId/zones', authMiddleware(), agencyController.getZones);
 
 /**
  * @swagger
@@ -270,7 +271,11 @@ router.get('/:agencyId/zones', agencyController.getZones);
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - $ref: '#/components/schemas/Agency/agencyId'
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -301,6 +306,6 @@ router.get('/:agencyId/zones', agencyController.getZones);
  *       404:
  *         description: Agence non trouvée
  */
-router.patch('/:id/zone',  agencyController.upadateZone);
+router.patch('/:id/zone', authMiddleware(), agencyController.upadateZone);
 
 module.exports = router;

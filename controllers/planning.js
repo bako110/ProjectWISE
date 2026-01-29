@@ -11,9 +11,9 @@ exports.createPlanning = async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        const data = req.body;
-        
-        const planning = await createPlanning(data);
+        // const data = req.body;
+        logger.info('Creating planning...');
+        const planning = await createPlanning({managerId, agencyId, startTime, endTime, collectorId, zone, date});
         const message = `Un nouveau planning a été créé pour le ${date}.`;
         await notificationService.createNotification({
             user: collectorId,

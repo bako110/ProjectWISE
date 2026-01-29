@@ -1,4 +1,5 @@
 const { messageController } = require('../controllers/message.controller.js');
+const authMiddleware = require('../middlewares/auth.js');
 
 
 const express = require('express');
@@ -181,14 +182,13 @@ const router = express.Router();
  *        description: Erreur serveur
  */
 
-router.get('/unread-count/:userId', messageController.getUserMessagesUnread);
-router.get('/:userId/all', messageController.getUserMessages);
-router.post('/send', messageController.sendMessage);
+router.get('/unread-count/:userId', authMiddleware(), messageController.getUserMessagesUnread);
+router.get('/:userId/all', authMiddleware(), messageController.getUserMessages);
+router.post('/send', authMiddleware(), messageController.sendMessage);
 
-router.get('/:userId/inbox/:receiverId', messageController.getMessages);
+router.get('/:userId/inbox/:receiverId', authMiddleware(), messageController.getMessages);
 
-router.get('/groups/:userId', messageController.getGroupeName);
-router.put('/markAsRead/:messageId', messageController.markMessagesAsRead);
-router.delete('/:messageId', messageController.deleteMessage);
-
+router.get('/groups/:userId', authMiddleware(), messageController.getGroupeName);
+router.put('/markAsRead/:messageId', authMiddleware(), messageController.markMessagesAsRead);
+router.delete('/:messageId', authMiddleware(), messageController.deleteMessage);
 module.exports = router;
