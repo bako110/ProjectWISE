@@ -1,6 +1,7 @@
 const User = require('../models/User.js');
 const Agency = require('../models/agency.js');
 const jwt = require('jsonwebtoken');
+const QRCode = require('qrcode');
 const { sendResetPasswordEmail } = require('../utils/sendResetCodeMail.js');
 
 const registerUser = async (userData) => {
@@ -8,7 +9,17 @@ const registerUser = async (userData) => {
   if (existingUser) {
     throw new Error('Un utilisateur avec cet email ou téléphone existe déjà');
   }
+
+    
+
   const user = new User(userData);
+  const qrData = JSON.stringify({
+        id: user._id,
+        code: user.address.neighborhood,
+        name: user.firstName + ' ' + user.lastName,
+      });
+    const qrCodeUrl = await QRCode.toDataURL(qrData);
+  user.qrCode = qrCodeUrl;
   await user.save();
   const newUser = user.toObject();
   delete newUser.password;
@@ -17,7 +28,7 @@ const registerUser = async (userData) => {
 
 const createAgency = async (agencyData) => {
 
-  const existingAgency = await Agency.findOne({ name: agencyData.name });
+  const existingAgency = await Agency.findOne({ name: agencyData.name }); 
   if (existingAgency) {
     throw new Error('Une agence avec ce nom existe déjà');
   }
@@ -141,6 +152,22 @@ const getProfile = async (userId) => {
   }
   return userObject;
 }
+
+const genereateQRCodeForUser = async (id) => {
+    const user = await User.findById(id);
+    if (!user) {
+        throw new Error('Utilisateur non trouvé');
+    }
+    const qrData = JSON.stringify({
+        id: user._id,
+        code: user.address.neighborhood,
+        name: user.firstName + ' ' + user.lastName,
+    });
+    const qrCode = await QRCode.toDataURL(qrData);
+    user.qrCode = qrCode;
+    await user.save();
+    return true;
+}
 module.exports = { 
   genererateToken, 
   registerUser, 
@@ -150,5 +177,6 @@ module.exports = {
   resetPasswordWithCode,
   verifyResetCode,
   resetPassword,
-  getProfile
+  getProfile,
+  genereateQRCodeForUser
 };

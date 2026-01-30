@@ -29,7 +29,7 @@ const planningSchema = new mongoose.Schema({
     },
     agencyId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Agency',
+        ref: 'Agence',
         required: true
     },
     code : {

@@ -4,13 +4,17 @@ class CollecteController {
 
   static async updateStatus(req, res) {
     try {
-      const { collectId, status } = req.body;
-      if (!collectId || !status) {
-        return res.status(400).json({ message: 'collectId and status are required' });
+      const { code, id, name } = req.body;
+      if (!code || !id || !name) {
+        return res.status(400).json({ message: 'code, id and name are required' });
       }
 
-      const collecte = await CollecteService.updateCollecteStatus({ collectId, status });
-      return res.status(200).json({ message: 'Collecte status updated successfully', collecte });
+      const collecte = await CollecteService.updateCollecteStatus({ code, id, name });
+      if (!collecte) {
+        return res.status(404).json({ message: 'Collecte not found' });
+      }
+      
+      return res.status(200).json({ message: 'Collecte status updated successfully' });
 
     } catch (error) {
       return res.status(500).json({ message: error.message });

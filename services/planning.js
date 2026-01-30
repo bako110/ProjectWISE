@@ -129,7 +129,7 @@ const createPlanning = async (planningData) => {
                 if (passage.passNumber >= passage.dayNumber) {
                     passage.weekNumber += 1;
                     passage.passNumber = 1;
-                    nbCollecte = 1;
+                    nbCollecte = 1.0;
                     logger.debug({ 
                         msg: 'Nouvelle semaine',
                         userId: user._id,

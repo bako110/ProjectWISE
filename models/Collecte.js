@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const collecteSchema = new mongoose.Schema({
     agencyId: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Agency', 
+        ref: 'Agence', 
         required: true 
     },
     collectorId: { 
@@ -26,7 +26,8 @@ const collecteSchema = new mongoose.Schema({
         default: 'Scheduled' 
     },
     code: { 
-        type: String 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Planning', 
     },
     photos: { 
         type: [String], 

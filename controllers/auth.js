@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const {notoficationService} = require('../services/notification.service.js');
-const { genererateToken, registerUser, createAgency, loginUser, requestPasswordReset, resetPasswordWithCode, verifyResetCode, getProfile } = require('../services/auth.js');
+const { genereateQRCodeForUser, genererateToken, registerUser, createAgency, loginUser, requestPasswordReset, resetPasswordWithCode, verifyResetCode, getProfile } = require('../services/auth.js');
 const { sendPasswordResetConfirmation, sendWelcomeEmail } = require('../utils/sendResetCodeMail.js');
 const logger = require('./../utils/logger');
 
@@ -257,6 +257,19 @@ exports.getProfile = async (req, res) => {
         // const userId = req.user._id; // Supposant que l'ID utilisateur est dans req.user._id
         const profile = await getProfile(userId);
         res.json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.genereateQRCodeForUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const qrCode = await genereateQRCodeForUser(userId);
+        if (!qrCode) {
+            return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+        }
+        res.json({ success: true, message: 'QR Code généré avec succès' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

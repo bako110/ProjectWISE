@@ -1,4 +1,5 @@
 const { collecteService } = require('../services/collecte.service.js');
+const logger = require('../utils/logger');
 
 exports.collecteController = {
 
@@ -23,15 +24,34 @@ exports.collecteController = {
         }
     },
 
+    // async UserScheduledCollectes(req, res) {
+    //     try {
+    //         logger.info('Fetching scheduled collectes for user:', req.user || 'Unknown User');
+    //         const { userId } = req.params;
+    //         const collectes = await collecteService.UserScheduledCollectes(userId);
+    //         res.status(200).json(collectes);
+    //     } catch (error) {
+    //         res.status(500).json({ message: error.message });
+    //     }
+    // },
     async UserScheduledCollectes(req, res) {
         try {
+            logger.info('Fetching scheduled collectes for user:', req.user || 'Unknown User');
+
             const { userId } = req.params;
-            const collectes = await collecteService.UserScheduledCollectes(userId);
+            const { startDate, endDate } = req.query;
+
+            const collectes = await collecteService.UserScheduledCollectes(userId, {
+            startDate,
+            endDate
+            });
+
             res.status(200).json(collectes);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
+
 
     /** 🔹 AGENCE */
     async AgencyCollectes(req, res) {

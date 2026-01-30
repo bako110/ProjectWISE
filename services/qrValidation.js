@@ -1,4 +1,6 @@
 const Collecte = require('../models/Collecte');
+const mongoose = require('mongoose');
+const User = require('../models/User');
 const logger = require('../utils/logger');
 
 class CollecteService {
@@ -7,21 +9,56 @@ class CollecteService {
    * @param {String} collectId - ID de la collecte
    * @param {String} status - Nouveau statut
    */
-  static async updateCollecteStatus({ collectId, status }) {
-    try {
-      const collecte = await Collecte.findById(collectId);
-      if (!collecte) throw new Error('Collecte not found');
+  static async updateCollecteStatus({ code, id, name }) {
+  try {
+    const now = new Date();
 
-      collecte.status = status;
-      await collecte.save();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
 
-      logger.info(`Collecte ${collecte._id} status updated to ${status}`);
-      return collecte;
-    } catch (error) {
-      logger.error(error);
-      throw new Error(error.message);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    logger.info(`Updating collecte status for user ID: ${id}`);
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error('Invalid user ID');
     }
+
+    const user = await User.findById(id);
+    if (!user) throw new Error('User not found');
+
+    if (`${user.firstName} ${user.lastName}` !== name) {
+      throw new Error('Name does not match user record');
+    }
+
+    if (user.address.neighborhood !== code) {
+      throw new Error('Code does not match user record');
+    }
+
+    const collecte = await Collecte.findOne({
+      clientId: id,
+      status: 'Scheduled',
+      date: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    if (!collecte) {
+      logger.info(`No scheduled collecte found for user ID: ${id} today`);
+      return false; // 👈 important
+    }
+
+    collecte.status = 'Collected';
+    await collecte.save();
+
+    logger.info(`Collecte ${collecte._id} status updated to Collected`);
+    return true;
+
+  } catch (error) {
+    logger.error(error);
+    throw error;
   }
+}
+
 
   static async getCollectesByAgency(agencyId) {
     return await Collecte.find({ agencyId })

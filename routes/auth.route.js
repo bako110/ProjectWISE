@@ -7,7 +7,8 @@ const {
   forgotPassword,
   resetPassword,
   verifyResetCode,
-  getProfile
+  getProfile,
+  genereateQRCodeForUser
 } = require('../controllers/auth.js');
 const authMiddleware = require('../middlewares/auth.js');
 
@@ -230,6 +231,33 @@ const authMiddleware = require('../middlewares/auth.js');
  *         description: Utilisateur non trouvé
  *       500:
  *        description: Erreur interne du serveur
+ * /api/qrcode/{userId}:
+ *   get:
+ *     summary: Générer un QR code pour un utilisateur
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: QR code généré avec succès
+ *         content:
+ *           image/png:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       401:
+ *         description: Utilisateur non autorisé
+ *       404:
+ *         description: Utilisateur non trouvé
+ *       500:
+ *         description: Erreur interne du serveur
  */
 
 
@@ -241,6 +269,7 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-reset-code', verifyResetCode);
 router.post('/reset-password', resetPassword);
+router.get('/qrcode/:userId', authMiddleware(), genereateQRCodeForUser);
 router.get('/profile/:userId', authMiddleware(), getProfile);
 
 

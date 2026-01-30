@@ -57,6 +57,7 @@ const authMiddleware = (roles = []) => {
         msg: 'Authentification réussie',
         userId: user._id.toString(),
         role: user.role,
+        ip: req.ip,
         url: req.url,
         method: req.method,
         duration: Date.now() - startTime

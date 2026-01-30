@@ -1,5 +1,6 @@
 const Collecte = require('../models/Collecte');
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 // Créer une nouvelle collecte
 exports.createCollecte = async (data) => {
@@ -47,7 +48,7 @@ exports.collecteService = {
     /** 🔹 HISTORIQUES UTILISATEUR */
     async UserCollecteHistory(userId) {
         if (!userId) throw new Error('User ID is required');
-        return await Collecte.find({ clientId: userId, status: 'Collected' }).sort({ date: -1 });
+        return await Collecte.find({ clientId: userId, $or: [{ status: 'Completed' }, { status: 'Collected' }] }).sort({ date: -1 });
     },
 
     async UserReportingHistory(userId) {
@@ -55,10 +56,48 @@ exports.collecteService = {
         return await Collecte.find({ clientId: userId, status: 'Reported' }).sort({ date: -1 });
     },
 
-    async UserScheduledCollectes(userId) {
+    // async UserScheduledCollectes(userId, query) {
+    //     if (!userId) throw new Error('User ID is required');
+    //     logger.info(`Fetching scheduled collectes for user ID: ${userId}`);
+    //     return await Collecte.find({ clientId: userId, status: 'Scheduled' }).populate('agencyId', 'name').populate('collectorId', 'lastName firstName').populate('code', 'startTime endTime zone agencyId').sort({ date: -1 });
+    // },
+    async UserScheduledCollectes(userId, query = {}) {
         if (!userId) throw new Error('User ID is required');
-        return await Collecte.find({ clientId: userId, status: 'Scheduled' }).sort({ date: -1 });
+
+        logger.info(`Fetching scheduled collectes for user ID: ${userId}`);
+
+        const filter = {
+            clientId: userId,
+            status: 'Scheduled'
+        };
+
+        // 🔎 Filtre sur date de création
+        if (query.startDate || query.endDate) {
+            filter.createdAt = {};
+
+            if (query.startDate) {
+            filter.createdAt.$gte = new Date(query.startDate);
+            }
+
+            if (query.endDate) {
+            filter.createdAt.$lte = new Date(query.endDate);
+            }
+        }
+
+        return await Collecte.find(filter)
+            .populate('agencyId', 'name')
+            .populate('collectorId', 'lastName firstName')
+            .populate({
+            path: 'code',
+            select: 'startTime endTime zone agencyId',
+            populate: {
+                path: 'agencyId',
+                select: 'name'
+            }
+            })
+            .sort({ date: -1 });
     },
+
 
     /** 🔹 AGENCE */
     async AgencyCollectes(agencyId) {

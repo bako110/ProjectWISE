@@ -69,6 +69,21 @@ router.get('/user/:userId/collecte-reporting', authMiddleware(), collecteControl
  *         schema:
  *           type: string
  *         description: ID de l'utilisateur
+ *       - in: query
+ *         name: startDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de début (filtre sur createdAt)
+ *
+ *       - in: query
+ *         name: endDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de fin (filtre sur createdAt)
  *     responses:
  *       200:
  *         type: array
