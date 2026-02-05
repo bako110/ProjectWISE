@@ -61,21 +61,66 @@ class CollecteService {
 
 
   static async getCollectesByAgency(agencyId) {
-    return await Collecte.find({ agencyId })
-      .populate('clientId', 'lastName email qrCode')
-      .populate('collectorId', 'lastName email');
-  }
+  // Définir le début et la fin de la journée
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Récupérer les collectes d'aujourd'hui
+  const collectes = await Collecte.find({
+    agencyId,
+    date: {
+      $gte: startOfDay,
+      $lte: endOfDay
+    },
+    status: { $in: ['Scheduled', 'Collected'] }
+  })
+    .populate('clientId', 'lastName firstName email')
+    .populate('collectorId', 'lastName firstName email')
+    .sort({ date: 1 }); // Trier par date
+
+  // Calculer les statistiques par status
+  const stats = collectes.reduce((acc, collecte) => {
+    const status = collecte.status;
+    if (!acc[status]) {
+      acc[status] = {
+        count: 0,
+        collectes: []
+      };
+    }
+    acc[status].count++;
+    acc[status].collectes.push(collecte);
+    return acc;
+  }, {});
+
+  // Ajouter un résumé global
+  const summary = {
+    total: collectes.length,
+    scheduled: stats['Scheduled']?.count || 0,
+    collected: stats['Collected']?.count || 0
+  };
+
+  return {
+    collectes,
+    // stats,
+    summary,
+    date: startOfDay
+  };
+}
+
 
   static async getCollectesByCollector(collectorId) {
     return await Collecte.find({ collectorId })
-      .populate('clientId', 'lastName email qrCode')
+      .populate('clientId', 'lastName firstName email')
       .populate('agencyId', 'name');
   }
 
   static async getAllCollectes() {
     return await Collecte.find()
-      .populate('clientId', 'lastName email qrCode')
-      .populate('collectorId', 'lastName email')
+      .populate('clientId', 'lastName firstName email qrCode')
+      .populate('collectorId', 'lastName firstName email')
       .populate('agencyId', 'name');
   }
 }

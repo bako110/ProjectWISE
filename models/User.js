@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   },
   agencyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Agency',
+    ref: 'Agence',
     default: null,
   },
   qrToken: {

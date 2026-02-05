@@ -24,6 +24,8 @@ const qrValidationRoute = require('./routes/qrcodeValidationRoute.js');
 const stateForAgencyRoute = require ('./routes/stateForAgencyRoute.js');
 const collecteRoute = require ('./routes/collecte.route.js');
 const transactionRoute = require ('./routes/transaction.js');
+const dechetRoute = require ('./routes/dechet.route.js');
+const territoryRoute = require ('./routes/territory.route.js');
 
 
 dotenv.config();
@@ -92,6 +94,8 @@ app.use('/api/collecte', qrValidationRoute);
 app.use('/api/State_agencies', stateForAgencyRoute);
 app.use('/api/collectes', collecteRoute);
 app.use('/api/transactions', transactionRoute);
+app.use('/api/dechets', dechetRoute);
+app.use('/api/territories', territoryRoute);
 
 // ✅ Middleware de gestion d'erreurs
 app.use((err, req, res, next) => {

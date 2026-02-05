@@ -2,22 +2,46 @@ const User = require('../models/User.js');
 const Agency = require('../models/agency.js');
 
 const getUserById = async (userId) => {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId)
+        .select('-password')
+        .populate('agencyId', 'name')
+        .lean(); // Convertir en objet JavaScript simple
+    
     if (!user) {
-        throw new Error('Utilisateur non rencontré');
+        throw new Error('Utilisateur non trouvé');
     }
-    return user;
-}
+
+    // Renommer agencyId en agency
+    const { agencyId, ...rest } = user;
+
+    return {
+        ...rest,
+        agencyId: agencyId?._id || agencyId, // Garder juste l'ID
+        agency: agencyId // L'objet complet
+    };
+};
+
 
 const getUsers = async (filtre = {}, pagination = {}) => {
-    const users = await User.find(filtre)
-        .skip(pagination.skip || 0)
-        .limit(pagination.limit || 10);
+    const [users, total] = await Promise.all([
+        User.find(filtre)
+            .select('-password')
+            .populate('agencyId', 'name')
+            .skip(pagination.skip || 0)
+            .limit(pagination.limit || 10)
+            .lean(),
+        User.countDocuments(filtre)
+    ]);
 
-    const total = await User.countDocuments(filtre);
+    const formattedUsers = users.map(user => ({
+        ...user,
+        agency: user.agencyId,
+        agencyId: user.agencyId?._id || user.agencyId
+    }));
 
-    return { users, total };
+    return { users: formattedUsers, total };
 };
+
 
 const updateUser = async (userId, updateData) => {
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });

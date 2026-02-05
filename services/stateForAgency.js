@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Agency = require('../models/agency');
+const Collecte = require('../models/Collecte');
+const logger = require('../utils/logger');
 
 class AgencyStatsService {
   /**
@@ -36,6 +38,12 @@ class AgencyStatsService {
         status: { $ne: 'deleted' },
       });
 
+      // Compter les collectes
+      const reportingCollectesCount = await Collecte.countDocuments({
+        agencyId,
+        status: 'Reported',
+      });
+
       // Statut général de l’agence
       const agencyStatus = agency.status;
 
@@ -47,6 +55,9 @@ class AgencyStatsService {
         totalClientsActifs: activeClientsCount,
         totalCollecteurs: collectorsCount,
         totalGestionnaires: managersCount,
+        totalEmployees: collectorsCount + managersCount,
+        totalZone : agency.zoneActivite.length,
+        totalReporting: reportingCollectesCount,
       };
 
     } catch (error) {

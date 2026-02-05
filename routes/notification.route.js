@@ -37,13 +37,13 @@ const router = express.Router();
 router.post('/create', authMiddleware(), notificationController.createNotification);
 
 /** * @swagger
- * /api/notifications/get/{id}:
+ * /api/notifications/{userId}:
  *  get:
  *    summary: Récupérer une notification par ID utilisateur
  *    tags: [Notification]
  *    parameters:
  *      - in: path
- *        name: id
+ *        name: userId
  *        schema:
  *          type: string
  *        required: true
@@ -59,7 +59,57 @@ router.post('/create', authMiddleware(), notificationController.createNotificati
  *      500:
  *        description: Erreur serveur
  */
-router.get('/get/:id', notificationController.getNotifications);
+router.get('/:userId', notificationController.getNotifications);
+
+/** * @swagger
+ * /api/notifications/unread/{userId}:
+ *  get:
+ *    summary: Récupérer les notifications non lues par ID utilisateur
+ *    tags: [Notification]
+ *    parameters:
+ *      - in: path
+ *        name: userId
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: ID de l'utilisateur
+ *    responses:
+ *      200:
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Notification'
+ *      404:
+ *        description: Notification non trouvée
+ *      500:
+ *        description: Erreur serveur
+ */
+router.get('/unread/:userId', notificationController.getUnreadNotifications);
+
+/** * @swagger
+ * /api/notifications/detail/{id}:
+ *  get:
+ *    summary: Récupérer une notification par ID
+ *    tags: [Notification]
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *        required: true        
+ *        description: ID de la notification
+ *    responses:
+ *      200:
+ *        content:
+ *          application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Notification'
+ *      404:
+ *        description: Notification non trouvée
+ *      500:
+ *        description: Erreur serveur
+ */
+router.get('/detail/:id', notificationController.getNotificationById);
 
 /** * @swagger
  * /api/notifications/update/{id}:

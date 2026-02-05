@@ -26,10 +26,35 @@ exports.notificationController = {
         }
     },
 
-    async markNotificationAsRead(req, res) {
-        const { notificationId } = req.params;
+    async getUnreadNotifications(req, res) {
+        const { userId } = req.params;
         try {
-            const notification = await notificationService.markNotificationAsRead(notificationId);
+            const notifications = await notificationService.getUnreadNotifications(userId);
+            res.status(200).json(notifications);
+        } catch (error) {
+            console.error('Error retrieving notifications:', error);
+            res.status(500).json({ message: 'Erreur serveur', error: error.message });
+        }
+    },
+
+    async getNotificationById(req, res) {
+        const { id } = req.params;
+        try {
+            const notification = await notificationService.getNotificationById(id);
+            if (!notification) {
+                return res.status(404).json({ message: 'Notification non trouvée' });
+            }
+            res.status(200).json(notification);
+        } catch (error) {
+            console.error('Error retrieving notification:', error);
+            res.status(500).json({ message: 'Erreur serveur', error: error.message });
+        }
+    },
+
+    async markNotificationAsRead(req, res) {
+        const { id } = req.params;
+        try {
+            const notification = await notificationService.markNotificationAsRead(id);
             if (!notification) {
                 return res.status(404).json({ message: 'Notification non trouvée' });
             }
@@ -41,9 +66,9 @@ exports.notificationController = {
     },
 
     async deleteNotification(req, res) {
-        const { notificationId } = req.params;
+        const { id } = req.params;
         try {
-            const notification = await notificationService.deleteNotification(notificationId);
+            const notification = await notificationService.deleteNotification(id);
             if (!notification) {
                 return res.status(404).json({ message: 'Notification non trouvée' });
             }

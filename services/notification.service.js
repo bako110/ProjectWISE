@@ -10,6 +10,14 @@ exports.notificationService = {
         return await Notification.find({ user: userId });
     },
 
+    async getUnreadNotifications(userId) {
+        return await Notification.find({ user: userId, read: false });
+    },
+
+    async getNotificationById(notificationId) {
+        return await Notification.findById(notificationId);
+    },
+
     async markNotificationAsRead(notificationId) {
         return await Notification.findByIdAndUpdate(notificationId, { read: true }, { new: true });
     },

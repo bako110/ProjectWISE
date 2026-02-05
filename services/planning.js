@@ -1,5 +1,6 @@
 const Planning = require('../models/planning.js');
 const Collecte = require('../models/Collecte.js');
+const Notification = require('../models/Notification');
 const User = require('../models/User.js');
 const Passge = require('../models/Passage.js');
 const logger = require('../utils/logger.js');
@@ -68,6 +69,14 @@ const createPlanning = async (planningData) => {
             // .lean()
             // .maxTimeMS(10000)
             // .exec();
+
+        for (const user of users) {
+            await Notification.create({
+                user: user._id,
+                message: `Un nouveau planning a été créé pour le ${planningData.date}.`,
+                type: 'Planning'
+            });
+        }
 
         logger.info({ 
             msg: `${users.length} clients trouvés`,
