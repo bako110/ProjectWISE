@@ -84,10 +84,41 @@ router.get('/collector/:collectorId', authMiddleware(), CollecteController.getCo
  *   get:
  *     summary: Récupérer toutes les collectes
  *     tags: [Collectes]
+ *     parameters:
+ *       - in: query
+ *         name: term
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Terme de recherche (client, agence, statut)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: agencyId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 25
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
  *     responses:
  *       200:
- *         description: Liste de toutes les collectes
+ *         description: Liste paginée des collectes
  */
 router.get('/all', authMiddleware(), CollecteController.getAllCollectes);
+
 
 module.exports = router;

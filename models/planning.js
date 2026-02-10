@@ -41,7 +41,16 @@ const planningSchema = new mongoose.Schema({
     },
     status: {
         type: Boolean, default: true 
-    }
+    },
+    // status: {
+    //     type: String,
+    //     enum: ['Scheduled', 'Completed', 'Cancelled', 'Asked'],
+    //     default: 'Scheduled'
+    // },
+    // pricingId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Pricing',
+    // }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Planning', planningSchema);

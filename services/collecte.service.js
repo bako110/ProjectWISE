@@ -102,33 +102,62 @@ exports.collecteService = {
     /** 🔹 AGENCE */
     async AgencyCollectes(agencyId) {
         if (!agencyId) throw new Error('Agency ID is required');
-        return await Collecte.find({ agencyId, status: 'Scheduled' }).sort({ date: -1 });
+        // const dateNow = new Date();
+        // debutjour = new Date(dateNow.setHours(0, 0, 0, 0));
+        // finjour = new Date(dateNow.setHours(23, 59, 59, 999));
+        // return await Collecte.find({ agencyId, status: 'Scheduled', date: { $gte: debutjour, $lte: finjour } })
+        return await Collecte.find({ agencyId, status: 'Scheduled' })
+                            .populate('agencyId', 'name')
+                            .populate('clientId', 'lastName firstName email')
+                            .populate('collectorId', 'lastName firstName email')
+                            .populate('code', 'startTime endTime zone agencyId')
+                            .sort({ date: -1 });
     },
 
     async AgencyCompletedCollectes(agencyId) {
         if (!agencyId) throw new Error('Agency ID is required');
-        return await Collecte.find({ agencyId, status: 'Collected' }).sort({ date: -1 });
+        return await Collecte.find({ agencyId, status: 'Collected' })
+                            .populate('agencyId', 'name')
+                            .populate('clientId', 'lastName firstName email')
+                            .populate('collectorId', 'lastName firstName email')
+                            .sort({ date: -1 });
     },
 
     async AgencyReportingCollectes(agencyId) {
         if (!agencyId) throw new Error('Agency ID is required');
-        return await Collecte.find({ agencyId, status: 'Reported' }).sort({ date: -1 });
+        return await Collecte.find({ agencyId, status: 'Reported' })
+                            .populate('agencyId', 'name')
+                            .populate('clientId', 'lastName firstName email')
+                            .populate('collectorId', 'lastName firstName email')
+                            .sort({ date: -1 });
     },
 
     /** 🔹 COLLECTEUR */
     async CollectorCollectes(collectorId) {
         if (!collectorId) throw new Error('Collector ID is required');
-        return await Collecte.find({ collectorId, status: 'Scheduled' }).sort({ date: -1 });
+        return await Collecte.find({ collectorId, status: 'Scheduled' })
+                              .populate('agencyId', 'name')
+                              .populate('clientId', 'lastName firstName email')
+                              .populate('code', 'startTime endTime zone agencyId')
+                              .sort({ date: -1 });
     },
 
     async CollectorCompletedCollectes(collectorId) {
         if (!collectorId) throw new Error('Collector ID is required');
-        return await Collecte.find({ collectorId, status: 'Collected' }).sort({ date: -1 });
+        return await Collecte.find({ collectorId, status: 'Collected' })
+                              .populate('agencyId', 'name')
+                              .populate('clientId', 'lastName firstName email')
+                              .populate('code', 'startTime endTime zone agencyId')
+                              .sort({ date: -1 });
     },
 
     async CollectorReportingCollectes(collectorId) {
         if (!collectorId) throw new Error('Collector ID is required');
-        return await Collecte.find({ collectorId, status: 'Reported' }).sort({ date: -1 });
+        return await Collecte.find({ collectorId, status: 'Reported' })
+                              .populate('agencyId', 'name')
+                              .populate('clientId', 'lastName firstName email')
+                              .populate('code', 'startTime endTime zone agencyId')
+                              .sort({ date: -1 });
     },
 
     /** 🔥 NOUVEAU : SIGNALER UNE COLLECTE */

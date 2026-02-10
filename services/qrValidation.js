@@ -117,12 +117,68 @@ class CollecteService {
       .populate('agencyId', 'name');
   }
 
-  static async getAllCollectes() {
-    return await Collecte.find()
-      .populate('clientId', 'lastName firstName email qrCode')
-      .populate('collectorId', 'lastName firstName email')
-      .populate('agencyId', 'name');
+
+  static async getAllCollectes(query = {}) {
+    const {
+      date,
+      status,
+      agencyId,
+      limit = 25,
+      skip = 0,
+      term
+    } = query;
+
+    const filter = {};
+
+    // 📅 Filtre par date
+    if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      filter.date = { $gte: start, $lte: end };
+    }
+
+    // 📌 Filtre par statut
+    if (status) {
+      filter.status = status;
+    }
+
+    // 🏢 Filtre par agence
+    if (agencyId && mongoose.Types.ObjectId.isValid(agencyId)) {
+      filter.agencyId = new mongoose.Types.ObjectId(agencyId);
+    }
+
+    // 🔍 Recherche texte
+    if (term) {
+      filter.$or = [
+        { status: { $regex: term, $options: "i" } }
+      ];
+    }
+
+    const parsedLimit = parseInt(limit, 10);
+    const parsedSkip = parseInt(skip, 10);
+
+    const [collectes, total] = await Promise.all([
+      Collecte.find(filter)
+        .populate("clientId", "lastName firstName email qrCode")
+        .populate("collectorId", "lastName firstName email")
+        .populate("agencyId", "name")
+        .sort({ date: -1 })
+        .skip(parsedSkip)
+        .limit(parsedLimit),
+      Collecte.countDocuments(filter),
+    ]);
+
+    return {
+      total,
+      limit: parsedLimit,
+      skip: parsedSkip,
+      collectes,
+    };
   }
+
 }
 
 module.exports = CollecteService;

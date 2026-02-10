@@ -57,11 +57,17 @@ const getDashboardStats = async () => {
 
   // --- 🔹 Statistiques sur les collectes ---
   const totalCollections = await Collecte.countDocuments();
+  const totalCollectionReported = await Collecte.countDocuments({ status: 'Reported' });
   const startOfDay = new Date(now.setHours(0, 0, 0, 0));
   const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
   const dailyCollections = await Collecte.countDocuments({
     date: { $gte: startOfDay, $lte: endOfDay },
+  });
+
+  const dailyCollectionCollected = await Collecte.countDocuments({
+    date: { $gte: startOfDay, $lte: endOfDay },
+    status: 'Collected',
   });
 
   const monthlyCollections = await Collecte.countDocuments({
@@ -90,6 +96,8 @@ const getDashboardStats = async () => {
     totalCollections,
     dailyCollections,
     monthlyCollections,
+    totalCollectionReported,
+    dailyCollectionCollected
   };
 };
 

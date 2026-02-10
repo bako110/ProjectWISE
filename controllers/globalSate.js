@@ -29,6 +29,8 @@ exports.getDashboardStats = async (req, res) => {
         totalCollections: stats.totalCollections,
         dailyCollections: stats.dailyCollections,
         monthlyCollections: stats.monthlyCollections,
+        totalCollectionsCollected: stats.dailyCollectionCollected,
+        totalCollectionsReported: stats.totalCollectionReported,
 
         // 👥 Clients mensuels
         monthlyClientSubscriptions: stats.monthlyClientSubscriptions,

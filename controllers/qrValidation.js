@@ -43,7 +43,7 @@ class CollecteController {
 
   static async getAllCollectes(req, res) {
     try {
-      const collectes = await CollecteService.getAllCollectes();
+      const collectes = await CollecteService.getAllCollectes(req.query);
       return res.status(200).json(collectes);
     } catch (error) {
       return res.status(500).json({ message: error.message });
