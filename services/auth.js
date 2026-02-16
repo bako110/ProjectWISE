@@ -5,21 +5,25 @@ const QRCode = require('qrcode');
 const { sendResetPasswordEmail } = require('../utils/sendResetCodeMail.js');
 
 const registerUser = async (userData) => {
+  //verification si l'utilisateur existe déjà
   const existingUser = await User.findOne({ $or: [ { email: userData.email }, { phone: userData.phone } ] });
   if (existingUser) {
     throw new Error('Un utilisateur avec cet email ou téléphone existe déjà');
   }
 
-    
-
+  //creation d'un nouveau utilisateur
   const user = new User(userData);
-  const qrData = JSON.stringify({
-        id: user._id,
-        code: user.address.neighborhood,
-        name: user.firstName + ' ' + user.lastName,
-      });
-    const qrCodeUrl = await QRCode.toDataURL(qrData);
-  user.qrCode = qrCodeUrl;
+
+  //cree le code qr
+  if (userData.role == 'Client') {
+    const qrData = JSON.stringify({
+          id: user._id,
+          code: user.address.neighborhood,
+          name: user.firstName + ' ' + user.lastName,
+        });
+      const qrCodeUrl = await QRCode.toDataURL(qrData);
+    user.qrCode = qrCodeUrl;
+  }
   await user.save();
   const newUser = user.toObject();
   delete newUser.password;
