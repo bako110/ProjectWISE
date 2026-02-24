@@ -90,7 +90,7 @@ class TransactionController {
             status: 'OTP_PENDING',
             transactionId: moovResponse['trans-id']
           });
-          message = `vous allez recevoir un OTP pour valider le paiement de ${amount} FCFA`;
+          message = `Vous allez recevoir un OTP pour valider le paiement de ${amount} FCFA`;
 
         } else {
 

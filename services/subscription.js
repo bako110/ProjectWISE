@@ -89,6 +89,7 @@ class SubscriptionService {
       if (user) {
         // user.qrCode = qrCodeUrl;
         user.agencyId = agencyId;
+        user.subscriptionId = subscription._id; // lier l'utilisateur à son abonnement
         await user.save();
       }
 

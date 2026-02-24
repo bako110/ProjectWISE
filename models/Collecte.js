@@ -9,7 +9,11 @@ const collecteSchema = new mongoose.Schema({
     collectorId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
-        required: true 
+        // required: true 
+    },
+    collectors: { 
+        type: [mongoose.Schema.Types.ObjectId], 
+        ref: 'User', 
     },
     clientId: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -42,11 +46,19 @@ const collecteSchema = new mongoose.Schema({
     },
     type: { 
         type: String, 
-        required: true 
+        // required: true 
     },
     severity: { 
         type: String, 
         default: 'Low' 
+    },
+    reportedBy: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User'
+    },
+    price: {
+        type: Number,
+        default: 0
     }
 }, { 
     timestamps: true 

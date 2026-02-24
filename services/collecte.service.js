@@ -53,7 +53,12 @@ exports.collecteService = {
 
     async UserReportingHistory(userId) {
         if (!userId) throw new Error('User ID is required');
-        return await Collecte.find({ clientId: userId, status: 'Reported' }).sort({ date: -1 });
+        return await Collecte.find({ clientId: userId, status: 'Reported' })
+                            .populate('agencyId', 'name')
+                            .populate('collectorId', 'lastName firstName email')
+                            .populate('code', 'startTime endTime zone agencyId')
+                            // .populate('clientId', 'lastName firstName email')
+                            .sort({ date: -1 });
     },
 
     // async UserScheduledCollectes(userId, query) {

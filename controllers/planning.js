@@ -29,6 +29,32 @@ exports.createPlanning = async (req, res) => {
 };
 
 
+exports.createPlanningNew = async (req, res) => {
+    try {
+        const {managerId, agencyId, startTime, endTime, collectors, zone, date, pricingId} = req.body;
+        
+        if (!managerId || !agencyId || !startTime || !endTime || !collectors || !zone || !date || !pricingId) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const planning = await createPlanning({managerId, agencyId, startTime, endTime, collectors, zone, date, pricingId});
+        // const message = `Un nouveau planning a été créé pour le ${date}.`;
+        // for (const collector of collectors) {
+        //     await notificationService.createNotification({
+        //         user: collector,
+        //         message: message,
+        //         type: 'Planning'
+        //     });
+        // }
+        // logger.info('Planning created successfully');
+        res.status(201).json(planning);
+    }catch (error) {
+        logger.error('Error creating planning:', error);
+        res.status(500).json({ error: 'Error creating planning' });
+    }
+};
+
+
 exports.getPlanningById = async (req, res) => {
     try {
         const planning = await getPlanningById(req.params.id);

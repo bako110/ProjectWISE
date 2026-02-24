@@ -1,5 +1,6 @@
 const Planning = require('../models/planning.js');
 const Collecte = require('../models/Collecte.js');
+const Agence = require('../models/agency.js');
 const Notification = require('../models/Notification');
 const User = require('../models/User.js');
 const Passge = require('../models/Passage.js');
@@ -269,6 +270,74 @@ const createPlanning = async (planningData) => {
     }
 };
 
+const createPlanningNew = async (planningData) => {
+    try {
+        let clientValid = [];
+        const manager = await User.findById(planningData.managerId);
+        if (!manager) {
+            throw new Error('Manager not found');
+        }
+
+        const agency = await Agence.findById(planningData.agencyId);
+        if (!agency) {
+            throw new Error('Agency not found');
+        }
+        
+        for (const collectorId of planningData.collectors) {
+            const collector = await User.findById(collectorId);
+            if (!collector) {
+                throw new Error(`Collector not found: ${collectorId}`);
+            }
+        }
+
+        if (agency.zoneActivite && !agency.zoneActivite.includes(planningData.zone)) {
+            throw new Error(`Zone d'activité ${planningData.zone} n'est pas dans les zones de l'agence`);
+        }
+
+        const clients = await User.find({
+            agencyId: planningData.agencyId,
+            role: 'client',
+            'address.neighborhood': planningData.zone
+        }).populate('subscriptionId');
+
+        const planning = new Planning(planningData);
+
+        for (const client of clients) {
+            const passage = await Passge.findOne({
+                agencyId: planningData.agencyId,
+                clientId: client._id,
+                status: true
+            });
+            
+            if (!passage) {
+                continue;
+            }
+
+            if (client.subscription._id === planningData.pricingId) {
+                clientValid.push(client);
+                const collecteData = new Collecte({
+                    agencyId: planningData.agencyId,
+                    clientId: client._id,
+                    collectors: planningData.collectors,
+                    date: planningData.date,
+                    status: 'Scheduled',
+                    code: planning._id,
+                });
+                await collecteData.save();
+            }
+        }
+
+        planningData.numberOfClients = clientValid.length;
+
+        await planning.save();
+        logger.info('Planning created successfully');
+        return planning;
+    } catch (error) {
+        logger.error('Error creating planning:', error);
+        throw error;
+    }
+};
+
 const getPlanningById = async (planningId) => {
     try {
         const planning = await Planning.findById(planningId);
@@ -355,6 +424,7 @@ const getPlanningsByCollector = async (collectorId) => {
 
 module.exports = {
     createPlanning,
+    createPlanningNew,
     getPlanningById,
     updatePlanning,
     deletePlanning,

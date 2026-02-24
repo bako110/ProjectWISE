@@ -108,7 +108,7 @@ const authMiddleware = require('../middlewares/auth.js');
  *       500:
  *         description: Erreur serveur
  */
-router.get('/', authMiddleware(), getDashboardStats);
+router.get('/', getDashboardStats);
 
 /**
  * @swagger
@@ -155,6 +155,6 @@ router.get('/', authMiddleware(), getDashboardStats);
  *       500:
  *         description: Erreur serveur
  */
-router.get('/collector/:collectorId', authMiddleware(), getCollectorStatistics);
+router.get('/collector/:collectorId', getCollectorStatistics);
 
 module.exports = router;

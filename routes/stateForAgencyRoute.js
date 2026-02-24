@@ -88,6 +88,6 @@ const authMiddleware = require('../middlewares/auth.js');
  *                   example: Erreur lors de la récupération des statistiques
  */
 
-router.get('/:agencyId/stats', authMiddleware(), AgencyStatsController.getStats);
+router.get('/:agencyId/stats', AgencyStatsController.getStats);
 
 module.exports = router;

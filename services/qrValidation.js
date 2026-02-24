@@ -113,7 +113,7 @@ class CollecteService {
 
   static async getCollectesByCollector(collectorId) {
     return await Collecte.find({ collectorId })
-      .populate('clientId', 'lastName firstName email')
+      .populate('clientId', 'lastName firstName email address phone qrCode')
       .populate('agencyId', 'name');
   }
 

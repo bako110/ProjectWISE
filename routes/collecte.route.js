@@ -258,7 +258,7 @@ router.patch('/:collecteId/report/:userId', authMiddleware(), collecteController
 
 /**
  * @swagger
- * api/collectes/collector/{collectorId}/reporting-collectes:
+ * /api/collectes/collector/{collectorId}/reporting-collectes:
  *   get:
  *     summary: Récupérer toutes les collectes en reporting d'un collecteur
  *     tags: [Collectes]
@@ -281,7 +281,7 @@ router.get('/collector/:collectorId/reporting-collectes', authMiddleware(), coll
 
 /**
  * @swagger
- * api/collectes/collector/{collectorId}/completed-collectes:
+ * /api/collectes/collector/{collectorId}/completed-collectes:
  *   get:
  *     summary: Récupérer toutes les collectes terminées d'un collecteur
  *     tags: [Collectes]

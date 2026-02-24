@@ -11,6 +11,7 @@ class AgencyService {
         activityZone = '',
         sector = '',
         city = '',
+        status = '',
         latitude = null,
         longitude = null,
         radius = 10,
@@ -32,6 +33,9 @@ class AgencyService {
                     { agencyDescription: { $regex: term, $options: 'i' } },
                     { slogan: { $regex: term, $options: 'i' } },
                 ];
+            }
+            if (status) {
+                filter.status = status;
             }
 
             // Hiérarchie ville → secteur → quartier

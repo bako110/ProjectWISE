@@ -4,7 +4,7 @@ const planningSchema = new mongoose.Schema({
     managerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        // required: true
     },
     zone: {
         type: String,
@@ -25,8 +25,16 @@ const planningSchema = new mongoose.Schema({
     collectorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        // required: true
     },
+    collectors: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+    },
+    // collectedby: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'User',
+    // },
     agencyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Agence',
@@ -39,18 +47,18 @@ const planningSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    status: {
-        type: Boolean, default: true 
-    },
     // status: {
-    //     type: String,
-    //     enum: ['Scheduled', 'Completed', 'Cancelled', 'Asked'],
-    //     default: 'Scheduled'
+    //     type: Boolean, default: true 
     // },
-    // pricingId: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Pricing',
-    // }
+    status: {
+        type: String,
+        enum: ['Scheduled', 'Completed', 'Cancelled', 'Asked'],
+        default: 'Scheduled'
+    },
+    pricingId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pricing',
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Planning', planningSchema);
