@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db.js');
 const swaggerDocs = require('./swagger.js');
 const scheduleSubscriptionCancellation = require('./services/subscriptionScheduler.js');
+const { initPlanningScheduler } = require('./jobs/planningScheduler.js');
 
 // Import des routes
 const authRoute = require('./routes/auth.route.js');
@@ -127,6 +128,9 @@ app.use((err, req, res, next) => {
 
 // Lancer le scheduler pour annuler automatiquement les abonnements expirés
 scheduleSubscriptionCancellation();
+
+// Lancer le scheduler pour la duplication automatique des plannings récurrents
+initPlanningScheduler();
 
 // ✅ Lancement du serveur
 const PORT = process.env.PORT || 3000;

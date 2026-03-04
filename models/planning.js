@@ -58,6 +58,32 @@ const planningSchema = new mongoose.Schema({
     pricingId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Pricing',
+    },
+    isRecurring: {
+        type: Boolean,
+        default: false
+    },
+    recurrenceType: {
+        type: String,
+        enum: ['weekly', 'biweekly', 'monthly'],
+        default: 'weekly'
+    },
+    numberOfWeeks: {
+        type: Number,
+        default: 1
+    },
+    weeksRemaining: {
+        type: Number,
+        default: 0
+    },
+    parentPlanningId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Planning',
+        default: null
+    },
+    nextDuplicationDate: {
+        type: Date,
+        default: null
     }
 }, { timestamps: true });
 

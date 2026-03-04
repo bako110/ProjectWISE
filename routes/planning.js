@@ -23,20 +23,94 @@ const router = express.Router();
  * @swagger
  * /api/planning/create:
  *   post:
- *     summary: Créer un planning
+ *     summary: Créer un planning (simple ou récurrent avec duplication automatique)
  *     tags: [Planning]
+ *     description: |
+ *       Crée un nouveau planning pour une zone et une date spécifiques.
+ *       
+ *       **Planning simple** : Créé une seule fois pour la date indiquée.
+ *       
+ *       **Planning récurrent** : Active la duplication automatique.
+ *       - Le système dupliquera automatiquement le planning chaque semaine (ou selon recurrenceType)
+ *       - La duplication se fait via un cron job
+ *       - Le planning sera dupliqué pendant le nombre de semaines spécifié (numberOfWeeks)
+ *       - L'admin n'a plus besoin de recréer manuellement les plannings
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Planning'
+ *             type: object
+ *             required:
+ *               - managerId
+ *               - agencyId
+ *               - collectorId
+ *               - pricingId
+ *               - zone
+ *               - date
+ *               - startTime
+ *               - endTime
+ *             properties:
+ *               managerId:
+ *                 type: string
+ *                 format: objectId
+ *                 description: ID du gestionnaire
+ *               agencyId:
+ *                 type: string
+ *                 format: objectId
+ *                 description: ID de l'agence
+ *               collectorId:
+ *                 type: string
+ *                 format: objectId
+ *                 description: ID du collecteur assigné
+ *               pricingId:
+ *                 type: string
+ *                 format: objectId
+ *                 description: ID du tarif (pricing) appliqué au planning
+ *               zone:
+ *                 type: string
+ *                 description: Zone/quartier de collecte
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: Date de la première collecte
+ *               startTime:
+ *                 type: string
+ *                 description: Heure de début (format HH:mm)
+ *               endTime:
+ *                 type: string
+ *                 description: Heure de fin (format HH:mm)
+ *               isRecurring:
+ *                 type: boolean
+ *                 description: "Active la duplication automatique du planning (optionnel, défaut: false)"
+ *               recurrenceType:
+ *                 type: string
+ *                 enum: [weekly, biweekly, monthly]
+ *                 description: "Type de récurrence - weekly (hebdomadaire), biweekly (bi-hebdomadaire), monthly (mensuel)"
+ *               numberOfWeeks:
+ *                 type: integer
+ *                 description: "Nombre de semaines pour la récurrence (optionnel, défaut: 1)"
+ *             example:
+ *               managerId: "64f1b82a5e3d9c2b68d94b71"
+ *               agencyId: "64f1b82a5e3d9c2b68d94b73"
+ *               collectorId: "64f1b82a5e3d9c2b68d94b72"
+ *               pricingId: "64f1b82a5e3d9c2b68d94b80"
+ *               zone: "Ouaga 2000"
+ *               date: "2026-03-10"
+ *               startTime: "08:00"
+ *               endTime: "12:00"
+ *               isRecurring: true
+ *               recurrenceType: "weekly"
+ *               numberOfWeeks: 4
  *     responses:
  *       201:
+ *         description: Planning créé avec succès
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Planning'
+ *       400:
+ *         description: Champs requis manquants
  *       500:
  *         description: Erreur serveur
  */

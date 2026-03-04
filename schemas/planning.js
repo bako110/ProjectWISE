@@ -51,10 +51,47 @@
  *           description: Nombre de clients assignés à ce planning
  *           example: 12
  *         status:
+ *           type: string
+ *           enum: [Scheduled, Completed, Cancelled, Asked]
+ *           default: Scheduled
+ *           description: Statut du planning
+ *           example: Scheduled
+ *         pricingId:
+ *           type: string
+ *           format: objectId
+ *           description: Référence vers le type d'abonnement
+ *           example: 64f1b82a5e3d9c2b68d94b74
+ *         isRecurring:
  *           type: boolean
- *           default: true
- *           description: Statut actif/inactif du planning
+ *           default: false
+ *           description: Indique si le planning est récurrent (duplication automatique)
  *           example: true
+ *         recurrenceType:
+ *           type: string
+ *           enum: [weekly, biweekly, monthly]
+ *           default: weekly
+ *           description: Type de récurrence (hebdomadaire, bi-hebdomadaire, mensuel)
+ *           example: weekly
+ *         numberOfWeeks:
+ *           type: integer
+ *           default: 1
+ *           description: Nombre total de semaines pour la récurrence
+ *           example: 4
+ *         weeksRemaining:
+ *           type: integer
+ *           default: 0
+ *           description: Nombre de semaines restantes avant la fin de la récurrence
+ *           example: 3
+ *         parentPlanningId:
+ *           type: string
+ *           format: objectId
+ *           description: Référence vers le planning parent (si c'est une duplication)
+ *           example: 64f1b82a5e3d9c2b68d94b75
+ *         nextDuplicationDate:
+ *           type: string
+ *           format: date
+ *           description: Prochaine date de duplication automatique
+ *           example: 2025-11-15
  *         createdAt:
  *           type: string
  *           format: date-time

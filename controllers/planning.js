@@ -5,21 +5,61 @@ const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, de
 exports.createPlanning = async (req, res) => {
     try {
         console.log(req.body);
-        const {managerId, agencyId, startTime, endTime, collectorId, zone, date} = req.body;
+        const {
+            managerId, 
+            agencyId, 
+            pricingId, 
+            startTime, 
+            endTime, 
+            collectorId, 
+            zone, 
+            date,
+            isRecurring,
+            recurrenceType,
+            numberOfWeeks
+        } = req.body;
         
         if (!managerId || !agencyId || !startTime || !endTime || !collectorId || !zone || !date) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // const data = req.body;
         logger.info('Creating planning...');
-        const planning = await createPlanning({managerId, agencyId, startTime, endTime, collectorId, zone, date});
-        const message = `Un nouveau planning a été créé pour le ${date}.`;
+        
+        const planningData = {
+            managerId, 
+            agencyId,
+            pricingId, 
+            startTime, 
+            endTime, 
+            collectorId, 
+            zone, 
+            date
+        };
+
+        if (isRecurring) {
+            planningData.isRecurring = true;
+            planningData.recurrenceType = recurrenceType || 'weekly';
+            planningData.numberOfWeeks = numberOfWeeks || 1;
+            
+            logger.info({
+                msg: 'Planning récurrent demandé',
+                numberOfWeeks: planningData.numberOfWeeks,
+                recurrenceType: planningData.recurrenceType
+            });
+        }
+
+        const planning = await createPlanning(planningData);
+        
+        const message = isRecurring 
+            ? `Un planning récurrent a été créé pour ${numberOfWeeks} semaines à partir du ${date}.`
+            : `Un nouveau planning a été créé pour le ${date}.`;
+            
         await notificationService.createNotification({
             user: collectorId,
             message: message,
             type: 'Planning'
         });
+        
         logger.info('Planning created successfully');
         res.status(201).json(planning);
     } catch (error) {

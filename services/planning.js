@@ -30,13 +30,39 @@ const createPlanning = async (planningData) => {
             logger.error({ msg: 'collectorId invalide', collectorId: planningData.collectorId });
             throw new Error(`collectorId invalide: ${planningData.collectorId}`);
         }
+        if (!mongoose.Types.ObjectId.isValid(planningData.pricingId)) {
+            logger.error({ msg: 'pricingId invalide', pricingId: planningData.pricingId });
+            throw new Error(`pricingId invalide: ${planningData.pricingId}`);
+        }
         if (!mongoose.Types.ObjectId.isValid(planningData.managerId)) {
             logger.error({ msg: 'managerId invalide', managerId: planningData.managerId });
             throw new Error(`managerId invalide: ${planningData.managerId}`);
         }
 
-        // ✅ Créer et sauvegarder le planning
+        // Créer et sauvegarder le planning
         const planning = new Planning(planningData);
+        
+        // Gérer la récurrence
+        if (planningData.isRecurring && planningData.numberOfWeeks > 1) {
+            planning.weeksRemaining = planningData.numberOfWeeks - 1;
+            
+            const daysToAdd = planningData.recurrenceType === 'weekly' ? 7 : 
+                             planningData.recurrenceType === 'biweekly' ? 14 : 30;
+            
+            const nextDate = new Date(planningData.date);
+            nextDate.setDate(nextDate.getDate() + daysToAdd);
+            planning.nextDuplicationDate = nextDate;
+            
+            planning.parentPlanningId = null;
+            
+            logger.info({
+                msg: 'Planning récurrent configuré',
+                numberOfWeeks: planningData.numberOfWeeks,
+                weeksRemaining: planning.weeksRemaining,
+                nextDuplicationDate: nextDate
+            });
+        }
+        
         await planning.save();
         
         logger.info({ 
@@ -270,80 +296,80 @@ const createPlanning = async (planningData) => {
     }
 };
 
-const createPlanningNew = async (planningData) => {
-    try {
-        let clientValid = [];
-        const manager = await User.findById(planningData.managerId);
-        if (!manager) {
-            throw new Error('Manager not found');
-        }
+// const createPlanningNew = async (planningData) => {
+//     try {
+//         let clientValid = [];
+//         const manager = await User.findById(planningData.managerId);
+//         if (!manager) {
+//             throw new Error('Manager not found');
+//         }
 
-        const agency = await Agence.findById(planningData.agencyId);
-        if (!agency) {
-            throw new Error('Agency not found');
-        }
+//         const agency = await Agence.findById(planningData.agencyId);
+//         if (!agency) {
+//             throw new Error('Agency not found');
+//         }
         
-        for (const collectorId of planningData.collectors) {
-            const collector = await User.findById(collectorId);
-            if (!collector) {
-                throw new Error(`Collector not found: ${collectorId}`);
-            }
-        }
+//         for (const collectorId of planningData.collectors) {
+//             const collector = await User.findById(collectorId);
+//             if (!collector) {
+//                 throw new Error(`Collector not found: ${collectorId}`);
+//             }
+//         }
 
-        if (agency.zoneActivite && !agency.zoneActivite.includes(planningData.zone)) {
-            throw new Error(`Zone d'activité ${planningData.zone} n'est pas dans les zones de l'agence`);
-        }
+//         if (agency.zoneActivite && !agency.zoneActivite.includes(planningData.zone)) {
+//             throw new Error(`Zone d'activité ${planningData.zone} n'est pas dans les zones de l'agence`);
+//         }
 
-        const clients = await User.find({
-            agencyId: planningData.agencyId,
-            role: 'client',
-            'address.neighborhood': planningData.zone
-        }).populate('subscriptionId');
+//         const clients = await User.find({
+//             agencyId: planningData.agencyId,
+//             role: 'client',
+//             'address.neighborhood': planningData.zone
+//         }).populate('subscriptionId');
 
-        const planning = new Planning(planningData);
+//         const planning = new Planning(planningData);
 
-        for (const client of clients) {
-            const passage = await Passge.findOne({
-                agencyId: planningData.agencyId,
-                clientId: client._id,
-                status: true
-            });
+//         for (const client of clients) {
+//             const passage = await Passge.findOne({
+//                 agencyId: planningData.agencyId,
+//                 clientId: client._id,
+//                 status: true
+//             });
             
-            if (!passage) {
-                continue;
-            }
+//             if (!passage) {
+//                 continue;
+//             }
 
-            if (client.subscription._id === planningData.pricingId) {
-                clientValid.push(client);
-                const collecteData = new Collecte({
-                    agencyId: planningData.agencyId,
-                    clientId: client._id,
-                    collectors: planningData.collectors,
-                    date: planningData.date,
-                    status: 'Scheduled',
-                    code: planning._id,
-                });
-                await collecteData.save();
+//             if (client.subscription._id === planningData.pricingId) {
+//                 clientValid.push(client);
+//                 const collecteData = new Collecte({
+//                     agencyId: planningData.agencyId,
+//                     clientId: client._id,
+//                     collectors: planningData.collectors,
+//                     date: planningData.date,
+//                     status: 'Scheduled',
+//                     code: planning._id,
+//                 });
+//                 await collecteData.save();
 
-                passage.passNumber += 1;
-                if (passage.passNumber > passage.dayNumber) {
-                    passage.weekNumber += 1;
-                    passage.passNumber = 1;
-                }
-                await passage.save();
-            }
-        }
+//                 passage.passNumber += 1;
+//                 if (passage.passNumber > passage.dayNumber) {
+//                     passage.weekNumber += 1;
+//                     passage.passNumber = 1;
+//                 }
+//                 await passage.save();
+//             }
+//         }
 
-        planningData.numberOfClients = clientValid.length;
+//         planningData.numberOfClients = clientValid.length;
 
-        await planning.save();
-        logger.info('Planning created successfully');
-        return planning;
-    } catch (error) {
-        logger.error('Error creating planning:', error);
-        throw error;
-    }
-};
+//         await planning.save();
+//         logger.info('Planning created successfully');
+//         return planning;
+//     } catch (error) {
+//         logger.error('Error creating planning:', error);
+//         throw error;
+//     }
+// };
 
 const getPlanningById = async (planningId) => {
     try {
@@ -431,7 +457,7 @@ const getPlanningsByCollector = async (collectorId) => {
 
 module.exports = {
     createPlanning,
-    createPlanningNew,
+    // createPlanningNew,
     getPlanningById,
     updatePlanning,
     deletePlanning,

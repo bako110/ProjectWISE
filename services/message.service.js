@@ -48,26 +48,58 @@ exports.messageService = {
   },
 
   // Fonction pour obtenir les noms des groupes de discussion d'un utilisateur
-  async getGroupeName (userId) {
-    if (!userId) throw new Error('ID utilisateur manquant');
-    const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] });
-    const interlocutorIds = new Set();
+  // Fonction pour obtenir les noms des groupes de discussion d'un utilisateur avec compteur de messages non lus
+async getGroupeName (userId) {
+  if (!userId) throw new Error('ID utilisateur manquant');
+  const messages = await Message.find({ $or: [{ sender: userId }, { receiver: userId }] });
+  const interlocutorIds = new Set();
 
-    messages.forEach(msg => {
-      if (msg.sender.toString() !== userId.toString()) {
-        interlocutorIds.add(msg.sender.toString());
-      }
-      if (msg.receiver.toString() !== userId.toString()) {
-        interlocutorIds.add(msg.receiver.toString());
-      }
+  messages.forEach(msg => {
+    if (msg.sender.toString() !== userId.toString()) {
+      interlocutorIds.add(msg.sender.toString());
+    }
+    if (msg.receiver.toString() !== userId.toString()) {
+      interlocutorIds.add(msg.receiver.toString());
+    }
+  });
+  const ids = Array.from(interlocutorIds);
+  const users = await User.find({ _id: { $in: ids } });
+  const agency = await Agency.find({ _id: { $in: ids } });
+  const all = [...users, ...agency];
+  
+  // Ajouter le compteur de messages non lus pour chaque interlocuteur
+  const result = await Promise.all(all.map(async (interlocutor) => {
+    const unreadCount = await Message.countDocuments({ 
+      sender: interlocutor._id, 
+      receiver: userId, 
+      read: false 
     });
-    const ids = Array.from(interlocutorIds);
-    const users = await User.find({ _id: { $in: ids } });
-    const agency = await Agency.find({ _id: { $in: ids } });
-    // const all = {...users, ...agency};
-    const all = [...users, ...agency];
-    return all;
-  },
+    
+    // Récupérer le dernier message avec cet interlocuteur
+    const lastMessage = await Message.findOne({
+      $or: [
+        { sender: userId, receiver: interlocutor._id },
+        { sender: interlocutor._id, receiver: userId }
+      ]
+    }).sort({ createdAt: -1 });
+    
+    return {
+      ...interlocutor.toObject(),
+      unreadCount,
+      lastMessage,
+      lastMessageDate: lastMessage ? lastMessage.createdAt : null
+    };
+  }));
+  
+  // Trier par date du dernier message (plus récent en premier)
+  result.sort((a, b) => {
+    if (!a.lastMessageDate) return 1;
+    if (!b.lastMessageDate) return -1;
+    return new Date(b.lastMessageDate) - new Date(a.lastMessageDate);
+  });
+  
+  return result;
+},
 
   async getUserMessages(userId) {
     if (!userId) throw new Error('ID utilisateur manquant');
