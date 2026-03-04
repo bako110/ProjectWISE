@@ -8,7 +8,8 @@ const {
   updateUserById,
   deleteUserById,
   getClientByAgency,
-  getUsersByAgency
+  getUsersByAgency,
+  activeUser
 } = require('../controllers/user.js');
 
 /**
@@ -149,8 +150,35 @@ const {
 router.get('/user/:id', authMiddleware(), getUser);
 router.get('/users', authMiddleware(), getAllUsers);
 router.put('/user/:id', authMiddleware(), updateUserById);
-router.delete('/user/:id', authMiddleware('admin'), deleteUserById);
+router.delete('/user/:id', authMiddleware('super_admin'), deleteUserById);
 router.get('/clients/:agencyId', authMiddleware(), getClientByAgency);
 router.get('/employees/:agencyId', authMiddleware(), getUsersByAgency);
+
+/**
+ * @swagger
+ * /api/users/agency/{userId}:
+ *   put:
+ *     summary: Activer un utilisateur par ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'utilisateur à activer
+ *     responses:
+ *       200:
+ *         description: Utilisateur activé avec succès
+ *       400:
+ *         description: ID invalide
+ *       401:
+ *         description: Non autorisé
+ *       404:
+ *         description: Utilisateur non trouvé
+ */
+router.put('/users/agency/:userId', authMiddleware('manager'), activeUser);
 
 module.exports = router;

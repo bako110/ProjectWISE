@@ -209,3 +209,41 @@ exports.getClientByAgency = async (req, res) => {
         });
     }
 };
+
+exports.activeUser  = async (req, res) => {
+    try {
+        if(req.user.role !== 'manager') {
+            return res.status(403).json({ 
+                success: false,
+                error: 'Accès non autorisé'
+            });
+        }
+        const { userId } = req.params;
+        if (!userId) {
+            throw new Error('L\'identifiant de l\'utilisateur est requis');
+        }
+
+        const user = await getUserById(userId);
+        logger.info(user);
+        if (!user) {
+            throw new Error('Utilisateur non trouvé');
+        } else if (user.status === 'active') {
+            user.status = 'inactive';
+            await updateUser(userId, user);
+            return res.status(200).json({ 
+                success: true,
+                message: 'Utilisateur désactivé avec succès'
+            });
+        } else {
+            user.status = 'active';
+            await updateUser(userId, user);
+            return res.status(200).json({ 
+                success: true,
+                message: 'Utilisateur activé avec succès'
+            });
+        }
+    } catch (error) {
+        // logger.error(`Erreur lors de l'activation de l'utilisateur ${req.params.id}:`, error);
+        res.status(500).json({error: error.message});
+    }
+};

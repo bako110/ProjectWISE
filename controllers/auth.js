@@ -15,8 +15,8 @@ exports.register = async (req, res) => {
             throw new Error('Le rôle est requis pour l\'inscription');
         }
 
-        if(!data.email || !data.password || !data.firstName || !data.lastName || !data.phone || !data.address) {
-            throw new Error('Les informations firstname, lastname, email, phone, adresse et password sont requis pour l\'inscription');
+        if(!data.password || !data.firstName || !data.lastName || !data.phone || !data.address) {
+            throw new Error('Les informations firstname, lastname, phone, adresse et password sont requis pour l\'inscription');
         }
 
         switch (data.role) {
@@ -57,7 +57,7 @@ exports.register = async (req, res) => {
             await newAgency.save();
         }
         
-        logger.info(`Nouvel utilisateur enregistré: ${user.email} avec le rôle ${user.role}`);
+        // logger.info(`Nouvel utilisateur enregistré: ${user.email} avec le rôle ${user.role}`);
         
         // Envoyer l'email de bienvenue (asynchrone, ne bloque pas la réponse)
         // sendWelcomeEmail(user.email, user.firstName).catch(error => {

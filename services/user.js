@@ -1,6 +1,7 @@
 const User = require('../models/User.js');
 const Agency = require('../models/agency.js');
 
+
 const getUserById = async (userId) => {
     const user = await User.findById(userId)
         .select('-password')

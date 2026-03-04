@@ -324,6 +324,13 @@ const createPlanningNew = async (planningData) => {
                     code: planning._id,
                 });
                 await collecteData.save();
+
+                passage.passNumber += 1;
+                if (passage.passNumber > passage.dayNumber) {
+                    passage.weekNumber += 1;
+                    passage.passNumber = 1;
+                }
+                await passage.save();
             }
         }
 

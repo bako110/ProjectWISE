@@ -6,9 +6,29 @@ const { sendResetPasswordEmail } = require('../utils/sendResetCodeMail.js');
 
 const registerUser = async (userData) => {
   //verification si l'utilisateur existe déjà
-  const existingUser = await User.findOne({ $or: [ { email: userData.email }, { phone: userData.phone } ] });
+  let existingUser = null;
+
+  // Vérification téléphone (toujours si fourni)
+  if (userData.phone) {
+    existingUser = await User.findOne({ phone: userData.phone });
+  }
+
   if (existingUser) {
-    throw new Error('Un utilisateur avec cet email ou téléphone existe déjà');
+    throw new Error('Un utilisateur avec ce téléphone existe déjà');
+  }
+  
+
+  // Vérification email uniquement si renseigné
+  if (userData.email) {
+    existingUser = await User.findOne({ email: userData.email });
+
+    if (existingUser) {
+      throw new Error('Un utilisateur avec cet email existe déjà');
+    }
+  }
+
+  if (!userData.email || userData.email.trim() === "" || userData.email === null || userData.email === "") {
+    userData.email = undefined;
   }
 
   //creation d'un nouveau utilisateur

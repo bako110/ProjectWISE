@@ -13,7 +13,7 @@ class AgencyEmployeeService {
      const query = {
       agencyId,
       role: { $in: ['manager', 'gestionnaire', 'collector'] },
-      status: 'active'
+      // status: 'active'
     };
 
     // 🔍 Filtre de recherche textuelle
@@ -46,7 +46,7 @@ class AgencyEmployeeService {
       query.role = filters.role;
     }
 
-    const users = await User.find(query).select('_id firstName lastName email phone role agencyId isOwnerAgency');
+    const users = await User.find(query).select('_id firstName lastName email phone role agencyId isOwnerAgency status');
     
 
     // Grouper par rôle

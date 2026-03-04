@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Subscription = require('../models/subscription.js');
+const Passage = require('../models/Passage.js');
 const Notification = require('../models/Notification.js');
 const User = require('../models/User.js');
 const logger = require('../utils/logger.js');
@@ -24,9 +25,15 @@ const scheduleSubscriptionCancellation = () => {
                     logger.info(`Abonnement ${sub._id} annulé automatiquement. Un autre abonnement actif existe jusqu'au ${activeSubs.endDate}.`);
                     continue; // Ne pas supprimer le QR Code si un autre abonnement actif existe
                 } else {
+                    const passages = await Passage.find({ clientId: sub.clientId});
+                    for (const passage of passages) {
+                        passage.status = false; // Marquer les passages comme invalides
+                        await passage.save();
+                    }
                     const user = await User.findById(sub.clientId);
                     if (user) {
                         user.agencyId = null;
+                        user.subscriptionId = null;
                         await Notification.create({ userId: sub.clientId, type: 'Subscribed', message: 'Votre abonnement a expiré' });
                         await user.save();
                     }
