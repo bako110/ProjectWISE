@@ -47,13 +47,9 @@ const planningSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // status: {
-    //     type: Boolean, default: true 
-    // },
     status: {
-        type: String,
-        enum: ['Scheduled', 'Completed', 'Cancelled', 'Asked'],
-        default: 'Scheduled'
+        type: Boolean,
+        default: true
     },
     pricingId: {
         type: mongoose.Schema.Types.ObjectId,

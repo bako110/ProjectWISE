@@ -434,7 +434,15 @@ const getAllPlannings = async () => {
 
 const getPlanningsByAgency = async (agencyId) => {
     try {
-        const plannings = await Planning.find({ agencyId, status:true });
+        const plannings = await Planning.find({ 
+            agencyId, 
+            status: true
+        })
+        .populate('collectors', 'firstName lastName')
+        .populate('managerId', 'firstName lastName')
+        .populate('pricingId', 'planType price')
+        .sort({ date: -1 }); // Trier par date décroissante
+        
         logger.info('Plannings retrieved successfully');
         return plannings;
     } catch (error) {
