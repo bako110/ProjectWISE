@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const pricingSchema = new mongoose.Schema({
     agencyId: {
@@ -26,4 +26,4 @@ const pricingSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-export default mongoose.model('Pricing', pricingSchema); // anciennement "Tarif"
+module.exports = mongoose.model('Pricing', pricingSchema); // anciennement "Tarif"
