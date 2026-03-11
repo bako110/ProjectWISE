@@ -11,8 +11,8 @@ const initPlanningScheduler = () => {
     // 🔥 Exécution immédiate au démarrage (pour test)
     runManualDuplication();
 
-    // 🔥 Cron chaque minute pour test
-    cron.schedule('* * * * *', async () => {
+    // 🔥 Cron toutes les 2 minutes pour test
+    cron.schedule('*/2 * * * *', async () => {
         try {
             logger.info({
                 msg: '🕐 CRON JOB: Démarrage duplication automatique plannings',
@@ -42,7 +42,7 @@ const initPlanningScheduler = () => {
 
     logger.info({
         msg: '✅ Scheduler de duplication plannings initialisé',
-        schedule: 'Chaque minute (TEST - Africa/Ouagadougou)'
+        schedule: 'Toutes les 2 minutes (TEST - Africa/Ouagadougou)'
     });
 };
 
