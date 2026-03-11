@@ -11,7 +11,8 @@ exports.createPlanning = async (req, res) => {
             pricingId, 
             startTime, 
             endTime, 
-            collectorId, 
+            collectorId,  // Ancien format (un seul collecteur)
+            collectors,   // Nouveau format (tableau de collecteurs)
             zone, 
             date,
             isRecurring,
@@ -19,8 +20,11 @@ exports.createPlanning = async (req, res) => {
             numberOfWeeks
         } = req.body;
         
-        if (!managerId || !agencyId || !startTime || !endTime || !collectorId || !zone || !date) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        // Accepter soit collectorId (ancien) soit collectors (nouveau)
+        const collectorsArray = collectors || (collectorId ? [collectorId] : null);
+        
+        if (!managerId || !agencyId || !startTime || !endTime || !collectorsArray || !zone || !date) {
+            return res.status(400).json({ error: 'Missing required fields. Provide collectorId or collectors array.' });
         }
 
         logger.info('Creating planning...');
@@ -31,7 +35,7 @@ exports.createPlanning = async (req, res) => {
             pricingId, 
             startTime, 
             endTime, 
-            collectorId, 
+            collectors: collectorsArray, 
             zone, 
             date
         };
@@ -54,11 +58,14 @@ exports.createPlanning = async (req, res) => {
             ? `Un planning récurrent a été créé pour ${numberOfWeeks} semaines à partir du ${date}.`
             : `Un nouveau planning a été créé pour le ${date}.`;
             
-        await notificationService.createNotification({
-            user: collectorId,
-            message: message,
-            type: 'Planning'
-        });
+        // Envoyer une notification à chaque collecteur
+        for (const collector of collectorsArray) {
+            await notificationService.createNotification({
+                user: collector,
+                message: message,
+                type: 'Planning'
+            });
+        }
         
         logger.info('Planning created successfully');
         res.status(201).json(planning);

@@ -34,8 +34,15 @@
  *         collectorId:
  *           type: string
  *           format: objectId
- *           description: Référence vers l'utilisateur collecteur
+ *           description: Référence vers l'utilisateur collecteur (ancien format, toujours supporté)
  *           example: 64f1b82a5e3d9c2b68d94b72
+ *         collectors:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: objectId
+ *           description: Tableau des IDs des collecteurs assignés (nouveau format recommandé)
+ *           example: ["64f1b82a5e3d9c2b68d94b72", "64f1b82a5e3d9c2b68d94b75"]
  *         agencyId:
  *           type: string
  *           format: objectId

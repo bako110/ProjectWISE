@@ -44,6 +44,11 @@ const duplicatePlanning = async (planningId) => {
         const newDate = new Date(originalPlanning.date);
         newDate.setDate(newDate.getDate() + daysToAdd);
 
+        // Récupérer les collecteurs (nouveau format) ou collectorId (ancien format)
+        const collectorsArray = originalPlanning.collectors && originalPlanning.collectors.length > 0 
+            ? originalPlanning.collectors 
+            : (originalPlanning.collectorId ? [originalPlanning.collectorId] : []);
+
         const newPlanningData = {
             managerId: originalPlanning.managerId,
             agencyId: originalPlanning.agencyId,
@@ -51,8 +56,7 @@ const duplicatePlanning = async (planningId) => {
             date: newDate,
             startTime: originalPlanning.startTime,
             endTime: originalPlanning.endTime,
-            collectorId: originalPlanning.collectorId,
-            collectors: originalPlanning.collectors,
+            collectors: collectorsArray,
             pricingId: originalPlanning.pricingId,
             isRecurring: true,
             recurrenceType: originalPlanning.recurrenceType,
@@ -139,8 +143,7 @@ const duplicatePlanning = async (planningId) => {
                 const collecteData = new Collecte({
                     agencyId: newPlanningData.agencyId,
                     clientId: user._id,
-                    collectorId: newPlanningData.collectorId,
-                    collectors: newPlanningData.collectors,
+                    collectorId: newPlanningData.collectors[0], // Premier collecteur du tableau
                     date: newDate,
                     status: 'Scheduled',
                     code: newPlanning._id,

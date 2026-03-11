@@ -17,7 +17,7 @@ const createPlanning = async (planningData) => {
             msg: '=== DÉBUT CRÉATION PLANNING ===',
             zone: planningData.zone,
             agencyId: planningData.agencyId,
-            collectorId: planningData.collectorId,
+            collectors: planningData.collectors,
             date: planningData.date
         });
 
@@ -26,9 +26,17 @@ const createPlanning = async (planningData) => {
             logger.error({ msg: 'agencyId invalide', agencyId: planningData.agencyId });
             throw new Error(`agencyId invalide: ${planningData.agencyId}`);
         }
-        if (!mongoose.Types.ObjectId.isValid(planningData.collectorId)) {
-            logger.error({ msg: 'collectorId invalide', collectorId: planningData.collectorId });
-            throw new Error(`collectorId invalide: ${planningData.collectorId}`);
+        
+        // Valider tous les collecteurs
+        if (!planningData.collectors || !Array.isArray(planningData.collectors) || planningData.collectors.length === 0) {
+            throw new Error('collectors doit être un tableau non vide');
+        }
+        
+        for (const collectorId of planningData.collectors) {
+            if (!mongoose.Types.ObjectId.isValid(collectorId)) {
+                logger.error({ msg: 'collectorId invalide', collectorId });
+                throw new Error(`collectorId invalide: ${collectorId}`);
+            }
         }
         if (!mongoose.Types.ObjectId.isValid(planningData.pricingId)) {
             logger.error({ msg: 'pricingId invalide', pricingId: planningData.pricingId });
@@ -182,11 +190,11 @@ const createPlanning = async (planningData) => {
                     });
                 }
 
-                // ✅ Créer la collecte
+                // ✅ Créer la collecte (utilise le premier collecteur du tableau)
                 const collecteData = new Collecte({
                     agencyId: planningData.agencyId,
                     clientId: user._id,
-                    collectorId: planningData.collectorId,
+                    collectorId: planningData.collectors[0], // Premier collecteur pour cette collecte
                     date: planningData.date,
                     status: 'Scheduled',
                     code: planning._id,
@@ -439,12 +447,27 @@ const getPlanningsByCollector = async (collectorId) => {
     try {
         const debutJour = new Date(new Date().setHours(0, 0, 0, 0));
         const finJour = new Date(new Date().setHours(23, 59, 59, 999));
-        const planning = await Planning.find({ collectorId, date: { $gte: debutJour, $lte: finJour } }).populate('agencyId name');
+        
+        // Chercher dans les deux formats: ancien (collectorId) et nouveau (collectors array)
+        const planning = await Planning.find({ 
+            $or: [
+                { collectorId: collectorId },  // Ancien format
+                { collectors: collectorId }     // Nouveau format (tableau)
+            ],
+            date: { $gte: debutJour, $lte: finJour } 
+        }).populate('agencyId name');
+        
         if (!planning || planning.length === 0) {
             logger.warn(`Aucun planning trouvé pour le collecteur ${collectorId}`);
             return [];
         }
-        const collectes = await Collecte.find({ collectorId, date: { $gte: debutJour, $lte: finJour }, status: 'Scheduled' });
+        
+        const collectes = await Collecte.find({ 
+            collectorId, 
+            date: { $gte: debutJour, $lte: finJour }, 
+            status: 'Scheduled' 
+        });
+        
         logger.info('Plannings du collecteur récupérés avec succès');
         const result = { planning, collectes };
         return result;

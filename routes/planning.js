@@ -44,7 +44,6 @@ const router = express.Router();
  *             required:
  *               - managerId
  *               - agencyId
- *               - collectorId
  *               - pricingId
  *               - zone
  *               - date
@@ -59,10 +58,16 @@ const router = express.Router();
  *                 type: string
  *                 format: objectId
  *                 description: ID de l'agence
+ *               collectors:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 description: Tableau des IDs des collecteurs assignés (nouveau format, recommandé)
  *               collectorId:
  *                 type: string
  *                 format: objectId
- *                 description: ID du collecteur assigné
+ *                 description: ID du collecteur assigné (ancien format, toujours supporté pour rétrocompatibilité)
  *               pricingId:
  *                 type: string
  *                 format: objectId
@@ -93,7 +98,7 @@ const router = express.Router();
  *             example:
  *               managerId: "64f1b82a5e3d9c2b68d94b71"
  *               agencyId: "64f1b82a5e3d9c2b68d94b73"
- *               collectorId: "64f1b82a5e3d9c2b68d94b72"
+ *               collectors: ["64f1b82a5e3d9c2b68d94b72", "64f1b82a5e3d9c2b68d94b75"]
  *               pricingId: "64f1b82a5e3d9c2b68d94b80"
  *               zone: "Ouaga 2000"
  *               date: "2026-03-10"

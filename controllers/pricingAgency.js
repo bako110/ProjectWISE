@@ -1,9 +1,9 @@
-import * as pricingService from '../services/pricingAgency.js';
+const pricingService = require('../services/pricingAgency.js');
 
 /**
  * Crée un nouveau tarif pour une agence
  */
-export const createPricingController = async (req, res) => {
+const createPricingController = async (req, res) => {
     try {
         const { agencyId, ...pricingData } = req.body;
 
@@ -27,7 +27,7 @@ export const createPricingController = async (req, res) => {
  * Récupère tous les tarifs d'une agence
  * agencyId est passé dans l'URL : /api/pricing/:agencyId
  */
-export const getPricingsController = async (req, res) => {
+const getPricingsController = async (req, res) => {
     try {
         const { agencyId } = req.params;
 
@@ -45,7 +45,7 @@ export const getPricingsController = async (req, res) => {
 /**
  * Met à jour un tarif pour une agence
  */
-export const updatePricingController = async (req, res) => {
+const updatePricingController = async (req, res) => {
     try {
         const { agencyId, ...updateData } = req.body;
         const { id } = req.params;
@@ -73,7 +73,7 @@ export const updatePricingController = async (req, res) => {
 /**
  * Supprime un tarif pour une agence
  */
-export const deletePricingController = async (req, res) => {
+const deletePricingController = async (req, res) => {
     try {
         const { agencyId } = req.body;
         const { id } = req.params;
@@ -96,4 +96,11 @@ export const deletePricingController = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
+};
+
+module.exports = {
+    createPricingController,
+    getPricingsController,
+    updatePricingController,
+    deletePricingController
 };

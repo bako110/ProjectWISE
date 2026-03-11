@@ -8,11 +8,21 @@ const logger = require('../utils/logger.js');
 
 dotenv.config();
 
-const agent = new https.Agent({
-  cert: fs.readFileSync(process.env.OM_CERT_PATH || "cert.pem"),
-  key: fs.readFileSync(process.env.OM_KEY_PATH || "key.pem"),
-  rejectUnauthorized: true,
-});
+// Create HTTPS agent only if certificate files exist
+let agent = null;
+const certPath = process.env.OM_CERT_PATH || "cert.pem";
+const keyPath = process.env.OM_KEY_PATH || "key.pem";
+
+if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+  agent = new https.Agent({
+    cert: fs.readFileSync(certPath),
+    key: fs.readFileSync(keyPath),
+    rejectUnauthorized: true,
+  });
+  logger.info('Orange Money HTTPS agent initialized with certificates');
+} else {
+  logger.warn(`Orange Money certificates not found (${certPath}, ${keyPath}). API calls will fail.`);
+}
 
 const payOrangeMoney = async ({
   customerMsisdn,
@@ -20,6 +30,10 @@ const payOrangeMoney = async ({
   otp,
   reference,
 }) => {
+  if (!agent) {
+    throw new Error('Orange Money certificates not configured. Please set OM_CERT_PATH and OM_KEY_PATH environment variables.');
+  }
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <COMMAND>
   <TYPE>OMPREQ</TYPE>
