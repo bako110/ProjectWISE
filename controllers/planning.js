@@ -21,7 +21,11 @@ exports.createPlanning = async (req, res) => {
         } = req.body;
         
         // Accepter soit collectorId (ancien) soit collectors (nouveau)
-        const collectorsArray = collectors || (collectorId ? [collectorId] : null);
+        // Si collectorId est déjà un tableau, on le garde tel quel
+        let collectorsArray = collectors;
+        if (!collectorsArray && collectorId) {
+            collectorsArray = Array.isArray(collectorId) ? collectorId : [collectorId];
+        }
         
         if (!managerId || !agencyId || !startTime || !endTime || !collectorsArray || !zone || !date) {
             return res.status(400).json({ error: 'Missing required fields. Provide collectorId or collectors array.' });
