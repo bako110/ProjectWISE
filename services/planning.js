@@ -438,9 +438,9 @@ const getPlanningsByAgency = async (agencyId) => {
             agencyId, 
             status: true
         })
-        .populate('collectors', 'firstName lastName')
-        .populate('managerId', 'firstName lastName')
-        .populate('pricingId', 'planType price')
+        .populate('collectors', '_id firstName lastName email phone role')
+        .populate('managerId', '_id firstName lastName email phone')
+        .populate('pricingId', '_id planType price description numberOfPasses')
         .sort({ date: -1 }); // Trier par date décroissante
         
         logger.info('Plannings retrieved successfully');
