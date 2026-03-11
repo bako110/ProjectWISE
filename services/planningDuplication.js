@@ -221,18 +221,17 @@ const duplicatePlanning = async (planningId) => {
  */
 const processPendingDuplications = async () => {
     try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date(); // Date et heure actuelles complètes
 
         logger.info({
             msg: '=== DÉBUT TRAITEMENT DUPLICATIONS PLANNINGS ===',
-            date: today
+            date: now
         });
 
         const planningsToProcess = await Planning.find({
             isRecurring: true,
             weeksRemaining: { $gt: 0 },
-            nextDuplicationDate: { $lte: today }
+            nextDuplicationDate: { $lte: now } // Comparaison avec l'heure actuelle
         });
 
         logger.info({
