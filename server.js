@@ -27,6 +27,8 @@ const collecteRoute = require ('./routes/collecte.route.js');
 const transactionRoute = require ('./routes/transaction.js');
 const dechetRoute = require ('./routes/dechet.route.js');
 const territoryRoute = require ('./routes/territory.route.js');
+const teamRoute = require('./routes/team.js');
+const clientGroupRoute = require('./routes/clientGroup.js');
 
 
 dotenv.config();
@@ -97,6 +99,8 @@ app.use('/api/collectes', collecteRoute);
 app.use('/api/transactions', transactionRoute);
 app.use('/api/dechets', dechetRoute);
 app.use('/api/territories', territoryRoute);
+app.use('/api/teams', teamRoute);
+app.use('/api/client-groups', clientGroupRoute);
 
 // ✅ Middleware de gestion d'erreurs
 app.use((err, req, res, next) => {

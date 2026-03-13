@@ -35,6 +35,16 @@ const planningSchema = new mongoose.Schema({
     //     type: mongoose.Schema.Types.ObjectId,
     //     ref: 'User',
     // },
+    teamId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team',
+        default: null
+    },
+    clientGroupId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ClientGroup',
+        default: null
+    },
     agencyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Agence',

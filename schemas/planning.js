@@ -43,6 +43,16 @@
  *             format: objectId
  *           description: Tableau des IDs des collecteurs assignés (nouveau format recommandé)
  *           example: ["64f1b82a5e3d9c2b68d94b72", "64f1b82a5e3d9c2b68d94b75"]
+ *         teamId:
+ *           type: string
+ *           format: objectId
+ *           description: Référence vers l'équipe assignée (nouveau - système d'équipes)
+ *           example: 65f1b2c3d4e5f6a7b8c9d0f1
+ *         clientGroupId:
+ *           type: string
+ *           format: objectId
+ *           description: Référence vers le groupe de clients (nouveau - système de groupes)
+ *           example: 65f1b2c3d4e5f6a7b8c9d0f2
  *         agencyId:
  *           type: string
  *           format: objectId

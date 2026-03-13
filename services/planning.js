@@ -4,6 +4,8 @@ const Agence = require('../models/agency.js');
 const Notification = require('../models/Notification');
 const User = require('../models/User.js');
 const Passge = require('../models/Passage.js');
+const Team = require('../models/Team.js');
+const ClientGroup = require('../models/ClientGroup.js');
 const logger = require('../utils/logger.js');
 
 
@@ -18,31 +20,69 @@ const createPlanning = async (planningData) => {
             zone: planningData.zone,
             agencyId: planningData.agencyId,
             collectors: planningData.collectors,
+            teamId: planningData.teamId,
+            clientGroupId: planningData.clientGroupId,
             date: planningData.date
         });
 
-        // ✅ Valider les ObjectId avec logs détaillés
+        // ✅ Déterminer les collecteurs à utiliser
+        let collectorsToUse = [];
+        let clientsToSchedule = [];
+        
+        // Cas 1: Planning avec une équipe
+        if (planningData.teamId) {
+            const team = await Team.findById(planningData.teamId).populate('collectors');
+            if (!team) {
+                throw new Error('Équipe non trouvée');
+            }
+            collectorsToUse = team.collectors.map(c => c._id);
+            planningData.collectors = collectorsToUse; // Synchroniser
+            
+            logger.info({ 
+                msg: '✅ Équipe trouvée', 
+                teamName: team.name,
+                collectorsCount: collectorsToUse.length 
+            });
+            
+            // Si un groupe de clients est spécifié
+            if (planningData.clientGroupId) {
+                const clientGroup = await ClientGroup.findById(planningData.clientGroupId);
+                if (!clientGroup) {
+                    throw new Error('Groupe de clients non trouvé');
+                }
+                clientsToSchedule = clientGroup.clients;
+                logger.info({ 
+                    msg: '✅ Groupe de clients trouvé', 
+                    clientsCount: clientsToSchedule.length 
+                });
+            }
+        } 
+        // Cas 2: Planning avec collecteurs manuels
+        else if (planningData.collectors && planningData.collectors.length > 0) {
+            collectorsToUse = planningData.collectors;
+        } else {
+            throw new Error('Aucun collecteur ou équipe spécifié');
+        }
+
+        // ✅ Valider les ObjectId
         if (!mongoose.Types.ObjectId.isValid(planningData.agencyId)) {
             logger.error({ msg: 'agencyId invalide', agencyId: planningData.agencyId });
             throw new Error(`agencyId invalide: ${planningData.agencyId}`);
         }
         
         // Valider tous les collecteurs
-        if (!planningData.collectors || !Array.isArray(planningData.collectors) || planningData.collectors.length === 0) {
-            throw new Error('collectors doit être un tableau non vide');
-        }
-        
-        for (const collectorId of planningData.collectors) {
+        for (const collectorId of collectorsToUse) {
             if (!mongoose.Types.ObjectId.isValid(collectorId)) {
                 logger.error({ msg: 'collectorId invalide', collectorId });
                 throw new Error(`collectorId invalide: ${collectorId}`);
             }
         }
-        if (!mongoose.Types.ObjectId.isValid(planningData.pricingId)) {
+        
+        if (planningData.pricingId && !mongoose.Types.ObjectId.isValid(planningData.pricingId)) {
             logger.error({ msg: 'pricingId invalide', pricingId: planningData.pricingId });
             throw new Error(`pricingId invalide: ${planningData.pricingId}`);
         }
-        if (!mongoose.Types.ObjectId.isValid(planningData.managerId)) {
+        if (planningData.managerId && !mongoose.Types.ObjectId.isValid(planningData.managerId)) {
             logger.error({ msg: 'managerId invalide', managerId: planningData.managerId });
             throw new Error(`managerId invalide: ${planningData.managerId}`);
         }
@@ -79,32 +119,41 @@ const createPlanning = async (planningData) => {
             zone: planningData.zone
         });
 
-        // ✅ Préparer la requête
-        const query = {
-            agencyId: new mongoose.Types.ObjectId(planningData.agencyId),
-            role: 'client'
-        };
+        // ✅ Rechercher les clients si pas de groupe spécifié
+        let users = [];
+        
+        if (clientsToSchedule.length > 0) {
+            // Utiliser les clients du groupe
+            users = await User.find({
+                _id: { $in: clientsToSchedule },
+                role: 'client',
+                status: 'active'
+            });
+        } else {
+            // Recherche par zone (comportement original)
+            const query = {
+                agencyId: new mongoose.Types.ObjectId(planningData.agencyId),
+                role: 'client',
+                status: 'active'
+            };
 
-        if (planningData.zone && planningData.zone.trim() !== '') {
-            query['address.neighborhood'] = planningData.zone.trim();
+            if (planningData.zone && planningData.zone.trim() !== '') {
+                query['address.neighborhood'] = planningData.zone.trim();
+            }
+
+            logger.info({ 
+                msg: 'Recherche des clients par zone',
+                query: {
+                    agencyId: planningData.agencyId,
+                    role: 'client',
+                    neighborhood: planningData.zone
+                }
+            });
+
+            users = await User.find(query);
         }
 
-        logger.info({ 
-            msg: 'Recherche des clients',
-            query: {
-                agencyId: planningData.agencyId,
-                role: 'client',
-                neighborhood: planningData.zone
-            }
-        });
-
-        // ✅ Rechercher les users
-        const users = await User.find(query)
-            // .select('_id agencyId role address')
-            // .lean()
-            // .maxTimeMS(10000)
-            // .exec();
-
+        // Envoyer des notifications
         for (const user of users) {
             await Notification.create({
                 user: user._id,
@@ -131,11 +180,13 @@ const createPlanning = async (planningData) => {
             return planning;
         }
 
-        // ✅ Traiter chaque client
+        // ✅ Traiter chaque client avec RÉPARTITION ÉQUITABLE
         let clientsAdded = 0;
         const errors = [];
 
-        for (const user of users) {
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            
             try {
                 logger.debug({ 
                     msg: 'Traitement du client',
@@ -190,11 +241,15 @@ const createPlanning = async (planningData) => {
                     });
                 }
 
-                // ✅ Créer la collecte (utilise le premier collecteur du tableau)
+                // ✅ RÉPARTITION ÉQUITABLE: Rotation entre collecteurs
+                const collectorIndex = clientsAdded % collectorsToUse.length;
+                const assignedCollector = collectorsToUse[collectorIndex];
+
+                // ✅ Créer la collecte avec le collecteur assigné
                 const collecteData = new Collecte({
                     agencyId: planningData.agencyId,
                     clientId: user._id,
-                    collectorId: planningData.collectors[0], // Premier collecteur pour cette collecte
+                    collectorId: assignedCollector, // ✅ Collecteur assigné en rotation
                     date: planningData.date,
                     status: 'Scheduled',
                     code: planning._id,
@@ -203,8 +258,10 @@ const createPlanning = async (planningData) => {
                 });
 
                 logger.debug({
-                    msg: 'Données de collecte préparées',
+                    msg: 'Données de collecte préparées avec répartition',
                     userId: user._id,
+                    assignedCollectorIndex: collectorIndex,
+                    assignedCollector: assignedCollector,
                     collecteData: {
                         agencyId: collecteData.agencyId,
                         clientId: collecteData.clientId,
@@ -457,34 +514,129 @@ const getPlanningsByCollector = async (collectorId) => {
         const finJour = new Date(new Date().setHours(23, 59, 59, 999));
         
         // Chercher dans les deux formats: ancien (collectorId) et nouveau (collectors array)
-        const planning = await Planning.find({ 
+        const plannings = await Planning.find({ 
             $or: [
                 { collectorId: collectorId },  // Ancien format
                 { collectors: collectorId }     // Nouveau format (tableau)
             ],
             date: { $gte: debutJour, $lte: finJour } 
-        }).populate('agencyId name');
+        })
+        .populate('agencyId', 'name')
+        .populate('teamId', 'name leaderId')
+        .populate('clientGroupId', 'name clients zone');
         
-        if (!planning || planning.length === 0) {
+        if (!plannings || plannings.length === 0) {
             logger.warn(`Aucun planning trouvé pour le collecteur ${collectorId}`);
             return [];
         }
         
+        // Récupérer les collectes assignées à ce collecteur aujourd'hui
         const collectes = await Collecte.find({ 
             collectorId, 
             date: { $gte: debutJour, $lte: finJour }, 
             status: 'Scheduled' 
-        });
+        }).populate('clientId', 'firstName lastName phone address');
+        
+        // Enrichir les plannings avec les informations détaillées
+        const enrichedPlannings = await Promise.all(plannings.map(async (planning) => {
+            const planningObj = planning.toObject();
+            
+            // Si le planning a un groupe de clients, récupérer le nombre de clients
+            if (planningObj.clientGroupId) {
+                const clientGroup = await ClientGroup.findById(planningObj.clientGroupId);
+                planningObj.clientGroupDetails = {
+                    _id: clientGroup._id,
+                    name: clientGroup.name,
+                    zone: clientGroup.zone,
+                    totalClients: clientGroup.clients.length
+                };
+            }
+            
+            // Compter combien de clients sont assignés à ce collecteur dans ce planning
+            const myCollectes = collectes.filter(c => 
+                c.code && c.code.toString() === planning._id.toString()
+            );
+            
+            planningObj.myClientsCount = myCollectes.length;
+            
+            return planningObj;
+        }));
         
         logger.info('Plannings du collecteur récupérés avec succès');
-        const result = { planning, collectes };
-        return result;
+        
+        return { 
+            plannings: enrichedPlannings, 
+            collectes: collectes.length,
+            totalClients: collectes.length
+        };
     } catch (error) {
         logger.error('Erreur lors de la récupération des plannings du collecteur:', error);
         throw error;
     }
 };
 
+
+/**
+ * Obtenir la liste détaillée des clients d'un collecteur pour un planning spécifique
+ */
+const getMyClientsForPlanning = async (collectorId, planningId) => {
+    try {
+        // Vérifier que le planning existe et que le collecteur y est assigné
+        const planning = await Planning.findById(planningId)
+            .populate('teamId', 'name')
+            .populate('clientGroupId', 'name zone');
+        
+        if (!planning) {
+            throw new Error('Planning non trouvé');
+        }
+        
+        // Vérifier que le collecteur fait partie de ce planning
+        const isAssigned = planning.collectors.some(
+            c => c.toString() === collectorId
+        ) || (planning.collectorId && planning.collectorId.toString() === collectorId);
+        
+        if (!isAssigned) {
+            throw new Error('Vous n\'êtes pas assigné à ce planning');
+        }
+        
+        // Récupérer les collectes de ce collecteur pour ce planning
+        const collectes = await Collecte.find({
+            collectorId,
+            code: planningId,
+            status: 'Scheduled'
+        }).populate('clientId', 'firstName lastName phone address email');
+        
+        logger.info({ 
+            msg: 'Liste des clients récupérée',
+            collectorId,
+            planningId,
+            count: collectes.length
+        });
+        
+        return {
+            planning: {
+                _id: planning._id,
+                zone: planning.zone,
+                date: planning.date,
+                startTime: planning.startTime,
+                endTime: planning.endTime,
+                team: planning.teamId,
+                clientGroup: planning.clientGroupId
+            },
+            clients: collectes.map(c => ({
+                collecteId: c._id,
+                client: c.clientId,
+                nbCollecte: c.nbCollecte,
+                type: c.type,
+                status: c.status
+            })),
+            totalClients: collectes.length
+        };
+    } catch (error) {
+        logger.error({ msg: 'Erreur récupération clients du collecteur', error: error.message });
+        throw error;
+    }
+};
 
 module.exports = {
     createPlanning,
@@ -494,5 +646,6 @@ module.exports = {
     deletePlanning,
     getAllPlannings,
     getPlanningsByAgency,
-    getPlanningsByCollector
+    getPlanningsByCollector,
+    getMyClientsForPlanning
 };

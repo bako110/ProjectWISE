@@ -1,6 +1,6 @@
 const logger = require('../utils/logger.js');
 const { notificationService } = require('../services/notification.service.js');
-const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, deletePlanning, getAllPlannings} = require('../services/planning.js');
+const {createPlanning, getPlanningsByAgency, getPlanningById, updatePlanning, deletePlanning, getAllPlannings, getMyClientsForPlanning} = require('../services/planning.js');
 
 exports.createPlanning = async (req, res) => {
     try {
@@ -182,5 +182,25 @@ exports.getPlanningsByCollector = async (req, res) => {
     } catch (error) {
         logger.error('Erreur lors de la récupération des plannings du collecteur:', error);
         res.status(500).json({ error: 'Erreur interne lors de la récupération du planning du collecteur' });
+    }
+};
+
+exports.getMyClientsForPlanning = async (req, res) => {
+    try {
+        const { collectorId, planningId } = req.params;
+
+        if (!collectorId || !planningId) {
+            return res.status(400).json({ error: 'collectorId et planningId requis' });
+        }
+
+        const result = await getMyClientsForPlanning(collectorId, planningId);
+        logger.info(`Liste des clients du collecteur ${collectorId} pour le planning ${planningId} récupérée avec succès`);
+        res.status(200).json(result);
+    } catch (error) {
+        logger.error('Erreur lors de la récupération des clients du collecteur:', error);
+        if (error.message.includes('non trouvé') || error.message.includes('pas assigné')) {
+            return res.status(404).json({ error: error.message });
+        }
+        res.status(500).json({ error: 'Erreur interne lors de la récupération des clients' });
     }
 };
