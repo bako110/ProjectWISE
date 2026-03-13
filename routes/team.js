@@ -1,7 +1,98 @@
+/**
+ * @swagger
+ * /api/teams/{teamId}/collectors:
+ *   post:
+ *     summary: Ajouter des collecteurs à une équipe
+ *     tags: [Teams]
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *         description: ID de l'équipe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               collectorIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 example: ["64f1b82a5e3d9c2b68d94b76", "64f1b82a5e3d9c2b68d94b77"]
+ *     responses:
+ *       200:
+ *         description: Collecteurs ajoutés à l'équipe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/Team'
+ *       400:
+ *         description: Données invalides
+ *       500:
+ *         description: Erreur serveur
+ *   delete:
+ *     summary: Retirer des collecteurs d'une équipe
+ *     tags: [Teams]
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *         description: ID de l'équipe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               collectorIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 example: ["64f1b82a5e3d9c2b68d94b76"]
+ *     responses:
+ *       200:
+ *         description: Collecteurs retirés de l'équipe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/Team'
+ *       400:
+ *         description: Données invalides
+ *       500:
+ *         description: Erreur serveur
+ */
+
 const express = require('express');
 const router = express.Router();
 const teamController = require('../controllers/team');
 const authMiddleware = require('../middlewares/auth');
+
+// Ajouter des collecteurs à une équipe
+router.post('/:teamId/collectors', authMiddleware(), teamController.addCollectorsToTeam);
+
+// Retirer des collecteurs d'une équipe
+router.delete('/:teamId/collectors', authMiddleware(), teamController.removeCollectorsFromTeam);
 
 /**
  * @swagger

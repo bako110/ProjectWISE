@@ -19,6 +19,46 @@ class TeamController {
         }
     }
 
+    // Ajouter des collecteurs à une équipe
+    async addCollectorsToTeam(req, res) {
+        try {
+            const { teamId } = req.params;
+            const { collectorIds } = req.body;
+            if (!Array.isArray(collectorIds) || collectorIds.length === 0) {
+                return res.status(400).json({ success: false, error: 'collectorIds doit être un tableau non vide' });
+            }
+            const team = await TeamService.addCollectorsToTeam(teamId, collectorIds);
+            res.status(200).json({
+                success: true,
+                message: 'Collecteurs ajoutés à l\'équipe',
+                data: team
+            });
+        } catch (error) {
+            logger.error({ msg: 'Erreur ajout collecteurs', error: error.message });
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    // Retirer des collecteurs d'une équipe
+    async removeCollectorsFromTeam(req, res) {
+        try {
+            const { teamId } = req.params;
+            const { collectorIds } = req.body;
+            if (!Array.isArray(collectorIds) || collectorIds.length === 0) {
+                return res.status(400).json({ success: false, error: 'collectorIds doit être un tableau non vide' });
+            }
+            const team = await TeamService.removeCollectorsFromTeam(teamId, collectorIds);
+            res.status(200).json({
+                success: true,
+                message: 'Collecteurs retirés de l\'équipe',
+                data: team
+            });
+        } catch (error) {
+            logger.error({ msg: 'Erreur retrait collecteurs', error: error.message });
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
     async getTeamsByAgency(req, res) {
         try {
             const { agencyId } = req.params;
